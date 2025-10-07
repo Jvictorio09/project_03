@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Thank You - PropertyHub{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center">
+        <!-- Success Icon -->
+        <div class="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-8">
+            <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+
+        <!-- Main Message -->
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">You're All Set!</h1>
+        <p class="text-xl text-gray-600 mb-8">
+            We've received your request and will get back to you within 24 hours.
+        </p>
+
+        {% if lead %}
+        <!-- Lead Summary -->
+        <div class="bg-orange-50 rounded-2xl p-8 mb-8 max-w-2xl mx-auto">
+            <h2 class="text-lg font-semibold text-orange-800 mb-4">Your Request Summary</h2>
+            <div class="text-left space-y-2">
+                <p><strong>Name:</strong> {{ lead.name }}</p>
+                <p><strong>Phone:</strong> {{ lead.phone }}</p>
+                {% if lead.email %}<p><strong>Email:</strong> {{ lead.email }}</p>{% endif %}
+                <p><strong>Interest:</strong> {{ lead.buy_or_rent|title }} properties</p>
+                {% if lead.budget_max %}<p><strong>Budget:</strong> Up to ₱{{ lead.budget_max|floatformat:0|add:"," }}</p>{% endif %}
+                {% if lead.beds %}<p><strong>Bedrooms:</strong> {{ lead.beds }}+</p>{% endif %}
+                {% if lead.areas %}<p><strong>Preferred Areas:</strong> {{ lead.areas }}</p>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <button class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold">
+                Add to Calendar
+            </button>
+            
+            <a href="https://wa.me/639123456789?text=Hi, I just submitted a property request and would like to discuss further" 
+               target="_blank"
+               class="inline-flex items-center justify-center bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-semibold">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 1.669 2.544 4.04 3.545.56.23 1.001.368 1.343.47.56.165 1.07.141 1.472.085.472-.066 1.454-.594 1.66-1.169.208-.576.208-1.069.144-1.169-.064-.099-.248-.149-.52-.248z"/>
+                </svg>
+                Open WhatsApp
+            </a>
+            
+            <a href="{% url 'results' %}" 
+               class="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition font-semibold">
+                Back to Results
+            </a>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="bg-gray-50 rounded-2xl p-8 max-w-2xl mx-auto">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">What Happens Next?</h2>
+            <div class="space-y-4 text-left">
+                <div class="flex items-start">
+                    <div class="w-6 h-6 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3 mt-0.5">1</div>
+                    <div>
+                        <p class="font-medium text-gray-900">We'll review your requirements</p>
+                        <p class="text-gray-600 text-sm">Our team will analyze your preferences and budget</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <div class="w-6 h-6 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3 mt-0.5">2</div>
+                    <div>
+                        <p class="font-medium text-gray-900">Personalized property recommendations</p>
+                        <p class="text-gray-600 text-sm">We'll curate a list of properties that match your criteria</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <div class="w-6 h-6 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3 mt-0.5">3</div>
+                    <div>
+                        <p class="font-medium text-gray-900">Schedule property viewings</p>
+                        <p class="text-gray-600 text-sm">We'll coordinate convenient times for you to visit properties</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="mt-12 text-center">
+            <p class="text-gray-600 mb-4">Questions? Contact us anytime</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center text-sm">
+                <a href="tel:+639123456789" class="text-orange-600 hover:text-orange-700">
+                    📞 +63 912 345 6789
+                </a>
+                <a href="mailto:info@propertyhub.com" class="text-orange-600 hover:text-orange-700">
+                    ✉️ info@propertyhub.com
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

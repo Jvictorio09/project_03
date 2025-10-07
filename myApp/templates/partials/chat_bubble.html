@@ -1,0 +1,17 @@
+{% if role == "user" %}
+<!-- User Message -->
+<div class="flex justify-end">
+    <div class="bg-orange-600 text-white rounded-2xl rounded-tr-sm p-3 max-w-xs">
+        <p class="text-sm">{{ text }}</p>
+        <p class="text-xs text-orange-100 mt-1">{{ time }}</p>
+    </div>
+</div>
+{% else %}
+<!-- Assistant Message -->
+<div class="flex justify-start">
+    <div class="bg-gray-100 rounded-2xl rounded-tl-sm p-3 max-w-xs">
+        <p class="text-sm text-gray-800">{{ text|safe }}</p>
+        <p class="text-xs text-gray-500 mt-1">{{ time }}</p>
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Book a Call - PropertyHub{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- Left Side - Info -->
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-6">Book a Call</h1>
+            
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <h2 class="text-xl font-semibold mb-4">Schedule Your Property Consultation</h2>
+                <p class="text-gray-700 mb-6">
+                    Book a free consultation with our property experts. We'll help you find the perfect property 
+                    that matches your needs and budget.
+                </p>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-gray-700">Free consultation</span>
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-gray-700">Expert property advice</span>
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-gray-700">Personalized recommendations</span>
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-gray-700">Market insights</span>
+                    </div>
+                </div>
+            </div>
+
+            {% if lead %}
+            <div class="bg-orange-50 rounded-2xl p-6 mb-8">
+                <h3 class="text-lg font-semibold text-orange-800 mb-2">Your Interest Summary</h3>
+                <p class="text-orange-700">
+                    Hi {{ lead.name }}, we'll discuss your interest in {{ lead.buy_or_rent|title }} properties
+                    {% if lead.budget_max %}with a budget up to ₱{{ lead.budget_max|floatformat:0|add:"," }}{% endif %}
+                    {% if lead.beds %}looking for {{ lead.beds }}+ bedroom{{ lead.beds|pluralize }}{% endif %}
+                    {% if lead.areas %}in {{ lead.areas }}{% endif %}.
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- WhatsApp Alternative -->
+            <div class="bg-green-50 rounded-2xl p-6">
+                <h3 class="text-lg font-semibold text-green-800 mb-2">Prefer WhatsApp?</h3>
+                <p class="text-green-700 mb-4">Get instant responses via WhatsApp</p>
+                <a href="https://wa.me/639123456789?text=Hi, I'm interested in property consultation" 
+                   target="_blank"
+                   class="inline-flex items-center bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 1.669 2.544 4.04 3.545.56.23 1.001.368 1.343.47.56.165 1.07.141 1.472.085.472-.066 1.454-.594 1.66-1.169.208-.576.208-1.069.144-1.169-.064-.099-.248-.149-.52-.248z"/>
+                    </svg>
+                    Open WhatsApp
+                </a>
+            </div>
+        </div>
+
+        <!-- Right Side - Scheduler -->
+        <div>
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-xl font-semibold mb-6">Choose Your Time</h2>
+                
+                <!-- Scheduler Placeholder -->
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <div class="text-gray-400 text-4xl mb-4">📅</div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Your Calendar Embed Goes Here</h3>
+                    <p class="text-gray-500 mb-4">
+                        This would typically be a Calendly, Acuity, or similar scheduling widget.
+                    </p>
+                    <div class="bg-gray-100 rounded-lg p-4">
+                        <p class="text-sm text-gray-600">
+                            <strong>Available Times:</strong><br>
+                            Monday - Friday: 9:00 AM - 6:00 PM<br>
+                            Saturday: 10:00 AM - 4:00 PM<br>
+                            Sunday: By appointment only
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Alternative Contact Methods -->
+                <div class="mt-8 space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span class="font-medium">Call us directly</span>
+                        </div>
+                        <a href="tel:+639123456789" class="text-orange-600 hover:text-orange-700">+63 912 345 6789</a>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="font-medium">Email us</span>
+                        </div>
+                        <a href="mailto:info@propertyhub.com" class="text-orange-600 hover:text-orange-700">info@propertyhub.com</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% load static %}{% load extras %}
+
+{% block title %}Find Your Perfect Property - PropertyHub{% endblock %}
+
+{% block content %}
+<!-- ===== Hero ===== -->
+<section class="relative isolate overflow-hidden">
+  <!-- bg image (subtle) + gradient wash -->
+  <div class="absolute inset-0 -z-10">
+    <img
+      src="https://images.unsplash.com/photo-1505692794403-34d4982b7aa7?q=80&w=1600&auto=format&fit=crop"
+      alt="" class="h-full w-full object-cover opacity-40">
+    <div class="absolute inset-0 bg-gradient-to-br from-orange-600/90 via-orange-500/80 to-rose-500/70"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 text-white">
+    <div class="text-center space-y-4 md:space-y-5">
+      <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm backdrop-blur">
+        <span class="i-lucide-sparkles w-4 h-4"></span> curated matches in seconds
+      </span>
+      <h1 class="text-4xl md:text-6xl font-bold tracking-tight">
+        Find your next home with confidence
+      </h1>
+      <p class="text-lg md:text-xl text-orange-100">
+        Discover the best places across Metro Manila—tailored to your budget and lifestyle.
+      </p>
+    </div>
+
+    <!-- AI-Powered Search Prompt -->
+    <div class="mx-auto mt-8 max-w-4xl">
+      <div class="text-center mb-4">
+        <span class="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm backdrop-blur">
+          <span class="i-lucide-sparkles w-4 h-4"></span>
+          Tell us what you're looking for
+        </span>
+      </div>
+      <div class="rounded-2xl bg-white/80 backdrop-blur shadow-2xl ring-1 ring-white/50 p-6">
+        <form method="GET" action="{% url 'results' %}" class="space-y-4">
+          <div class="relative">
+            <label for="ai-prompt" class="block text-sm font-medium text-gray-700 mb-2">
+              Describe your ideal home in your own words
+            </label>
+            <textarea 
+              id="ai-prompt"
+              name="ai_prompt"
+              rows="3"
+              placeholder="e.g., 'I need a 2-bedroom condo near BGC with a gym and pool, budget around ₱150k, pet-friendly, and close to restaurants...'"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400 resize-none"
+            ></textarea>
+            <div class="mt-2 text-xs text-gray-500">
+              💡 Be specific about location, budget, amenities, and lifestyle preferences
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div class="flex flex-wrap gap-2 text-sm">
+              <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">AI-powered matching</span>
+              <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">Personalized results</span>
+              <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">Instant recommendations</span>
+            </div>
+            <button type="submit"
+                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-3 font-semibold shadow-lg hover:bg-orange-700 active:scale-[.99] transition">
+              <span class="i-lucide-sparkles w-4 h-4"></span>
+              Find My Perfect Home
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Traditional Search -->
+    <div class="mx-auto mt-12 max-w-5xl">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center gap-2 text-orange-100 text-sm">
+          <span class="h-px bg-orange-200/50 flex-1 w-16"></span>
+          <span>or use traditional filters</span>
+          <span class="h-px bg-orange-200/50 flex-1 w-16"></span>
+        </div>
+      </div>
+      <form method="GET" action="{% url 'results' %}">
+        <div class="rounded-2xl bg-white/70 backdrop-blur shadow-2xl ring-1 ring-white/50 p-4 md:p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <!-- Query -->
+          <label class="relative block">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔎</span>
+            <input type="text" name="q"
+                   placeholder="City, landmark, or property type"
+                   class="w-full pl-9 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400">
+          </label>
+          <!-- City -->
+          <select name="city"
+                  class="w-full px-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 text-gray-700">
+            <option value="">Any City</option>
+            <option value="Taguig">Taguig / BGC</option>
+            <option value="Makati">Makati</option>
+            <option value="Pasig">Pasig</option>
+            <option value="Quezon City">Quezon City</option>
+          </select>
+          <!-- Beds -->
+          <select name="beds"
+                  class="w-full px-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 text-gray-700">
+            <option value="">Any Beds</option>
+            <option value="1">1+ Bed</option>
+            <option value="2">2+ Beds</option>
+            <option value="3">3+ Beds</option>
+            <option value="4">4+ Beds</option>
+          </select>
+          <!-- Price -->
+          <select name="price_max"
+                  class="w-full px-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 text-gray-700">
+            <option value="">Any Price</option>
+            <option value="50000">Under ₱50k</option>
+            <option value="100000">Under ₱100k</option>
+            <option value="200000">Under ₱200k</option>
+            <option value="500000">Under ₱500k</option>
+          </select>
+        </div>
+
+        <div class="mt-4 grid gap-3 sm:flex sm:items-center sm:justify-between">
+          <div class="flex flex-wrap gap-2 text-sm">
+            <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">Verified listings</span>
+            <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">No spam. Ever.</span>
+            <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">WhatsApp follow-up</span>
+          </div>
+          <button type="submit"
+                  class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-3 font-semibold shadow-lg hover:bg-orange-700 active:scale-[.99] transition">
+            Search Properties
+          </button>
+        </div>
+      </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Top Picks ===== -->
+<section class="py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-end justify-between mb-6">
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Top Picks</h2>
+      <a href="{% url 'results' %}" class="text-sm font-medium text-orange-700 hover:text-orange-800">
+        View all →
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for property in top_picks %}
+      <article class="group bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 hover:shadow-xl hover:ring-gray-200 transition overflow-hidden">
+        <div class="relative aspect-[16/10]">
+          <img src="{{ property.hero_image|default:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200' }}"
+               alt="{{ property.title }}"
+               class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" loading="lazy" decoding="async">
+          {% if property.badges %}
+          <div class="absolute left-3 top-3 flex gap-2">
+            {% for badge in property.badges|splitcsv %}
+              {% if badge %}
+              <span class="rounded-full bg-white/90 backdrop-blur px-2.5 py-1 text-[11px] font-semibold text-gray-800 ring-1 ring-gray-200">
+                {{ badge|strip }}
+              </span>
+              {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="p-5">
+          <h3 class="line-clamp-1 text-lg font-semibold text-gray-900">{{ property.title }}</h3>
+
+          <div class="mt-1 flex items-center gap-2 text-sm text-gray-600">
+            <span>{{ property.city }}{% if property.area %}, {{ property.area }}{% endif %}</span>
+          </div>
+
+          <div class="mt-3 flex items-center justify-between">
+            <div class="text-2xl font-bold text-orange-700">{{ property.price_amount|peso }}</div>
+            <div class="text-sm text-gray-600">
+              {{ property.beds }} bed{{ property.beds|pluralize }} •
+              {{ property.baths }} bath{{ property.baths|pluralize }}
+              {% if property.floor_area_sqm %}• {{ property.floor_area_sqm }} sqm{% endif %}
+            </div>
+          </div>
+
+          <a href="{% url 'property_detail' property.slug %}"
+             class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 text-white py-2.5 font-medium hover:bg-gray-800 transition">
+            View details
+          </a>
+        </div>
+      </article>
+      {% empty %}
+        <div class="col-span-full rounded-2xl border border-dashed p-10 text-center text-gray-600">
+          No featured properties yet. Check back tomorrow 👀
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ===== Popular Areas ===== -->
+<section class="py-16 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Popular Areas</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {% for item in "Taguig|Makati|Pasig|Quezon City"|split:"|" %}
+      <a href="{% url 'results' %}?city={{ item|urlencode }}"
+         class="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 hover:shadow-lg transition">
+        <div class="flex flex-col items-center text-center">
+          <h3 class="font-semibold text-gray-900">{{ item }}</h3>
+          <p class="text-gray-600 text-sm">
+            {% if item == "Taguig" %}BGC & Uptown{% elif item == "Makati" %}CBD & Rockwell{% elif item == "Pasig" %}Ortigas Center{% else %}Diliman & Katipunan{% endif %}
+          </p>
+        </div>
+        <span class="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-orange-500 to-rose-500 opacity-0 group-hover:opacity-100 transition"></span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

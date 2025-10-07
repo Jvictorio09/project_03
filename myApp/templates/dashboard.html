@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% load static %}{% load extras %}
+
+{% block title %}Listings Dashboard - PropertyHub{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Listings Dashboard</h1>
+        <p class="text-gray-600 mt-2">{{ total_count }} properties found</p>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <form method="get" class="flex flex-col lg:flex-row gap-4">
+            <div class="flex-1">
+                <input type="text" name="q" value="{{ current_filters.q }}" 
+                       placeholder="Search title, city, area..." 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+            </div>
+            
+            <div class="flex gap-4">
+                <select name="city" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                    <option value="">All Cities</option>
+                    {% for city in cities %}
+                    <option value="{{ city }}" {% if current_filters.city == city %}selected{% endif %}>{{ city }}</option>
+                    {% endfor %}
+                </select>
+                
+                <select name="sort" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                    <option value="new" {% if current_filters.sort == "new" %}selected{% endif %}>Newest</option>
+                    <option value="price_asc" {% if current_filters.sort == "price_asc" %}selected{% endif %}>Price ↑</option>
+                    <option value="price_desc" {% if current_filters.sort == "price_desc" %}selected{% endif %}>Price ↓</option>
+                    <option value="beds_desc" {% if current_filters.sort == "beds_desc" %}selected{% endif %}>Beds ↓</option>
+                </select>
+                
+                <button type="submit" class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition">
+                    Search
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results -->
+    {% if properties %}
+    <!-- Desktop Table -->
+    <div class="hidden lg:block bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Property</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specs</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Badges</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for property in properties %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <div class="w-16 h-12 rounded-lg overflow-hidden mr-4">
+                                    <img src="{{ property.hero_image|default:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=200' }}" 
+                                         alt="{{ property.title }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ property.title }}</div>
+                                    <div class="text-sm text-gray-500">{{ property.affiliate_source|default:"Direct" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ property.city }}</div>
+                            {% if property.area %}<div class="text-sm text-gray-500">{{ property.area }}</div>{% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ property.beds }} bed{{ property.beds|pluralize }} / {{ property.baths }} bath{{ property.baths|pluralize }}</div>
+                            {% if property.floor_area_sqm %}<div class="text-sm text-gray-500">{{ property.floor_area_sqm }} sqm</div>{% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-orange-600">₱{{ property.price_amount|floatformat:0|add:"," }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-wrap gap-1">
+                                {% for badge in property.badges|splitcsv %}
+                                {% if badge %}
+                                <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">{{ badge|strip }}</span>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{ property.created_at|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex gap-2">
+                                <a href="{% url 'property_detail' property.slug %}" 
+                                   class="text-orange-600 hover:text-orange-700 text-sm font-medium">
+                                    Open
+                                </a>
+                                <button onclick="copyToClipboard('{{ request.build_absolute_uri }}{% url 'property_detail' property.slug %}')" 
+                                        class="text-gray-600 hover:text-gray-700 text-sm">
+                                    Copy link
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="lg:hidden space-y-4">
+        {% for property in properties %}
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="flex">
+                <div class="w-24 h-20 flex-shrink-0">
+                    <img src="{{ property.hero_image|default:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=200' }}" 
+                         alt="{{ property.title }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
+                </div>
+                <div class="flex-1 p-4">
+                    <h3 class="font-semibold text-gray-900 text-sm">{{ property.title }}</h3>
+                    <p class="text-orange-600 font-bold">₱{{ property.price_amount|floatformat:0|add:"," }}</p>
+                    <p class="text-gray-600 text-xs">{{ property.city }}{% if property.area %}, {{ property.area }}{% endif %}</p>
+                    <p class="text-gray-500 text-xs">{{ property.beds }} bed{{ property.beds|pluralize }} / {{ property.baths }} bath{{ property.baths|pluralize }}</p>
+                    <div class="flex gap-2 mt-2">
+                        <a href="{% url 'property_detail' property.slug %}" 
+                           class="text-orange-600 hover:text-orange-700 text-xs font-medium">
+                            Open
+                        </a>
+                        <button onclick="copyToClipboard('{{ request.build_absolute_uri }}{% url 'property_detail' property.slug %}')" 
+                                class="text-gray-600 hover:text-gray-700 text-xs">
+                            Copy link
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if properties.has_other_pages %}
+    <div class="mt-8 flex justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if properties.has_previous %}
+            <a href="?page={{ properties.previous_page_number }}{% if current_filters.q %}&q={{ current_filters.q }}{% endif %}{% if current_filters.city %}&city={{ current_filters.city }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}" 
+               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                Previous
+            </a>
+            {% endif %}
+            
+            {% for num in properties.paginator.page_range %}
+            {% if num == properties.number %}
+            <span class="px-3 py-2 text-sm font-medium text-white bg-orange-600 border border-orange-600 rounded-lg">{{ num }}</span>
+            {% elif num > properties.number|add:'-3' and num < properties.number|add:'3' %}
+            <a href="?page={{ num }}{% if current_filters.q %}&q={{ current_filters.q }}{% endif %}{% if current_filters.city %}&city={{ current_filters.city }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}" 
+               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                {{ num }}
+            </a>
+            {% endif %}
+            {% endfor %}
+            
+            {% if properties.has_next %}
+            <a href="?page={{ properties.next_page_number }}{% if current_filters.q %}&q={{ current_filters.q }}{% endif %}{% if current_filters.city %}&city={{ current_filters.city }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}" 
+               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                Next
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-16">
+        <div class="text-gray-400 text-6xl mb-4">🏠</div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No properties found</h3>
+        <p class="text-gray-600 mb-6">Try adjusting your search criteria</p>
+        <a href="{% url 'dashboard' %}" class="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition">
+            Clear Filters
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show a brief notification
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        notification.textContent = 'Link copied!';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}

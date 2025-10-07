@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}{% load extras %}
+
+{% block title %}{{ property.title }} - PropertyHub{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Property Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ property.title }}</h1>
+        <p class="text-2xl font-bold text-orange-600 mb-4">₱{{ property.price_amount|floatformat:0|add:"," }}</p>
+        <p class="text-gray-600">{{ property.city }}{% if property.area %}, {{ property.area }}{% endif %}</p>
+    </div>
+
+    <!-- Gallery -->
+    <div class="mb-8">
+        <div class="aspect-[16/10] rounded-2xl overflow-hidden">
+            <img src="{{ property.hero_image|default:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200' }}" 
+                 alt="{{ property.title }}" class="w-full h-full object-cover">
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            <!-- Property Specs -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-4">Property Details</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600">{{ property.beds }}</div>
+                        <div class="text-sm text-gray-600">Bedroom{{ property.beds|pluralize }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600">{{ property.baths }}</div>
+                        <div class="text-sm text-gray-600">Bathroom{{ property.baths|pluralize }}</div>
+                    </div>
+                    {% if property.floor_area_sqm %}
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600">{{ property.floor_area_sqm }}</div>
+                        <div class="text-sm text-gray-600">Sq Meters</div>
+                    </div>
+                    {% endif %}
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600">{% if property.parking %}Yes{% else %}No{% endif %}</div>
+                        <div class="text-sm text-gray-600">Parking</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            {% if property.description %}
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-4">Description</h2>
+                <p class="text-gray-700 leading-relaxed">{{ property.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- FAQ Accordion -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Frequently Asked Questions</h2>
+                <div x-data="{ open: null }" class="space-y-4">
+                    <div>
+                        <button x-on:click="open = open === 1 ? null : 1" 
+                                class="w-full text-left flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <span class="font-medium">What's included in the rent?</span>
+                            <svg class="w-5 h-5 transform transition-transform" 
+                                 :class="{ 'rotate-180': open === 1 }" 
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 1" x-transition class="p-4 text-gray-700">
+                            Basic utilities and maintenance are typically included. Please contact us for specific details about this property.
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <button x-on:click="open = open === 2 ? null : 2" 
+                                class="w-full text-left flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <span class="font-medium">Is parking available?</span>
+                            <svg class="w-5 h-5 transform transition-transform" 
+                                 :class="{ 'rotate-180': open === 2 }" 
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 2" x-transition class="p-4 text-gray-700">
+                            {% if property.parking %}Yes, parking is available for this property.{% else %}No, parking is not available for this property.{% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <button x-on:click="open = open === 3 ? null : 3" 
+                                class="w-full text-left flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <span class="font-medium">How do I schedule a viewing?</span>
+                            <svg class="w-5 h-5 transform transition-transform" 
+                                 :class="{ 'rotate-180': open === 3 }" 
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 3" x-transition class="p-4 text-gray-700">
+                            You can schedule a viewing by clicking the "Book a Call" button or contacting us directly through WhatsApp.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <!-- CTA Card -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 sticky top-8">
+                <h3 class="text-lg font-semibold mb-4">Interested in this property?</h3>
+                <button onclick="openLeadForm('{{ property.id }}')" 
+                        class="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-700 transition mb-4">
+                    Ask About This Property
+                </button>
+                <a href="{% url 'book' %}" 
+                   class="block w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition text-center">
+                    Book a Call
+                </a>
+            </div>
+
+            <!-- Badges -->
+            {% if property.badges %}
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Features</h3>
+                <div class="flex flex-wrap gap-2">
+                    {% for badge in property.badges|split:"," %}
+                    {% if badge %}
+                    <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">{{ badge|strip }}</span>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Why This Matches Section -->
+{% if property.badges %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Why This Matches</h2>
+        <div class="flex flex-wrap gap-2">
+            {% for badge in property.badges|splitcsv %}
+            {% if badge %}
+            <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">{{ badge|strip }}</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Chat Widget -->
+{% include "partials/chat_widget.html" %}
+
+<script>
+function openLeadForm(propertyId) {
+    // This would open a modal with the lead form
+    // For now, redirect to book page with property interest
+    window.location.href = `{% url 'book' %}?interest=${propertyId}`;
+}
+</script>
+{% endblock %}

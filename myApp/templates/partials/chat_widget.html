@@ -1,0 +1,141 @@
+{% load static %}
+
+<!-- Chat Widget -->
+<div x-data="{ open: false }" class="fixed bottom-6 right-6 z-50">
+    <!-- Chat FAB Button -->
+    <button x-on:click="open = true; $dispatch('chat_open')" 
+            class="bg-orange-600 text-white p-4 rounded-full shadow-lg hover:bg-orange-700 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+    </button>
+
+    <!-- Chat Bottom Sheet -->
+    <div x-show="open" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         class="absolute bottom-20 right-0 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border max-h-[70vh] flex flex-col">
+        
+        <!-- Header -->
+        <div class="p-4 border-b bg-gray-50 rounded-t-2xl">
+            <div class="flex justify-between items-center">
+                <h3 class="font-semibold text-gray-900">Ask about {{ property.title }}</h3>
+                <button x-on:click="open = false" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Chat Messages -->
+        <div id="chat-stream" class="flex-1 overflow-y-auto p-4 space-y-3">
+            <!-- Initial assistant message -->
+            <div class="flex justify-start">
+                <div class="bg-gray-100 rounded-2xl rounded-tl-sm p-3 max-w-xs">
+                    <p class="text-sm text-gray-800">Hi! Ask me anything about this place.</p>
+                    <p class="text-xs text-gray-500 mt-1">now</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Prompt Chips -->
+        <div class="px-4 pb-2">
+            <div class="flex flex-wrap gap-2">
+                <button onclick="askQuestion('What\'s the monthly rent?')" 
+                        class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs hover:bg-orange-200 transition">
+                    Total monthly cost
+                </button>
+                <button onclick="askQuestion('How many bedrooms?')" 
+                        class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs hover:bg-orange-200 transition">
+                    Beds & Baths
+                </button>
+                <button onclick="askQuestion('Where is this located?')" 
+                        class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs hover:bg-orange-200 transition">
+                    Neighborhood
+                </button>
+                <button onclick="askQuestion('Is parking available?')" 
+                        class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs hover:bg-orange-200 transition">
+                    Parking
+                </button>
+                <button onclick="askQuestion('Is this available now?')" 
+                        class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs hover:bg-orange-200 transition">
+                    Availability
+                </button>
+            </div>
+        </div>
+        
+        <!-- Message Composer -->
+        <div class="p-4 border-t bg-gray-50 rounded-b-2xl">
+            <form hx-post="{% url 'property_chat' property.slug %}" 
+                  hx-target="#chat-stream" 
+                  hx-swap="beforeend"
+                  class="flex gap-2">
+                {% csrf_token %}
+                <input type="text" name="message" placeholder="Ask anything..." 
+                       class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                       required>
+                <button type="submit" 
+                        class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition text-sm"
+                        onclick="addUserMessage(this)">
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function askQuestion(question) {
+    const messageInput = document.querySelector('input[name="message"]');
+    messageInput.value = question;
+    messageInput.focus();
+}
+
+function addUserMessage(button) {
+    const form = button.closest('form');
+    const messageInput = form.querySelector('input[name="message"]');
+    const message = messageInput.value.trim();
+    
+    if (message) {
+        // Add user message immediately for instant UX
+        const chatStream = document.getElementById('chat-stream');
+        const userBubble = document.createElement('div');
+        userBubble.className = 'flex justify-end';
+        userBubble.innerHTML = `
+            <div class="bg-orange-600 text-white rounded-2xl rounded-tr-sm p-3 max-w-xs">
+                <p class="text-sm">${message}</p>
+                <p class="text-xs text-orange-100 mt-1">now</p>
+            </div>
+        `;
+        chatStream.appendChild(userBubble);
+        
+        // Clear input
+        messageInput.value = '';
+        
+        // Dispatch analytics event
+        if (window.dataLayer) {
+            window.dataLayer.push({
+                'event': 'chat_message',
+                'property_slug': '{{ property.slug }}',
+                'message_type': 'user'
+            });
+        }
+        
+        // Scroll to bottom
+        chatStream.scrollTop = chatStream.scrollHeight;
+    }
+}
+
+// Auto-scroll to bottom when new messages are added
+document.addEventListener('htmx:afterRequest', function(event) {
+    if (event.detail.target.id === 'chat-stream') {
+        const chatStream = document.getElementById('chat-stream');
+        chatStream.scrollTop = chatStream.scrollHeight;
+    }
+});
+</script>

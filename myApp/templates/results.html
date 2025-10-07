@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% load static %}{% load extras %}
+
+{% block title %}Search Results - PropertyHub{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Filters Sidebar (Desktop) -->
+        <div class="hidden lg:block w-80 flex-shrink-0">
+            <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
+                <h3 class="text-lg font-semibold mb-4">Filters</h3>
+                
+                <form method="GET" action="{% url 'results' %}" id="filter-form">
+                    <input type="hidden" name="q" value="{{ request.GET.q }}">
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+                        <select name="buy_or_rent" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="">Any Type</option>
+                            <option value="rent">For Rent</option>
+                            <option value="buy">For Sale</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Max Price</label>
+                        <select name="price_max" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="">Any Price</option>
+                            <option value="50000" {% if request.GET.price_max == "50000" %}selected{% endif %}>Under ₱50k</option>
+                            <option value="100000" {% if request.GET.price_max == "100000" %}selected{% endif %}>Under ₱100k</option>
+                            <option value="200000" {% if request.GET.price_max == "200000" %}selected{% endif %}>Under ₱200k</option>
+                            <option value="500000" {% if request.GET.price_max == "500000" %}selected{% endif %}>Under ₱500k</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bedrooms</label>
+                        <select name="beds" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="">Any Beds</option>
+                            <option value="1" {% if request.GET.beds == "1" %}selected{% endif %}>1+ Bed</option>
+                            <option value="2" {% if request.GET.beds == "2" %}selected{% endif %}>2+ Beds</option>
+                            <option value="3" {% if request.GET.beds == "3" %}selected{% endif %}>3+ Beds</option>
+                            <option value="4" {% if request.GET.beds == "4" %}selected{% endif %}>4+ Beds</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                        <select name="city" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="">Any City</option>
+                            <option value="Taguig" {% if request.GET.city == "Taguig" %}selected{% endif %}>Taguig/BGC</option>
+                            <option value="Makati" {% if request.GET.city == "Makati" %}selected{% endif %}>Makati</option>
+                            <option value="Pasig" {% if request.GET.city == "Pasig" %}selected{% endif %}>Pasig</option>
+                            <option value="Quezon City" {% if request.GET.city == "Quezon City" %}selected{% endif %}>Quezon City</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition">
+                        Apply Filters
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="flex-1">
+            <!-- Results Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Search Results</h1>
+                    <p class="text-gray-600">{{ count }} matches found</p>
+                </div>
+                <button class="lg:hidden bg-orange-600 text-white px-4 py-2 rounded-lg mt-4 sm:mt-0" 
+                        x-data x-on:click="$dispatch('open-filters')">
+                    Refine Search
+                </button>
+            </div>
+
+            <!-- Results Grid -->
+            {% if properties %}
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {% for property in properties %}
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition overflow-hidden">
+                    <div class="aspect-[16/10] overflow-hidden">
+                        <img src="{{ property.hero_image|default:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800' }}" 
+                             alt="{{ property.title }}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ property.title }}</h3>
+                        <p class="text-orange-600 font-bold text-2xl mb-2">₱{{ property.price_amount|floatformat:0|add:"," }}</p>
+                        <div class="flex items-center text-gray-600 text-sm mb-3">
+                            <span class="mr-4">{{ property.beds }} bed{{ property.beds|pluralize }}</span>
+                            <span class="mr-4">{{ property.baths }} bath{{ property.baths|pluralize }}</span>
+                            {% if property.floor_area_sqm %}<span>{{ property.floor_area_sqm }} sqm</span>{% endif %}
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4">{{ property.city }}{% if property.area %}, {{ property.area }}{% endif %}</p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            {% for badge in property.badges|split:"," %}
+                            {% if badge %}
+                            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">{{ badge|strip }}</span>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{% url 'property_detail' property.slug %}" 
+                               class="flex-1 bg-orange-600 text-white text-center py-2 rounded-lg hover:bg-orange-700 transition">
+                                View Details
+                            </a>
+                            <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+                                    onclick="addToShortlist('{{ property.id }}')">
+                                Ask About
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-16">
+                <div class="text-gray-400 text-6xl mb-4">🏠</div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No properties found</h3>
+                <p class="text-gray-600 mb-6">Try adjusting your search criteria</p>
+                <a href="{% url 'home' %}" class="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition">
+                    Start New Search
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Filter Drawer -->
+<div x-data="{ open: false }" 
+     x-on:open-filters.window="open = true"
+     x-on:close-filters.window="open = false"
+     class="lg:hidden">
+    <div x-show="open" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50"
+         x-on:click="open = false">
+    </div>
+    
+    <div x-show="open"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="transform translate-x-full"
+         x-transition:enter-end="transform translate-x-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="transform translate-x-0"
+         x-transition:leave-end="transform translate-x-full"
+         class="fixed right-0 top-0 h-full w-80 bg-white shadow-xl z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold">Filters</h3>
+                <button x-on:click="open = false" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form method="GET" action="{% url 'results' %}">
+                <input type="hidden" name="q" value="{{ request.GET.q }}">
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+                    <select name="buy_or_rent" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Any Type</option>
+                        <option value="rent">For Rent</option>
+                        <option value="buy">For Sale</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Max Price</label>
+                    <select name="price_max" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Any Price</option>
+                        <option value="50000">Under ₱50k</option>
+                        <option value="100000">Under ₱100k</option>
+                        <option value="200000">Under ₱200k</option>
+                        <option value="500000">Under ₱500k</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Bedrooms</label>
+                    <select name="beds" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Any Beds</option>
+                        <option value="1">1+ Bed</option>
+                        <option value="2">2+ Beds</option>
+                        <option value="3">3+ Beds</option>
+                        <option value="4">4+ Beds</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                    <select name="city" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Any City</option>
+                        <option value="Taguig">Taguig/BGC</option>
+                        <option value="Makati">Makati</option>
+                        <option value="Pasig">Pasig</option>
+                        <option value="Quezon City">Quezon City</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="w-full bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition">
+                    Apply Filters
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Sticky Bottom Bar (Mobile) -->
+<div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+    <div class="flex gap-2">
+        <button class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium"
+                x-on:click="$dispatch('open-filters')">
+            Refine
+        </button>
+        <button class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium">
+            Save Search
+        </button>
+        <button class="flex-1 bg-orange-600 text-white py-3 rounded-lg font-medium">
+            Lead
+        </button>
+    </div>
+</div>
+{% endblock %}
