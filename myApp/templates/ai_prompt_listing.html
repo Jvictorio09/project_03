@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI-Powered Property Listing - Real Estate OS{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header with Techy Animation -->
+        <div class="text-center mb-8">
+            <div class="relative inline-flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 animate-pulse"></div>
+                    <svg class="w-8 h-8 text-white relative z-10 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        AI-Powered Property Listing
+                    </h1>
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-green-600 text-sm font-medium">GPT-4 Neural Network Active</span>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
+                Upload your property description and photo. Our advanced AI will extract details, enhance descriptions, and generate a professional listing with market insights.
+            </p>
+            <div class="inline-flex items-center gap-4 px-6 py-3 bg-gray-900 text-white rounded-xl">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-sm">NLP Processing</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                    <span class="text-sm">Cloudinary CDN</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                    <span class="text-sm">SEO Optimization</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-2xl shadow-lg p-8">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Property Description -->
+                <div>
+                    <label for="property_description" class="block text-lg font-semibold text-gray-900 mb-3">
+                        Property Description *
+                    </label>
+                    <textarea 
+                        id="property_description" 
+                        name="property_description" 
+                        rows="12" 
+                        class="w-full px-4 py-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="Paste your property description here... 
+
+Example:
+'Beautiful 3-bedroom, 2-bathroom house in downtown Los Angeles. Recently renovated with modern kitchen, hardwood floors, and a private backyard. Located near schools and shopping centers. Asking $850,000. Contact for more details.'"
+                        required
+                    ></textarea>
+                    <p class="text-sm text-gray-500 mt-2">
+                        💡 Tip: Include as much detail as possible - price, location, features, amenities, etc.
+                    </p>
+                </div>
+
+                <!-- Property Photo -->
+                <div>
+                    <label for="hero_image" class="block text-lg font-semibold text-gray-900 mb-3">
+                        Property Photo (Optional)
+                        <span class="text-sm text-gray-500 font-normal">- AI can generate placeholder if not provided</span>
+                    </label>
+                    <label for="hero_image" class="cursor-pointer block">
+                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors">
+                            <div class="space-y-4">
+                                <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="text-blue-600 font-medium">Upload a file</span>
+                                    <span class="text-gray-500">or drag and drop</span>
+                                </div>
+                                <p class="text-sm text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                            </div>
+                        </div>
+                        <input 
+                            type="file" 
+                            id="hero_image" 
+                            name="hero_image" 
+                            accept="image/*" 
+                            class="hidden"
+                            onchange="console.log('File input changed:', this.files[0])"
+                        >
+                    </label>
+                </div>
+
+                <!-- Additional Information (Optional) -->
+                <div>
+                    <label for="additional_info" class="block text-lg font-semibold text-gray-900 mb-3">
+                        Additional Information (Optional)
+                    </label>
+                    <textarea 
+                        id="additional_info" 
+                        name="additional_info" 
+                        rows="4" 
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Any additional details, special features, or context you'd like to include..."
+                    ></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-6">
+                    <button 
+                        type="submit" 
+                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center space-x-3 relative overflow-hidden group"
+                    >
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <svg class="w-6 h-6 relative z-10 group-hover:animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                        <span class="relative z-10">Initialize AI Processing</span>
+                        <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 group-hover:animate-pulse"></div>
+                    </button>
+                    <p class="text-center text-sm text-gray-500 mt-3">
+                        🤖 GPT-4 will analyze your input and generate a professional listing preview
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- AI Processing Pipeline -->
+        <div class="mt-12">
+            <h3 class="text-2xl font-bold text-gray-900 text-center mb-8">AI Processing Pipeline</h3>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="text-center group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <svg class="w-8 h-8 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Data Ingestion</h4>
+                    <p class="text-gray-600 text-sm">Upload description & photo to Cloudinary CDN</p>
+                    <div class="mt-2 text-xs text-blue-600 font-mono">→ NLP Tokenization</div>
+                </div>
+                <div class="text-center group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <svg class="w-8 h-8 text-white relative z-10 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">GPT-4 Analysis</h4>
+                    <p class="text-gray-600 text-sm">Neural network extracts & enhances property data</p>
+                    <div class="mt-2 text-xs text-purple-600 font-mono">→ Feature Extraction</div>
+                </div>
+                <div class="text-center group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-r from-green-400 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <svg class="w-8 h-8 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Preview & Edit</h4>
+                    <p class="text-gray-600 text-sm">Review AI-generated listing with confidence scores</p>
+                    <div class="mt-2 text-xs text-green-600 font-mono">→ Final Validation</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// File upload handling with debugging
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('hero_image');
+    const form = document.querySelector('form');
+    
+    console.log('🔍 File input found:', fileInput);
+    console.log('🔍 Form found:', form);
+    
+    fileInput.addEventListener('change', function(e) {
+        console.log('📁 File input changed:', e.target.files);
+        const file = e.target.files[0];
+        if (file) {
+            console.log('✅ File selected:', file.name, file.size, file.type);
+            const fileName = file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name;
+            const uploadArea = document.querySelector('.border-dashed');
+            uploadArea.innerHTML = `
+                <div class="space-y-2">
+                    <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <p class="text-green-600 font-medium">${fileName}</p>
+                    <p class="text-sm text-gray-500">Click to change</p>
+                </div>
+            `;
+            uploadArea.classList.remove('border-gray-300');
+            uploadArea.classList.add('border-green-400', 'bg-green-50');
+        } else {
+            console.log('❌ No file selected');
+        }
+    });
+    
+    // Debug form submission
+    form.addEventListener('submit', function(e) {
+        console.log('🚀 Form submitting...');
+        const formData = new FormData(form);
+        console.log('📋 FormData entries:');
+        for (let [key, value] of formData.entries()) {
+            if (value instanceof File) {
+                console.log(`  ${key}:`, value.name, value.size, value.type);
+            } else {
+                console.log(`  ${key}:`, value);
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

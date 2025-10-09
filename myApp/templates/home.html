@@ -23,7 +23,7 @@
         Find your next home with confidence
       </h1>
       <p class="text-lg md:text-xl text-orange-100">
-        Discover the best places across Metro Manila—tailored to your budget and lifestyle.
+        Discover the best places across major US cities—tailored to your budget and lifestyle.
       </p>
     </div>
 
@@ -36,7 +36,14 @@
         </span>
       </div>
       <div class="rounded-2xl bg-white/80 backdrop-blur shadow-2xl ring-1 ring-white/50 p-6">
-        <form method="GET" action="{% url 'results' %}" class="space-y-4">
+        <!-- HTMX-Powered AI Search Form -->
+        <form id="ai-search-form"
+              hx-post="{% url 'ai_prompt_search' %}"
+              hx-target="#ai-search-results"
+              hx-swap="innerHTML"
+              hx-indicator="#ai-search-loading"
+              class="space-y-4">
+          {% csrf_token %}
           <div class="relative">
             <label for="ai-prompt" class="block text-sm font-medium text-gray-700 mb-2">
               Describe your ideal home in your own words
@@ -45,8 +52,9 @@
               id="ai-prompt"
               name="ai_prompt"
               rows="3"
-              placeholder="e.g., 'I need a 2-bedroom condo near BGC with a gym and pool, budget around ₱150k, pet-friendly, and close to restaurants...'"
-              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400 resize-none"
+              placeholder="e.g., 'I need a 2-bedroom condo in downtown LA with a gym and pool, budget around $3,500/month, pet-friendly, and close to restaurants...'"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-400 resize-none text-gray-900"
+              required
             ></textarea>
             <div class="mt-2 text-xs text-gray-500">
               💡 Be specific about location, budget, amenities, and lifestyle preferences
@@ -54,19 +62,60 @@
           </div>
           <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
             <div class="flex flex-wrap gap-2 text-sm">
-              <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">AI-powered matching</span>
-              <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">Personalized results</span>
-              <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">Instant recommendations</span>
+              <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">🤖 AI-powered matching</span>
+              <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">🔗 Smart integration</span>
+              <span class="rounded-full bg-orange-50 text-orange-700 px-3 py-1">⚡ Instant results</span>
             </div>
             <button type="submit"
-                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-3 font-semibold shadow-lg hover:bg-orange-700 active:scale-[.99] transition">
+                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-3 font-semibold text-white shadow-lg hover:bg-orange-700 active:scale-[.99] transition">
               <span class="i-lucide-sparkles w-4 h-4"></span>
               Find My Perfect Home
             </button>
           </div>
         </form>
+        
+        <!-- Loading Indicator -->
+        <div id="ai-search-loading" class="htmx-indicator mt-4">
+          <div class="flex items-center justify-center gap-3 p-4 bg-orange-50 rounded-xl">
+            <svg class="animate-spin h-5 w-5 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-orange-700 font-medium">💫 Working on your matches…</span>
+          </div>
+        </div>
+        
+        <!-- Results Container -->
+        <div id="ai-search-results"></div>
       </div>
     </div>
+
+    <!-- Preserve Textarea Content Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('ai-search-form');
+            const textarea = document.getElementById('ai-prompt');
+            
+            // Store textarea value before HTMX request
+            form.addEventListener('htmx:beforeRequest', function() {
+                localStorage.setItem('ai-prompt-value', textarea.value);
+            });
+            
+            // Restore textarea value after HTMX request
+            form.addEventListener('htmx:afterRequest', function() {
+                const savedValue = localStorage.getItem('ai-prompt-value');
+                if (savedValue) {
+                    textarea.value = savedValue;
+                }
+            });
+            
+            // Also restore on page load
+            const savedValue = localStorage.getItem('ai-prompt-value');
+            if (savedValue && !textarea.value) {
+                textarea.value = savedValue;
+            }
+        });
+    </script>
 
     <!-- Traditional Search -->
     <div class="mx-auto mt-12 max-w-5xl">
@@ -91,10 +140,10 @@
           <select name="city"
                   class="w-full px-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 text-gray-700">
             <option value="">Any City</option>
-            <option value="Taguig">Taguig / BGC</option>
-            <option value="Makati">Makati</option>
-            <option value="Pasig">Pasig</option>
-            <option value="Quezon City">Quezon City</option>
+            <option value="Los Angeles">Los Angeles</option>
+            <option value="New York">New York</option>
+            <option value="Chicago">Chicago</option>
+            <option value="Miami">Miami</option>
           </select>
           <!-- Beds -->
           <select name="beds"
@@ -109,10 +158,10 @@
           <select name="price_max"
                   class="w-full px-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 text-gray-700">
             <option value="">Any Price</option>
-            <option value="50000">Under ₱50k</option>
-            <option value="100000">Under ₱100k</option>
-            <option value="200000">Under ₱200k</option>
-            <option value="500000">Under ₱500k</option>
+            <option value="2000">Under $2,000</option>
+            <option value="3000">Under $3,000</option>
+            <option value="5000">Under $5,000</option>
+            <option value="8000">Under $8,000</option>
           </select>
         </div>
 
@@ -199,13 +248,13 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Popular Areas</h2>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {% for item in "Taguig|Makati|Pasig|Quezon City"|split:"|" %}
+      {% for item in "Los Angeles|New York|Chicago|Miami"|split:"|" %}
       <a href="{% url 'results' %}?city={{ item|urlencode }}"
          class="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 hover:shadow-lg transition">
         <div class="flex flex-col items-center text-center">
           <h3 class="font-semibold text-gray-900">{{ item }}</h3>
           <p class="text-gray-600 text-sm">
-            {% if item == "Taguig" %}BGC & Uptown{% elif item == "Makati" %}CBD & Rockwell{% elif item == "Pasig" %}Ortigas Center{% else %}Diliman & Katipunan{% endif %}
+            {% if item == "Los Angeles" %}Downtown & Hollywood{% elif item == "New York" %}Manhattan & Brooklyn{% elif item == "Chicago" %}Loop & Lincoln Park{% else %}South Beach & Brickell{% endif %}
           </p>
         </div>
         <span class="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-orange-500 to-rose-500 opacity-0 group-hover:opacity-100 transition"></span>
@@ -214,4 +263,128 @@
     </div>
   </div>
 </section>
+
+<!-- ===== NEW: Buyer Chat Widget ===== -->
+<div id="chat-widget" class="fixed bottom-6 right-6 z-40">
+  <!-- Chat Toggle Button -->
+  <button id="chat-toggle" 
+          onclick="toggleChat()"
+          class="w-14 h-14 rounded-full bg-gradient-to-br from-orange-600 to-rose-600 text-white shadow-2xl hover:shadow-orange-500/50 transition flex items-center justify-center">
+    <svg id="chat-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+    </svg>
+    <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>
+  </button>
+  
+  <!-- Chat Panel -->
+  <div id="chat-panel" class="hidden absolute bottom-20 right-0 w-96 max-w-[calc(100vw-3rem)] bg-white rounded-2xl shadow-2xl ring-1 ring-gray-200 overflow-hidden">
+    <!-- Header -->
+    <div class="bg-gradient-to-br from-orange-600 to-rose-600 text-white p-4">
+      <h3 class="font-semibold text-lg">Find Your Perfect Home</h3>
+      <p class="text-sm text-orange-100">Ask me anything about properties</p>
+    </div>
+    
+    <!-- Chat Messages -->
+    <div id="chat-messages" class="h-96 overflow-y-auto p-4 bg-gray-50">
+      <!-- Initial greeting -->
+      <div class="flex gap-3 mb-4">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center text-white text-sm font-semibold">
+            AI
+          </div>
+        </div>
+        <div class="flex-1">
+          <div class="inline-block max-w-[85%] rounded-2xl bg-gradient-to-br from-orange-50 to-rose-50 px-4 py-3 text-gray-800 ring-1 ring-orange-100">
+            <p class="text-sm leading-relaxed">
+              Hi! 👋 I'm your AI property assistant. Tell me what kind of home you're looking for, and I'll find perfect matches for you!
+            </p>
+            <p class="text-xs text-gray-600 mt-2">
+              Try: "2 bedroom condo in LA under $3500" or "pet-friendly apartment with gym"
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Input Form -->
+    <div class="p-4 bg-white border-t border-gray-200">
+      <form id="chat-form"
+            hx-post="{% url 'home_chat' %}"
+            hx-target="#chat-messages"
+            hx-swap="beforeend"
+            hx-on::after-request="this.reset(); scrollChatToBottom()">
+        <div class="flex gap-2">
+          <input type="text" 
+                 name="message"
+                 placeholder="Describe your ideal home..."
+                 required
+                 class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm">
+          <button type="submit"
+                  class="flex-shrink-0 w-10 h-10 rounded-xl bg-orange-600 text-white hover:bg-orange-700 transition flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NEW: Property Modal ===== -->
+<div id="property-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+     onclick="if(event.target === this) this.classList.add('hidden')">
+  <div id="property-modal-content" onclick="event.stopPropagation()">
+    <!-- Content loaded via HTMX -->
+  </div>
+</div>
+
+<!-- ===== NEW: Chat Widget Scripts ===== -->
+<script>
+  // Toggle chat panel
+  function toggleChat() {
+    const panel = document.getElementById('chat-panel');
+    const chatIcon = document.getElementById('chat-icon');
+    const closeIcon = document.getElementById('close-icon');
+    
+    panel.classList.toggle('hidden');
+    chatIcon.classList.toggle('hidden');
+    closeIcon.classList.toggle('hidden');
+    
+    if (!panel.classList.contains('hidden')) {
+      scrollChatToBottom();
+    }
+  }
+  
+  // Scroll chat to bottom
+  function scrollChatToBottom() {
+    const messages = document.getElementById('chat-messages');
+    setTimeout(() => {
+      messages.scrollTop = messages.scrollHeight;
+    }, 100);
+  }
+  
+  // Add user message bubble before HTMX request
+  document.getElementById('chat-form').addEventListener('htmx:beforeRequest', function(event) {
+    const message = event.target.querySelector('input[name="message"]').value;
+    if (message.trim()) {
+      const messagesDiv = document.getElementById('chat-messages');
+      const userBubble = document.createElement('div');
+      userBubble.className = 'flex gap-3 mb-4 justify-end';
+      userBubble.innerHTML = `
+        <div class="flex-1 text-right">
+          <div class="inline-block max-w-[85%] rounded-2xl bg-gray-900 text-white px-4 py-3">
+            <p class="text-sm leading-relaxed">${message}</p>
+          </div>
+          <div class="mt-1 text-xs text-gray-500">Just now</div>
+        </div>
+      `;
+      messagesDiv.appendChild(userBubble);
+      scrollChatToBottom();
+    }
+  });
+</script>
+
 {% endblock %}

@@ -1,0 +1,26 @@
+# ============================================================================
+# Environment Variables Configuration
+# Copy this file to .env and fill in your actual values
+# ============================================================================
+
+# OpenAI Configuration
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
+CLOUDINARY_API_KEY=your-cloudinary-api-key
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+
+# Optional: Complete Cloudinary URL (alternative to individual keys above)
+# CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+
+# Django Configuration
+SECRET_KEY=your-django-secret-key-here
+DEBUG=True
+
+# Database (if using external database)
+# DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+
+# Other API Keys (if needed)
+# STRIPE_PUBLISHABLE_KEY=pk_test_...
+# STRIPE_SECRET_KEY=sk_test_...

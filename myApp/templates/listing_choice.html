@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Choose Listing Method - Real Estate OS{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Upload Your Property Listing</h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Choose how you'd like to create your property listing. Both methods ensure comprehensive information for maximum visibility.
+            </p>
+        </div>
+
+        <!-- Choice Cards -->
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- AI Prompt Method -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent hover:border-green-500 transition-all duration-300 cursor-pointer" onclick="window.location.href='{% url 'ai_prompt_listing' %}'">
+                <div class="text-center">
+                    <!-- AI Icon -->
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">AI-Powered Prompt</h3>
+                    <p class="text-gray-600 mb-6">
+                        Simply paste your property description and let our AI extract all the details, validate against our comprehensive checklist, and guide you through any missing information.
+                    </p>
+                    
+                    <!-- Features -->
+                    <div class="space-y-3 mb-8">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Paste any property description
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            AI extracts and validates information
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Conversational guidance for missing details
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Perfect for existing descriptions
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 text-blue-800 px-4 py-2 rounded-lg text-sm font-medium">
+                        ⚡ Fast & Smart
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Form Method -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 border-2 border-transparent hover:border-green-500 transition-all duration-300 cursor-pointer" onclick="window.location.href='{% url 'manual_form_listing' %}'">
+                <div class="text-center">
+                    <!-- Form Icon -->
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Comprehensive Form</h3>
+                    <p class="text-gray-600 mb-6">
+                        Fill out our detailed form with all property information. Our system will guide you through the comprehensive checklist to ensure complete listings.
+                    </p>
+                    
+                    <!-- Features -->
+                    <div class="space-y-3 mb-8">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Structured form with all fields
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Guided checklist completion
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Upload multiple photos
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Perfect for new properties
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 text-green-800 px-4 py-2 rounded-lg text-sm font-medium">
+                        📋 Complete & Detailed
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Info -->
+        <div class="mt-12 text-center">
+            <div class="bg-gray-100 rounded-xl p-6 max-w-3xl mx-auto">
+                <h4 class="text-lg font-semibold text-gray-900 mb-2">Why Choose Our System?</h4>
+                <p class="text-gray-600">
+                    Both methods ensure your property listing is comprehensive and optimized for maximum visibility. 
+                    Our AI-powered validation checks against a 9-category checklist covering everything from basic details to legal documentation, 
+                    helping you create listings that convert leads effectively.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

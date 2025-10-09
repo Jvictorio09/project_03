@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Upload a Listing - PropertyHub{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Upload a Property Listing</h1>
+        <p class="text-lg text-gray-600">Share your property with our AI-powered validation system</p>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+        <form method="post" enctype="multipart/form-data" id="upload-form">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Property Title *</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.title.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Rent ($) *</label>
+                        {{ form.price_amount }}
+                        {% if form.price_amount.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.price_amount.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                        {{ form.city }}
+                        {% if form.city.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.city.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Area/Neighborhood</label>
+                        {{ form.area }}
+                        {% if form.area.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.area.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bedrooms</label>
+                            {{ form.beds }}
+                            {% if form.beds.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.beds.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bathrooms</label>
+                            {{ form.baths }}
+                            {% if form.baths.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.baths.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Property Photo *</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-green-400 transition">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="{{ form.hero_image.id_for_label }}" class="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500">
+                                        <span>Upload a file</span>
+                                        {{ form.hero_image }}
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                            </div>
+                        </div>
+                        {% if form.hero_image.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.hero_image.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-8 text-center">
+                <button type="submit" 
+                        class="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:bg-green-700 active:scale-[.99] transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    Upload & Validate Property
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Info Section -->
+    <div class="mt-8 bg-blue-50 rounded-2xl p-6">
+        <h3 class="text-lg font-semibold text-blue-900 mb-3">What happens next?</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-800">
+            <div class="flex items-start gap-3">
+                <div class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                <div>
+                    <strong>Upload & Process</strong><br>
+                    Your property information is uploaded and processed by our AI system.
+                </div>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                <div>
+                    <strong>AI Validation</strong><br>
+                    Our AI checks your listing against comprehensive real estate standards.
+                </div>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                <div>
+                    <strong>Complete Listing</strong><br>
+                    We'll help you fill in any missing information to create a perfect listing.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('upload-form').addEventListener('submit', function(e) {
+    // Show loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Processing...
+    `;
+    submitBtn.disabled = true;
+});
+</script>
+{% endblock %}

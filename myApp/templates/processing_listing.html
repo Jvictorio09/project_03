@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Processing Your Listing - PropertyHub{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Processing Your Property</h1>
+        <p class="text-lg text-gray-600">Our AI is analyzing your listing against comprehensive real estate standards</p>
+    </div>
+
+    <!-- Processing Card -->
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+        <!-- Property Preview -->
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Property Preview</h3>
+            <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
+                {% if upload.hero_image %}
+                <img src="{{ upload.hero_image.url }}" alt="{{ upload.title }}" class="w-20 h-20 object-cover rounded-lg">
+                {% else %}
+                <div class="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                {% endif %}
+                <div class="flex-1">
+                    <h4 class="font-semibold text-gray-900">{{ upload.title|default:"Untitled Property" }}</h4>
+                    <p class="text-gray-600">{{ upload.city }}{% if upload.area %}, {{ upload.area }}{% endif %}</p>
+                    {% if upload.price_amount %}
+                    <p class="text-green-600 font-semibold">${{ upload.price_amount|floatformat:0|add:"," }}/month</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Steps -->
+        <div class="space-y-6">
+            <!-- Step 1: Data Extraction -->
+            <div class="flex items-center gap-4">
+                <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-gray-900">Data Extraction Complete</h4>
+                    <p class="text-gray-600">Property information has been extracted and structured</p>
+                </div>
+            </div>
+
+            <!-- Step 2: AI Validation -->
+            <div class="flex items-center gap-4">
+                <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold animate-pulse">
+                    <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-gray-900">AI Validation in Progress</h4>
+                    <p class="text-gray-600">Checking against comprehensive real estate standards...</p>
+                    
+                    <!-- Progress Bar -->
+                    <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full animate-pulse" style="width: 65%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Analysis -->
+            <div class="flex items-center gap-4 opacity-50">
+                <div class="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-bold">
+                    3
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-gray-900">Analysis & Recommendations</h4>
+                    <p class="text-gray-600">Generating insights and identifying missing information</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Animation -->
+        <div class="mt-8 text-center">
+            <div class="inline-flex items-center gap-3 bg-blue-50 px-6 py-3 rounded-xl">
+                <svg class="w-5 h-5 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                <span class="text-blue-800 font-medium">Processing... This may take a few moments</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- What's Being Checked -->
+    <div class="mt-8 bg-gray-50 rounded-2xl p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">What Our AI Is Checking</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+            <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Property identification & type
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Location details & address
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Lot and building information
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Interior features & amenities
+                </div>
+            </div>
+            <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Pricing & financial information
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Legal & ownership details
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Media & marketing assets
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Documentation & disclosures
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh to check processing status
+setTimeout(function() {
+    window.location.reload();
+}, 5000);
+</script>
+{% endblock %}

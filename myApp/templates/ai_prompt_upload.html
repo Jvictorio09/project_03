@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AI-Powered Upload - PropertyHub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">AI-Powered Property Upload</h1>
+            <p class="text-xl text-gray-600">Paste your property description and let our AI extract all the details</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-2xl shadow-lg p-8">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Property Description -->
+                <div>
+                    <label for="property_description" class="block text-lg font-semibold text-gray-900 mb-3">
+                        Property Description *
+                    </label>
+                    <textarea 
+                        id="property_description" 
+                        name="property_description" 
+                        rows="12" 
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                        placeholder="Paste your complete property description here. Include details like:
+
+• Property type and location
+• Number of bedrooms and bathrooms  
+• Square footage and lot size
+• Key features and amenities
+• Price and rental terms
+• Any special characteristics
+• Contact information
+
+Example:
+'Beautiful 3-bedroom, 2-bathroom single-family home in downtown Los Angeles. 1,800 sq ft with modern kitchen, hardwood floors, and private backyard. Recently renovated with new appliances. Walking distance to restaurants and public transport. $4,500/month. Pet-friendly. Available immediately. Contact Sarah at (555) 123-4567.'"
+                        required
+                    ></textarea>
+                    <p class="text-sm text-gray-500 mt-2">
+                        The more details you include, the better our AI can extract and organize the information.
+                    </p>
+                </div>
+
+                <!-- Property Photo -->
+                <div>
+                    <label for="hero_image" class="block text-lg font-semibold text-gray-900 mb-3">
+                        Property Photo *
+                    </label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-400 transition-colors">
+                        <div class="space-y-4">
+                            <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-lg font-medium text-gray-900">Upload a property photo</p>
+                                <p class="text-sm text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                            </div>
+                            <input 
+                                type="file" 
+                                id="hero_image" 
+                                name="hero_image" 
+                                accept="image/*" 
+                                class="hidden"
+                                required
+                            >
+                            <button 
+                                type="button" 
+                                onclick="document.getElementById('hero_image').click()"
+                                class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+                            >
+                                Choose File
+                            </button>
+                            <p class="text-sm text-gray-500">or drag and drop</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-6">
+                    <button 
+                        type="submit" 
+                        class="w-full bg-green-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-green-700 transition flex items-center justify-center space-x-2"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                        <span>Process with AI</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Box -->
+        <div class="mt-8 bg-green-50 rounded-xl p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="w-6 h-6 text-green-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h4 class="text-lg font-semibold text-green-900 mb-2">How AI Processing Works</h4>
+                    <ul class="text-green-800 space-y-1">
+                        <li>• Our AI will extract key information from your description</li>
+                        <li>• It will check against our comprehensive property checklist</li>
+                        <li>• You'll be guided to provide any missing important details</li>
+                        <li>• The final listing will be complete and professional</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// File upload handling
+document.getElementById('hero_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const fileName = file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name;
+        const button = document.querySelector('button[onclick*="hero_image"]');
+        button.textContent = fileName;
+        button.classList.add('bg-green-700');
+    }
+});
+</script>
+{% endblock %}

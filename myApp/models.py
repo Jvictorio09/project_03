@@ -54,3 +54,42 @@ class Lead(models.Model):
         return f"{self.name} ({self.phone})"
 
 
+class PropertyUpload(models.Model):
+    STATUS_CHOICES = [
+        ('uploading', 'Uploading'),
+        ('processing', 'Processing'),
+        ('validation', 'Validation'),
+        ('complete', 'Complete'),
+        ('failed', 'Failed'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.OneToOneField(Property, on_delete=models.CASCADE, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='uploading')
+    
+    # Initial upload data
+    title = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
+    price_amount = models.IntegerField(null=True, blank=True)
+    city = models.CharField(max_length=64, blank=True)
+    area = models.CharField(max_length=64, blank=True)
+    beds = models.IntegerField(null=True, blank=True)
+    baths = models.IntegerField(null=True, blank=True)
+    hero_image = models.URLField(blank=True)  # Store Cloudinary URLs
+    
+    # AI validation data
+    ai_validation_result = models.JSONField(default=dict, blank=True)
+    missing_fields = models.JSONField(default=list, blank=True)
+    validation_chat_history = models.JSONField(default=list, blank=True)
+    consolidated_information = models.TextField(blank=True)  # Store all collected info
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"Upload: {self.title or 'Untitled'} ({self.status})"
+
+
