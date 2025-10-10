@@ -19,13 +19,13 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <a href="{% url 'home' %}" class="text-2xl font-bold text-orange-600">PropertyHub</a>
+                    <a href="{% url 'home' %}" class="text-2xl font-bold text-violet-600">PropertyHub</a>
                 </div>
                 <div class="flex items-center space-x-4">
                     <span class="saved-chip bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">Saved (0)</span>
                     <a href="{% url 'ai_prompt_listing' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">AI Listing</a>
-                    <a href="{% url 'listing_choice' %}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">Upload a Listing</a>
-                    <a href="{% url 'book' %}" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition">Book a Call</a>
+                    <a href="{% url 'listing_choice' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Upload a Listing</a>
+                    <a href="{% url 'book' %}" class="bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 transition">Book a Call</a>
                 </div>
             </div>
         </div>
@@ -81,7 +81,7 @@
             navigator.clipboard.writeText(text).then(function() {
                 // Show a brief notification
                 const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                notification.className = 'fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
                 notification.textContent = 'Link copied!';
                 document.body.appendChild(notification);
                 

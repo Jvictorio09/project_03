@@ -75,13 +75,23 @@ The Django development server runs automatically via the "Django Server" workflo
 Static files are collected to `staticfiles/` directory and served via WhiteNoise.
 
 ## Recent Changes
+- **2025-10-10**: Color Scheme Update to Violet/Blue Theme
+  - Updated entire application to cohesive violet/blue/purple color palette
+  - Primary color: Violet-600 (navigation, buttons, chat elements, CTA buttons)
+  - Secondary colors: Blue-600 (info elements, upload buttons), Purple (gradients)
+  - Replaced all orange/green colors with violet/blue alternatives
+  - All interactive elements (buttons, inputs, links, chat bubbles) use violet theme
+  - Property link buttons updated to violet with matching hover states
+  - Visually appealing gradient combinations (violet-to-purple)
+  - Chat widget and chatbox styled with violet theme for consistency
+
 - **2025-10-10**: Auto-Linking Property Titles in Chat
   - Created API endpoint `/api/properties/titles/` that returns all property titles and slugs
   - Added JavaScript to automatically detect property titles in AI chat messages
   - When AI mentions a property by its exact title, a "View Property" button automatically appears below the message
   - Buttons open property detail pages in new tabs, allowing users to continue chatting
   - Works with n8n RAG backend - no backend changes required
-  - Styled with orange theme for visual consistency
+  - Styled with violet theme for visual consistency
 
 - **2025-10-10**: Database Population with Detailed Property Information
   - Updated 6 properties with comprehensive real estate details:
