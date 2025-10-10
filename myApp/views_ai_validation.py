@@ -180,6 +180,11 @@ def ai_validation_chat(request: HttpRequest) -> HttpResponse:
                     counter += 1
                 
                 # Create property
+                hero_image = request.session.get('property_image_url', '')
+                if not hero_image:
+                    # Use default placeholder image if no image uploaded
+                    hero_image = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800'
+                
                 property = Property.objects.create(
                     slug=slug,
                     title=title,
@@ -189,7 +194,7 @@ def ai_validation_chat(request: HttpRequest) -> HttpResponse:
                     area=property_data.get('area', ''),
                     beds=property_data.get('beds', 1),
                     baths=property_data.get('baths', 1),
-                    hero_image=request.session.get('property_image_url', ''),
+                    hero_image=hero_image,
                     badges=property_data.get('badges', ''),
                     floor_area_sqm=property_data.get('floor_area', 0)
                 )
