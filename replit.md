@@ -78,7 +78,7 @@ Static files are collected to `staticfiles/` directory and served via WhiteNoise
   - Added `init_webhook_chat` view to transform search form into chatbox
   - Added `webhook_chat` view for ongoing conversation messages
   - Created chatbox interface template with HTMX integration
-  - Webhook URL: `https://katalyst-crm.fly.dev/webhook-test/ca05d7c5-984c-4d95-8636-1ed3d80f5545` (test endpoint)
+  - Webhook URL: `https://katalyst-crm.fly.dev/webhook/ca05d7c5-984c-4d95-8636-1ed3d80f5545` (production endpoint)
   - Webhook payload: `{"message": "user message", "sessionID": "session_key"}`
   - Webhook response: Expects `{"Response": "AI response text"}`
   - All responses come ONLY from webhook - no fallback AI responses

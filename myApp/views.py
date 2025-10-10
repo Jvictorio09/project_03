@@ -2331,7 +2331,7 @@ def init_webhook_chat(request: HttpRequest) -> HttpResponse:
     session_id = request.session.session_key
     
     # Send to webhook - only forward the user message with sessionID
-    webhook_url = "https://katalyst-crm.fly.dev/webhook-test/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
+    webhook_url = "https://katalyst-crm.fly.dev/webhook/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
     
     webhook_payload = {
         "message": initial_message,
@@ -2407,7 +2407,7 @@ def webhook_chat(request: HttpRequest) -> HttpResponse:
     })
     
     # Prepare webhook payload - send user message with sessionID
-    webhook_url = "https://katalyst-crm.fly.dev/webhook-test/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
+    webhook_url = "https://katalyst-crm.fly.dev/webhook/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
     
     webhook_payload = {
         "message": user_message,
