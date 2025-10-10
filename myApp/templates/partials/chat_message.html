@@ -1,5 +1,5 @@
 <!-- Single chat message -->
-<div class="flex {{ 'justify-end' if role == 'user' else 'justify-start' }} mb-4">
+<div class="flex {% if role == 'user' %}justify-end{% else %}justify-start{% endif %} mb-4">
     <div class="flex items-start gap-2 max-w-[80%]">
         {% if role == 'assistant' %}
         <!-- AI Avatar -->
@@ -11,9 +11,9 @@
         {% endif %}
         
         <!-- Message Bubble -->
-        <div class="rounded-2xl px-4 py-3 {{ 'bg-orange-500 text-white' if role == 'user' else 'bg-gray-100 text-gray-900' }}">
+        <div class="rounded-2xl px-4 py-3 {% if role == 'user' %}bg-orange-500 text-white{% else %}bg-gray-100 text-gray-900{% endif %}">
             <p class="text-sm leading-relaxed">{{ message }}</p>
-            <span class="text-xs {{ 'text-orange-100' if role == 'user' else 'text-gray-500' }} mt-1 block">
+            <span class="text-xs {% if role == 'user' %}text-orange-100{% else %}text-gray-500{% endif %} mt-1 block">
                 {{ timestamp|date:"g:i A" }}
             </span>
         </div>
