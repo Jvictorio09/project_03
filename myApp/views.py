@@ -2324,15 +2324,22 @@ def init_webhook_chat(request: HttpRequest) -> HttpResponse:
         "timestamp": timezone.now().isoformat()
     })
     
-    # Send to webhook - only forward the user message
+    # Ensure we have a session ID
+    if not request.session.session_key:
+        request.session.create()
+    
+    session_id = request.session.session_key
+    
+    # Send to webhook - only forward the user message with sessionID
     webhook_url = "https://katalyst-crm.fly.dev/webhook-test/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
     
     webhook_payload = {
-        "message": initial_message
+        "message": initial_message,
+        "sessionID": session_id
     }
     
-    # Get webhook response
-    ai_response = "Great! I'm here to help you find your perfect home. Based on what you've told me, let me ask you a few questions to narrow down the best options for you."
+    # Get webhook response - NO fallback message
+    ai_response = None
     
     try:
         response = requests.post(
@@ -2346,9 +2353,12 @@ def init_webhook_chat(request: HttpRequest) -> HttpResponse:
         
         if webhook_response and "Response" in webhook_response:
             ai_response = webhook_response["Response"]
+        else:
+            ai_response = "I'm having trouble connecting. Please try again."
             
     except Exception as e:
         print(f"Webhook error: {e}")
+        ai_response = f"Error connecting to AI service. Please try again."
     
     # Add AI response to history
     request.session["chat_history"].append({
@@ -2375,10 +2385,15 @@ def webhook_chat(request: HttpRequest) -> HttpResponse:
     import requests
     
     user_message = request.POST.get("message", "").strip()
-    session_id = request.session.session_key or "anonymous"
     
     if not user_message:
         return JsonResponse({"error": "Message required"}, status=400)
+    
+    # Ensure we have a session ID
+    if not request.session.session_key:
+        request.session.create()
+    
+    session_id = request.session.session_key
     
     # Store conversation history in session
     if "chat_history" not in request.session:
@@ -2391,17 +2406,18 @@ def webhook_chat(request: HttpRequest) -> HttpResponse:
         "timestamp": timezone.now().isoformat()
     })
     
-    # Prepare webhook payload - send only the user message
+    # Prepare webhook payload - send user message with sessionID
     webhook_url = "https://katalyst-crm.fly.dev/webhook-test/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
     
     webhook_payload = {
-        "message": user_message
+        "message": user_message,
+        "sessionID": session_id
     }
     
-    # Send to webhook and get response
+    # Send to webhook and get response - NO fallback message
     webhook_response = None
     webhook_success = False
-    ai_response = "I'm here to help you find your perfect home! Could you tell me more about what you're looking for?"
+    ai_response = None
     
     try:
         response = requests.post(
@@ -2417,12 +2433,14 @@ def webhook_chat(request: HttpRequest) -> HttpResponse:
         # Extract AI response from webhook
         if webhook_response and "Response" in webhook_response:
             ai_response = webhook_response["Response"]
+        else:
+            ai_response = "Error: No response from AI service."
         
     except requests.exceptions.Timeout:
-        ai_response = "I'm experiencing some delays. Let me help you - what specific features are most important in your ideal home?"
+        ai_response = "Error: Request timed out. Please try again."
     except requests.exceptions.RequestException as e:
         print(f"Webhook error: {e}")
-        ai_response = "I'm here to help! Tell me about your budget, preferred location, and must-have amenities."
+        ai_response = f"Error: Unable to connect to AI service."
     
     # Add AI response to history
     request.session["chat_history"].append({
