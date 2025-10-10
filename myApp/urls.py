@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    home, results, property_detail, property_chat,
+    home, results, property_detail, property_chat, property_chat_simple,
     home_chat, property_modal,
     listing_choice, ai_prompt_listing, manual_form_listing,
     upload_listing, processing_listing, validation_chat, book, thanks, dashboard,
@@ -12,6 +12,7 @@ urlpatterns = [
     path("list", results, name="results"),
     path("property/<slug:slug>/", property_detail, name="property_detail"),
     path("property/<slug:slug>/chat", property_chat, name="property_chat"),
+    path("property/<slug:slug>/chat-simple", property_chat_simple, name="property_chat_simple"),
     path("property/<slug:slug>/modal", property_modal, name="property_modal"),
     path("home-chat", home_chat, name="home_chat"),
 

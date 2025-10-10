@@ -257,6 +257,28 @@ def property_chat(request: HttpRequest, slug: str) -> HttpResponse:
     return render(request, "partials/chat_bubble.html", context)
 
 
+@require_POST
+def property_chat_simple(request: HttpRequest, slug: str) -> HttpResponse:
+    """Simplified HTMX endpoint for property chat - NO WEBHOOKS"""
+    property_obj = get_object_or_404(Property, slug=slug)
+    message = request.POST.get("message", "").strip()
+    
+    if not message:
+        return HttpResponseBadRequest("Message required")
+    
+    # Simple rule-based responder (same as before)
+    response_text = simple_answer(property_obj, message.lower())
+    
+    # Render chat bubble partial - NO WEBHOOKS
+    context = {
+        "role": "assistant",
+        "text": response_text,
+        "time": "now"
+    }
+    
+    return render(request, "partials/chat_bubble.html", context)
+
+
 def health_check(request: HttpRequest) -> HttpResponse:
     """Health check endpoint for Railway"""
     try:
