@@ -2301,3 +2301,110 @@ def ai_prompt_search(request: HttpRequest) -> HttpResponse:
     return redirect(f"{reverse('results')}?ai_prompt={ai_prompt}")
 
 
+@require_POST
+def webhook_chat(request: HttpRequest) -> HttpResponse:
+    """
+    Handle AI chat conversation via webhook
+    Sends user messages to webhook and returns AI responses
+    """
+    import requests
+    
+    user_message = request.POST.get("message", "").strip()
+    session_id = request.session.session_key or "anonymous"
+    
+    if not user_message:
+        return JsonResponse({"error": "Message required"}, status=400)
+    
+    # Store conversation history in session
+    if "chat_history" not in request.session:
+        request.session["chat_history"] = []
+    
+    # Add user message to history
+    request.session["chat_history"].append({
+        "role": "user",
+        "message": user_message,
+        "timestamp": timezone.now().isoformat()
+    })
+    
+    # Prepare webhook payload
+    webhook_url = "https://katalyst-crm.fly.dev/webhook-test/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
+    
+    # Get property context if available
+    properties = Property.objects.all()[:10]
+    property_context = [
+        {
+            "id": str(prop.id),
+            "title": prop.title,
+            "price": prop.price_amount,
+            "city": prop.city,
+            "beds": prop.beds,
+            "baths": prop.baths
+        } for prop in properties
+    ]
+    
+    webhook_payload = {
+        "type": "ai_chat",
+        "timestamp": timezone.now().isoformat(),
+        "session_id": session_id,
+        "message": user_message,
+        "chat_history": request.session["chat_history"],
+        "property_context": property_context,
+        "tracking": {
+            "utm_source": request.COOKIES.get("utm_source", request.GET.get("utm_source", "")),
+            "utm_campaign": request.COOKIES.get("utm_campaign", request.GET.get("utm_campaign", "")),
+            "referrer": request.META.get("HTTP_REFERER", ""),
+        }
+    }
+    
+    # Send to webhook and get response
+    webhook_response = None
+    webhook_success = False
+    ai_response = "I'm here to help you find your perfect home! Could you tell me more about what you're looking for?"
+    
+    try:
+        response = requests.post(
+            webhook_url,
+            json=webhook_payload,
+            timeout=10,
+            headers={"Content-Type": "application/json"}
+        )
+        response.raise_for_status()
+        webhook_response = response.json()
+        webhook_success = True
+        
+        # Extract AI response from webhook
+        if webhook_response and "Response" in webhook_response:
+            ai_response = webhook_response["Response"]
+        
+    except requests.exceptions.Timeout:
+        ai_response = "I'm experiencing some delays. Let me help you - what specific features are most important in your ideal home?"
+    except requests.exceptions.RequestException as e:
+        print(f"Webhook error: {e}")
+        ai_response = "I'm here to help! Tell me about your budget, preferred location, and must-have amenities."
+    
+    # Add AI response to history
+    request.session["chat_history"].append({
+        "role": "assistant",
+        "message": ai_response,
+        "timestamp": timezone.now().isoformat()
+    })
+    
+    # Save session
+    request.session.modified = True
+    
+    # Return response for HTMX
+    if request.headers.get('HX-Request'):
+        return render(request, "partials/chat_message.html", {
+            "message": ai_response,
+            "role": "assistant",
+            "timestamp": timezone.now()
+        })
+    
+    # JSON response for non-HTMX requests
+    return JsonResponse({
+        "success": webhook_success,
+        "response": ai_response,
+        "webhook_data": webhook_response
+    })
+
+
