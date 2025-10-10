@@ -4,7 +4,8 @@ from .views import (
     home_chat, property_modal,
     listing_choice, ai_prompt_listing, manual_form_listing,
     upload_listing, processing_listing, validation_chat, book, thanks, dashboard,
-    lead_submit, health_check, ai_prompt_search, webhook_chat, init_webhook_chat
+    lead_submit, health_check, ai_prompt_search, webhook_chat, init_webhook_chat,
+    get_property_titles
 )
 
 urlpatterns = [
@@ -37,6 +38,9 @@ urlpatterns = [
     # NEW: Webhook-powered AI chat
     path("chat/webhook/init/", init_webhook_chat, name="init_webhook_chat"),
     path("chat/webhook/", webhook_chat, name="webhook_chat"),
+    
+    # API: Property titles for auto-linking in chat
+    path("api/properties/titles/", get_property_titles, name="get_property_titles"),
 ]
 
 

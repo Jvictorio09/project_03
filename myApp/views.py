@@ -2468,3 +2468,18 @@ def webhook_chat(request: HttpRequest) -> HttpResponse:
     })
 
 
+def get_property_titles(request: HttpRequest) -> JsonResponse:
+    """
+    API endpoint to get all property titles and slugs for frontend matching
+    Returns list of properties with title and slug for auto-linking in chat
+    """
+    properties = Property.objects.all().values('title', 'slug')
+    
+    # Convert to list and return
+    property_list = list(properties)
+    
+    return JsonResponse({
+        "properties": property_list
+    })
+
+
