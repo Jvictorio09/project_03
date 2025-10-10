@@ -2302,6 +2302,94 @@ def ai_prompt_search(request: HttpRequest) -> HttpResponse:
 
 
 @require_POST
+def init_webhook_chat(request: HttpRequest) -> HttpResponse:
+    """
+    Initialize the chatbox with the first user message
+    Transforms the search form into a chat interface
+    """
+    import requests
+    
+    initial_message = request.POST.get("ai_prompt", "").strip()
+    
+    if not initial_message:
+        return HttpResponseBadRequest("Message required")
+    
+    # Initialize chat history in session
+    request.session["chat_history"] = []
+    
+    # Add user message to history
+    request.session["chat_history"].append({
+        "role": "user",
+        "message": initial_message,
+        "timestamp": timezone.now().isoformat()
+    })
+    
+    # Send to webhook
+    webhook_url = "https://katalyst-crm.fly.dev/webhook-test/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
+    session_id = request.session.session_key or "anonymous"
+    
+    # Get property context
+    properties = Property.objects.all()[:10]
+    property_context = [
+        {
+            "id": str(prop.id),
+            "title": prop.title,
+            "price": prop.price_amount,
+            "city": prop.city,
+            "beds": prop.beds,
+            "baths": prop.baths
+        } for prop in properties
+    ]
+    
+    webhook_payload = {
+        "type": "ai_chat_init",
+        "timestamp": timezone.now().isoformat(),
+        "session_id": session_id,
+        "message": initial_message,
+        "property_context": property_context,
+        "tracking": {
+            "utm_source": request.COOKIES.get("utm_source", ""),
+            "utm_campaign": request.COOKIES.get("utm_campaign", ""),
+            "referrer": request.META.get("HTTP_REFERER", ""),
+        }
+    }
+    
+    # Get webhook response
+    ai_response = "Great! I'm here to help you find your perfect home. Based on what you've told me, let me ask you a few questions to narrow down the best options for you."
+    
+    try:
+        response = requests.post(
+            webhook_url,
+            json=webhook_payload,
+            timeout=10,
+            headers={"Content-Type": "application/json"}
+        )
+        response.raise_for_status()
+        webhook_response = response.json()
+        
+        if webhook_response and "Response" in webhook_response:
+            ai_response = webhook_response["Response"]
+            
+    except Exception as e:
+        print(f"Webhook error: {e}")
+    
+    # Add AI response to history
+    request.session["chat_history"].append({
+        "role": "assistant",
+        "message": ai_response,
+        "timestamp": timezone.now().isoformat()
+    })
+    
+    request.session.modified = True
+    
+    # Return chatbox interface
+    return render(request, "partials/chatbox_interface.html", {
+        "initial_message": initial_message,
+        "ai_response": ai_response
+    })
+
+
+@require_POST
 def webhook_chat(request: HttpRequest) -> HttpResponse:
     """
     Handle AI chat conversation via webhook

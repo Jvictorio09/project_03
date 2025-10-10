@@ -35,11 +35,11 @@
           Tell us what you're looking for
         </span>
       </div>
-      <div class="rounded-2xl bg-white/80 backdrop-blur shadow-2xl ring-1 ring-white/50 p-6">
+      <div id="chat-container" class="rounded-2xl bg-white/80 backdrop-blur shadow-2xl ring-1 ring-white/50 p-6">
         <!-- HTMX-Powered AI Search Form -->
         <form id="ai-search-form"
-              hx-post="{% url 'ai_prompt_search' %}"
-              hx-target="#ai-search-results"
+              hx-post="{% url 'init_webhook_chat' %}"
+              hx-target="#chat-container"
               hx-swap="innerHTML"
               hx-indicator="#ai-search-loading"
               class="space-y-4">

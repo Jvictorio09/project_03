@@ -4,7 +4,7 @@ from .views import (
     home_chat, property_modal,
     listing_choice, ai_prompt_listing, manual_form_listing,
     upload_listing, processing_listing, validation_chat, book, thanks, dashboard,
-    lead_submit, health_check, ai_prompt_search
+    lead_submit, health_check, ai_prompt_search, webhook_chat, init_webhook_chat
 )
 
 urlpatterns = [
@@ -33,6 +33,10 @@ urlpatterns = [
     
     # NEW: AI Prompt Search with webhook response
     path("search/ai-prompt/", ai_prompt_search, name="ai_prompt_search"),
+    
+    # NEW: Webhook-powered AI chat
+    path("chat/webhook/init/", init_webhook_chat, name="init_webhook_chat"),
+    path("chat/webhook/", webhook_chat, name="webhook_chat"),
 ]
 
 
