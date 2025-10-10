@@ -9,18 +9,19 @@ PropertyHub is a Django-based real estate property listing application with AI-p
 - **Backend**: Django 5.1.2 (Python web framework)
 - **Database**: SQLite (development), PostgreSQL support available
 - **Storage**: Cloudinary (media files)
-- **AI Integration**: OpenAI API (for smart property search)
-- **Frontend**: HTML/Tailwind CSS/JavaScript
+- **AI Integration**: Webhook-based AI chat (Katalyst CRM), OpenAI API (for smart property search)
+- **Frontend**: HTML/Tailwind CSS/JavaScript/HTMX
 - **Payment**: Stripe integration
 - **Real-time**: Django Channels (WebSocket support)
 
 ### Key Features
-1. **AI-Powered Property Search**: Natural language property search using OpenAI
-2. **Property Listings**: Browse, filter, and view detailed property information
-3. **Upload System**: Property upload with AI-assisted listing generation
-4. **Chat Widget**: Interactive chat for buyer inquiries
-5. **Lead Management**: Capture and manage property leads
-6. **Webhook Integration**: External system notifications
+1. **Webhook-Powered AI Chatbox**: Interactive conversational AI that transforms the search form into a real-time chatbox
+2. **AI-Powered Property Search**: Natural language property search using OpenAI
+3. **Property Listings**: Browse, filter, and view detailed property information
+4. **Upload System**: Property upload with AI-assisted listing generation
+5. **Chat Widget**: Interactive chat for buyer inquiries
+6. **Lead Management**: Capture and manage property leads
+7. **Webhook Integration**: External system notifications via Katalyst CRM
 
 ## Project Structure
 ```
@@ -73,6 +74,15 @@ The Django development server runs automatically via the "Django Server" workflo
 Static files are collected to `staticfiles/` directory and served via WhiteNoise.
 
 ## Recent Changes
+- **2025-10-10**: Webhook-Powered Chatbox Implementation
+  - Added `init_webhook_chat` view to transform search form into chatbox
+  - Added `webhook_chat` view for ongoing conversation messages
+  - Created chatbox interface template with HTMX integration
+  - Integrated with Katalyst CRM webhook: `https://katalyst-crm.fly.dev/webhook/ca05d7c5-984c-4d95-8636-1ed3d80f5545`
+  - Implemented session-based chat history
+  - Modified home.html to use webhook chatbox instead of traditional search results
+  - User flow: Enter description → Click "Find My Perfect Home" → Form transforms to chatbox → AI conversation begins
+
 - **2025-10-10**: Initial Replit setup
   - Configured Django settings for Replit environment
   - Set ALLOWED_HOSTS to support Replit proxy

@@ -2325,7 +2325,7 @@ def init_webhook_chat(request: HttpRequest) -> HttpResponse:
     })
     
     # Send to webhook
-    webhook_url = "https://katalyst-crm.fly.dev/webhook-test/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
+    webhook_url = "https://katalyst-crm.fly.dev/webhook/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
     session_id = request.session.session_key or "anonymous"
     
     # Get property context
@@ -2415,7 +2415,7 @@ def webhook_chat(request: HttpRequest) -> HttpResponse:
     })
     
     # Prepare webhook payload
-    webhook_url = "https://katalyst-crm.fly.dev/webhook-test/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
+    webhook_url = "https://katalyst-crm.fly.dev/webhook/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
     
     # Get property context if available
     properties = Property.objects.all()[:10]
