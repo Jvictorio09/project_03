@@ -56,7 +56,7 @@
                         </select>
                     </div>
                     
-                    <button type="submit" class="w-full bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition">
+                    <button type="submit" class="w-full bg-violet-600 text-white py-2 px-4 rounded-lg hover:bg-violet-700 transition">
                         Apply Filters
                     </button>
                 </form>
@@ -71,8 +71,15 @@
                     <h1 class="text-2xl font-bold text-gray-900">Search Results</h1>
                     <p class="text-gray-600">{{ count }} matches found</p>
                 </div>
-                <button class="lg:hidden bg-orange-600 text-white px-4 py-2 rounded-lg mt-4 sm:mt-0" 
-                        x-data x-on:click="$dispatch('open-filters')">
+                <div class="flex gap-2 mt-4 sm:mt-0">
+                    <a href="{% url 'results' %}" class="bg-violet-600 text-white px-6 py-2 rounded-lg hover:bg-violet-700 transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                        </svg>
+                        View All Listings
+                    </a>
+                    <button class="lg:hidden bg-gray-600 text-white px-4 py-2 rounded-lg" 
+                            x-data x-on:click="$dispatch('open-filters')">
                     Refine Search
                 </button>
             </div>
@@ -88,7 +95,7 @@
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ property.title }}</h3>
-                        <p class="text-orange-600 font-bold text-2xl mb-2">₱{{ property.price_amount|floatformat:0|add:"," }}</p>
+                        <p class="text-violet-600 font-bold text-2xl mb-2">₱{{ property.price_amount|floatformat:0|add:"," }}</p>
                         <div class="flex items-center text-gray-600 text-sm mb-3">
                             <span class="mr-4">{{ property.beds }} bed{{ property.beds|pluralize }}</span>
                             <span class="mr-4">{{ property.baths }} bath{{ property.baths|pluralize }}</span>
@@ -98,13 +105,13 @@
                         <div class="flex flex-wrap gap-2 mb-4">
                             {% for badge in property.badges|split:"," %}
                             {% if badge %}
-                            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">{{ badge|strip }}</span>
+                            <span class="bg-violet-100 text-violet-800 px-2 py-1 rounded-full text-xs">{{ badge|strip }}</span>
                             {% endif %}
                             {% endfor %}
                         </div>
                         <div class="flex gap-2">
                             <a href="{% url 'property_detail' property.slug %}" 
-                               class="flex-1 bg-orange-600 text-white text-center py-2 rounded-lg hover:bg-orange-700 transition">
+                               class="flex-1 bg-violet-600 text-white text-center py-2 rounded-lg hover:bg-violet-700 transition">
                                 View Details
                             </a>
                             <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition"

@@ -167,25 +167,35 @@ def ai_validation_chat(request: HttpRequest) -> HttpResponse:
             
             # Auto-save property to database
             try:
+                from django.utils.text import slugify
                 property_data = extract_property_data_from_conversation(chat_history)
+                
+                # Generate unique slug
+                title = property_data.get('title', 'New Property')
+                base_slug = slugify(title)
+                slug = base_slug
+                counter = 1
+                while Property.objects.filter(slug=slug).exists():
+                    slug = f"{base_slug}-{counter}"
+                    counter += 1
                 
                 # Create property
                 property = Property.objects.create(
-                    title=property_data.get('title', 'New Property'),
+                    slug=slug,
+                    title=title,
                     description=property_data.get('description', ''),
                     price_amount=property_data.get('price', 0),
                     city=property_data.get('city', ''),
                     area=property_data.get('area', ''),
                     beds=property_data.get('beds', 1),
                     baths=property_data.get('baths', 1),
-                    property_type=property_data.get('property_type', 'house'),
                     hero_image=request.session.get('property_image_url', ''),
                     badges=property_data.get('badges', ''),
-                    floor_area_sqm=property_data.get('floor_area', None)
+                    floor_area_sqm=property_data.get('floor_area', 0)
                 )
                 
-                request.session['saved_property_id'] = property.id
-                print(f"✅ Property saved with ID: {property.id}")
+                request.session['saved_property_id'] = property.slug
+                print(f"✅ Property saved with slug: {property.slug}")
                 
             except Exception as e:
                 print(f"Error saving property: {e}")
