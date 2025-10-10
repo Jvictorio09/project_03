@@ -134,5 +134,93 @@
         setTimeout(() => {
             document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
         }, 100);
+        
+        // Property title auto-linking functionality
+        let propertyTitles = [];
+        
+        // Fetch property titles from API
+        async function fetchPropertyTitles() {
+            try {
+                const response = await fetch('/api/properties/titles/');
+                const data = await response.json();
+                propertyTitles = data.properties || [];
+                console.log('Loaded property titles:', propertyTitles.length);
+            } catch (error) {
+                console.error('Error fetching property titles:', error);
+            }
+        }
+        
+        // Scan message for property titles and add links
+        function linkifyPropertyTitles(messageElement) {
+            if (!messageElement || propertyTitles.length === 0) return;
+            
+            const textElement = messageElement.querySelector('p');
+            if (!textElement) return;
+            
+            const messageText = textElement.textContent;
+            const foundProperties = [];
+            
+            // Find all matching property titles in the message
+            propertyTitles.forEach(property => {
+                if (messageText.includes(property.title)) {
+                    foundProperties.push(property);
+                }
+            });
+            
+            // If properties found, add clickable links below the message
+            if (foundProperties.length > 0) {
+                const linksContainer = document.createElement('div');
+                linksContainer.className = 'mt-3 space-y-2';
+                
+                foundProperties.forEach(property => {
+                    const linkElement = document.createElement('a');
+                    linkElement.href = `/property/${property.slug}/`;
+                    linkElement.target = '_blank';
+                    linkElement.className = 'flex items-center gap-2 px-3 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg transition-colors border border-orange-200 text-xs font-medium';
+                    linkElement.innerHTML = `
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span class="flex-1">View: ${property.title}</span>
+                        <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    `;
+                    linksContainer.appendChild(linkElement);
+                });
+                
+                // Insert links after the message text
+                messageElement.appendChild(linksContainer);
+            }
+        }
+        
+        // Process AI messages after they're added
+        document.getElementById('chat-form').addEventListener('htmx:afterSwap', function(evt) {
+            // Get the newly added AI message
+            const newMessages = document.getElementById('new-messages');
+            const lastMessage = newMessages.lastElementChild;
+            
+            if (lastMessage && lastMessage.querySelector('.bg-gray-100')) {
+                // This is an AI message, scan for property titles
+                const messageContainer = lastMessage.querySelector('.bg-gray-100');
+                linkifyPropertyTitles(messageContainer);
+            }
+            
+            // Scroll to bottom
+            setTimeout(() => {
+                document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+            }, 100);
+        });
+        
+        // Also process initial AI response on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchPropertyTitles().then(() => {
+                // Process initial AI message
+                const initialAIMessage = document.querySelector('.bg-gray-100');
+                if (initialAIMessage) {
+                    linkifyPropertyTitles(initialAIMessage);
+                }
+            });
+        });
     </script>
 </div>
