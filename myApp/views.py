@@ -279,6 +279,28 @@ def property_chat_simple(request: HttpRequest, slug: str) -> HttpResponse:
     return render(request, "partials/chat_bubble.html", context)
 
 
+@require_POST
+def property_chat_ai(request: HttpRequest, slug: str) -> HttpResponse:
+    """AI-powered property chat that queries database intelligently"""
+    property_obj = get_object_or_404(Property, slug=slug)
+    message = request.POST.get("message", "").strip()
+    
+    if not message:
+        return HttpResponseBadRequest("Message required")
+    
+    # Get AI response with database context
+    response_text = get_ai_property_response(property_obj, message)
+    
+    # Render chat bubble partial
+    context = {
+        "role": "assistant",
+        "text": response_text,
+        "time": "now"
+    }
+    
+    return render(request, "partials/chat_bubble.html", context)
+
+
 def health_check(request: HttpRequest) -> HttpResponse:
     """Health check endpoint for Railway"""
     try:
@@ -366,6 +388,89 @@ def process_ai_search_prompt(prompt: str) -> dict:
     result["keywords"] = keywords
     
     return result
+
+
+def get_ai_property_response(property_obj: Property, message: str) -> str:
+    """AI-powered response that can query database and provide intelligent answers"""
+    import openai
+    from django.conf import settings
+    
+    # Check if OpenAI API key is available
+    if not settings.OPENAI_API_KEY:
+        # Fallback to simple answer if no API key
+        return simple_answer(property_obj, message.lower())
+    
+    try:
+        # Prepare comprehensive property data for AI context
+        property_data = {
+            "title": property_obj.title,
+            "description": property_obj.description,
+            "price_amount": property_obj.price_amount,
+            "city": property_obj.city,
+            "area": property_obj.area,
+            "beds": property_obj.beds,
+            "baths": property_obj.baths,
+            "floor_area_sqm": property_obj.floor_area_sqm,
+            "parking": property_obj.parking,
+            "property_type": property_obj.property_type,
+            "badges": property_obj.badges,
+            "hero_image": str(property_obj.hero_image) if property_obj.hero_image else None,
+        }
+        
+        # Get related properties for comparison context
+        related_properties = Property.objects.filter(
+            city=property_obj.city
+        ).exclude(id=property_obj.id)[:5]
+        
+        related_data = []
+        for prop in related_properties:
+            related_data.append({
+                "title": prop.title,
+                "price": prop.price_amount,
+                "beds": prop.beds,
+                "baths": prop.baths,
+                "area": prop.area
+            })
+        
+        # Create AI system prompt
+        system_prompt = f"""You are an intelligent real estate assistant with access to comprehensive property data. 
+
+CURRENT PROPERTY DATA:
+{property_data}
+
+RELATED PROPERTIES IN SAME AREA:
+{related_data}
+
+You can answer questions about:
+- Property details, pricing, and features
+- Comparisons with similar properties in the area
+- Market insights and value analysis
+- Location benefits and amenities
+- Investment potential and rental estimates
+- Any other property-related questions
+
+Be helpful, accurate, and conversational. Use the data provided to give specific, detailed answers. If you need to make comparisons, use the related properties data. Always be honest about what information is available vs. what might need further research.
+
+Respond naturally and helpfully to the user's question."""
+
+        # Call OpenAI API
+        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        return response.choices[0].message.content.strip()
+        
+    except Exception as e:
+        print(f"AI chat error: {e}")
+        # Fallback to simple answer if AI fails
+        return simple_answer(property_obj, message.lower())
 
 
 def simple_answer(prop: Property, text: str) -> str:
