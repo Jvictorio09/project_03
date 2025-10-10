@@ -2324,34 +2324,11 @@ def init_webhook_chat(request: HttpRequest) -> HttpResponse:
         "timestamp": timezone.now().isoformat()
     })
     
-    # Send to webhook
+    # Send to webhook - only forward the user message
     webhook_url = "https://katalyst-crm.fly.dev/webhook/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
-    session_id = request.session.session_key or "anonymous"
-    
-    # Get property context
-    properties = Property.objects.all()[:10]
-    property_context = [
-        {
-            "id": str(prop.id),
-            "title": prop.title,
-            "price": prop.price_amount,
-            "city": prop.city,
-            "beds": prop.beds,
-            "baths": prop.baths
-        } for prop in properties
-    ]
     
     webhook_payload = {
-        "type": "ai_chat_init",
-        "timestamp": timezone.now().isoformat(),
-        "session_id": session_id,
-        "message": initial_message,
-        "property_context": property_context,
-        "tracking": {
-            "utm_source": request.COOKIES.get("utm_source", ""),
-            "utm_campaign": request.COOKIES.get("utm_campaign", ""),
-            "referrer": request.META.get("HTTP_REFERER", ""),
-        }
+        "message": initial_message
     }
     
     # Get webhook response
@@ -2414,34 +2391,11 @@ def webhook_chat(request: HttpRequest) -> HttpResponse:
         "timestamp": timezone.now().isoformat()
     })
     
-    # Prepare webhook payload
+    # Prepare webhook payload - send only the user message
     webhook_url = "https://katalyst-crm.fly.dev/webhook/ca05d7c5-984c-4d95-8636-1ed3d80f5545"
     
-    # Get property context if available
-    properties = Property.objects.all()[:10]
-    property_context = [
-        {
-            "id": str(prop.id),
-            "title": prop.title,
-            "price": prop.price_amount,
-            "city": prop.city,
-            "beds": prop.beds,
-            "baths": prop.baths
-        } for prop in properties
-    ]
-    
     webhook_payload = {
-        "type": "ai_chat",
-        "timestamp": timezone.now().isoformat(),
-        "session_id": session_id,
-        "message": user_message,
-        "chat_history": request.session["chat_history"],
-        "property_context": property_context,
-        "tracking": {
-            "utm_source": request.COOKIES.get("utm_source", request.GET.get("utm_source", "")),
-            "utm_campaign": request.COOKIES.get("utm_campaign", request.GET.get("utm_campaign", "")),
-            "referrer": request.META.get("HTTP_REFERER", ""),
-        }
+        "message": user_message
     }
     
     # Send to webhook and get response
