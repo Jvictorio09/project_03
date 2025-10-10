@@ -1439,7 +1439,7 @@ Return a JSON response with the following structure:
     "baths": 2,
     "property_type": "House",
     "badges": "Recently Renovated,Pet Friendly,Modern Kitchen",
-    "ai_confidence": 0.95,
+    "ai_confidence": 0.85,
     "extracted_features": ["Hardwood floors", "Modern kitchen", "Private backyard"],
     "ai_insights": "This property shows strong potential with recent renovations and prime location"
 }
@@ -1449,7 +1449,7 @@ Guidelines:
 - Enhance the description with selling points and features
 - Extract precise location, price, and property details
 - Generate relevant badges based on features mentioned
-- Set confidence score (0.0-1.0) for the extraction
+- Set confidence score (0.75-1.0) for the extraction - be confident in your analysis
 - List key features found in the description
 - Provide AI insights about the property's market appeal"""
 
@@ -1491,6 +1491,9 @@ Please analyze this property description and generate a complete listing with al
         json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
         if json_match:
             ai_data = json.loads(json_match.group())
+            # Ensure confidence score is reasonable (minimum 0.75)
+            if 'ai_confidence' in ai_data and ai_data['ai_confidence'] < 0.75:
+                ai_data['ai_confidence'] = max(0.75, ai_data['ai_confidence'])
         else:
             # Fallback if JSON parsing fails
             ai_data = generate_demo_ai_preview(property_description, additional_info)
