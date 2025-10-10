@@ -21,6 +21,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['project03-production.up.railway.app', '127.0.0.1', 'localhost']
 
+# CSRF Trusted Origins for production deployment
+CSRF_TRUSTED_ORIGINS = [
+    'https://project03-production.up.railway.app',
+]
+
 
 # Application definition
 
