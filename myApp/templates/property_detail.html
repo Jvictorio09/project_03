@@ -51,8 +51,8 @@
             <!-- Description -->
             {% if property.description %}
             <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-                <h2 class="text-xl font-semibold mb-4">Description</h2>
-                <p class="text-gray-700 leading-relaxed">{{ property.description }}</p>
+                <h2 class="text-xl font-semibold mb-4">Property Information</h2>
+                <div class="text-gray-700 leading-relaxed whitespace-pre-line">{{ property.description|linebreaksbr }}</div>
             </div>
             {% endif %}
 

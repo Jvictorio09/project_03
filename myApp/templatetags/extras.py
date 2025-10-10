@@ -7,10 +7,10 @@ register = template.Library()
 
 @register.filter
 def peso(value):
-    """Format number as US Dollar currency."""
+    """Format number as Philippine Peso currency."""
     if value is None:
-        return "$0"
-    return f"${value:,}"
+        return "₱0"
+    return f"₱{value:,}"
 
 
 @register.filter
