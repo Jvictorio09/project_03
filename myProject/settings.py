@@ -19,10 +19,12 @@ SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['project03-production.up.railway.app', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['*']
 
 # CSRF Trusted Origins for production deployment
 CSRF_TRUSTED_ORIGINS = [
+    'https://*.replit.dev',
+    'https://*.replit.app',
     'https://project03-production.up.railway.app',
 ]
 
