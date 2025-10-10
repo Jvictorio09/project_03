@@ -212,15 +212,14 @@
             }, 100);
         });
         
-        // Also process initial AI response on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            fetchPropertyTitles().then(() => {
-                // Process initial AI message
-                const initialAIMessage = document.querySelector('.bg-gray-100');
-                if (initialAIMessage) {
-                    linkifyPropertyTitles(initialAIMessage);
-                }
-            });
+        // Fetch property titles and process messages on page load
+        fetchPropertyTitles().then(() => {
+            console.log('Property titles loaded, processing initial message...');
+            // Process initial AI message
+            const initialAIMessage = document.querySelector('.bg-gray-100');
+            if (initialAIMessage) {
+                linkifyPropertyTitles(initialAIMessage);
+            }
         });
     </script>
 </div>

@@ -16,12 +16,13 @@ PropertyHub is a Django-based real estate property listing application with AI-p
 
 ### Key Features
 1. **Webhook-Powered AI Chatbox**: Interactive conversational AI that transforms the search form into a real-time chatbox
-2. **AI-Powered Property Search**: Natural language property search using OpenAI
-3. **Property Listings**: Browse, filter, and view detailed property information
-4. **Upload System**: Property upload with AI-assisted listing generation
-5. **Chat Widget**: Interactive chat for buyer inquiries
-6. **Lead Management**: Capture and manage property leads
-7. **Webhook Integration**: External system notifications via Katalyst CRM
+2. **Auto-Linking Property Titles**: Frontend automatically detects property titles in chat messages and adds clickable "View Property" buttons that open in new tabs
+3. **AI-Powered Property Search**: Natural language property search using OpenAI
+4. **Property Listings**: Browse, filter, and view detailed property information
+5. **Upload System**: Property upload with AI-assisted listing generation
+6. **Chat Widget**: Interactive chat for buyer inquiries
+7. **Lead Management**: Capture and manage property leads
+8. **Webhook Integration**: External system notifications via Katalyst CRM
 
 ## Project Structure
 ```
@@ -74,6 +75,25 @@ The Django development server runs automatically via the "Django Server" workflo
 Static files are collected to `staticfiles/` directory and served via WhiteNoise.
 
 ## Recent Changes
+- **2025-10-10**: Auto-Linking Property Titles in Chat
+  - Created API endpoint `/api/properties/titles/` that returns all property titles and slugs
+  - Added JavaScript to automatically detect property titles in AI chat messages
+  - When AI mentions a property by its exact title, a "View Property" button automatically appears below the message
+  - Buttons open property detail pages in new tabs, allowing users to continue chatting
+  - Works with n8n RAG backend - no backend changes required
+  - Styled with orange theme for visual consistency
+
+- **2025-10-10**: Database Population with Detailed Property Information
+  - Updated 6 properties with comprehensive real estate details:
+    * Modern 2BR Condo – The Verve Residences, BGC (₱22.5M)
+    * Spacious 3BR Corner Suite – The Residences at Greenbelt, Makati (₱38M)
+    * Cozy Studio at The Sapphire Bloc, Ortigas (₱6.8M)
+    * Luxury 2BR Condo – Botanika Nature Residences, Alabang (₱19.9M)
+    * Elegant 4BR Family Home – Ayala Heights Subdivision, QC (₱28.5M)
+    * 3BR Sky Penthouse – One Rockwell West Tower (₱72M)
+  - Each property includes: furnishing details, amenities, location info, financial details, investment highlights
+  - Chatbot can now reference detailed property specifications
+
 - **2025-10-10**: Webhook-Powered Chatbox Implementation
   - Added `init_webhook_chat` view to transform search form into chatbox
   - Added `webhook_chat` view for ongoing conversation messages
