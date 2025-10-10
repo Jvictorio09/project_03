@@ -7,6 +7,7 @@ from .views import (
     lead_submit, health_check, ai_prompt_search, webhook_chat, init_webhook_chat,
     get_property_titles
 )
+from .views_ai_validation import init_ai_validation_chat, ai_validation_chat
 
 urlpatterns = [
     path("", home, name="home"),
@@ -41,6 +42,10 @@ urlpatterns = [
     
     # API: Property titles for auto-linking in chat
     path("api/properties/titles/", get_property_titles, name="get_property_titles"),
+    
+    # NEW: AI Validation Chat for property listings
+    path("ai-validation/init/", init_ai_validation_chat, name="init_ai_validation_chat"),
+    path("ai-validation/chat/", ai_validation_chat, name="ai_validation_chat"),
 ]
 
 
