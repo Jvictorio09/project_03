@@ -50,7 +50,7 @@
                 <h3 class="text-lg font-semibold text-orange-800 mb-2">Your Interest Summary</h3>
                 <p class="text-orange-700">
                     Hi {{ lead.name }}, we'll discuss your interest in {{ lead.buy_or_rent|title }} properties
-                    {% if lead.budget_max %}with a budget up to ₱{{ lead.budget_max|floatformat:0|add:"," }}{% endif %}
+                    {% if lead.budget_max %}with a budget up to ${{ lead.budget_max|floatformat:0|add:"," }}{% endif %}
                     {% if lead.beds %}looking for {{ lead.beds }}+ bedroom{{ lead.beds|pluralize }}{% endif %}
                     {% if lead.areas %}in {{ lead.areas }}{% endif %}.
                 </p>

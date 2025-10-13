@@ -9,16 +9,20 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.conf import settings
 
 from .models import Property
 
-# OpenAI API configuration from Replit AI Integrations
-OPENAI_API_KEY = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")
-OPENAI_BASE_URL = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
+# OpenAI API configuration - use Django settings
+OPENAI_API_KEY = settings.OPENAI_API_KEY
+OPENAI_BASE_URL = "https://api.openai.com/v1"
 
 
 def call_openai(messages, temperature=0.7):
     """Call OpenAI API using requests"""
+    if not OPENAI_API_KEY:
+        raise Exception("OpenAI API key not configured. Please add OPENAI_API_KEY to your .env file")
+    
     headers = {
         "Authorization": f"Bearer {OPENAI_API_KEY}",
         "Content-Type": "application/json"
@@ -170,8 +174,18 @@ def ai_validation_chat(request: HttpRequest) -> HttpResponse:
                 from django.utils.text import slugify
                 property_data = extract_property_data_from_conversation(chat_history)
                 
-                # Generate unique slug
+                # Validate required fields
                 title = property_data.get('title', 'New Property')
+                city = property_data.get('city', '').strip()
+                price = property_data.get('price', 0)
+                
+                # Ensure minimum valid data
+                if not city:
+                    raise ValueError("City is required but was not extracted from conversation")
+                if price <= 0:
+                    raise ValueError(f"Invalid price: {price}. Must be greater than 0")
+                
+                # Generate unique slug
                 base_slug = slugify(title)
                 slug = base_slug
                 counter = 1
@@ -189,8 +203,8 @@ def ai_validation_chat(request: HttpRequest) -> HttpResponse:
                     slug=slug,
                     title=title,
                     description=property_data.get('description', ''),
-                    price_amount=property_data.get('price', 0),
-                    city=property_data.get('city', ''),
+                    price_amount=price,
+                    city=city,
                     area=property_data.get('area', ''),
                     beds=property_data.get('beds', 1),
                     baths=property_data.get('baths', 1),
@@ -202,8 +216,17 @@ def ai_validation_chat(request: HttpRequest) -> HttpResponse:
                 request.session['saved_property_id'] = property.slug
                 print(f"✅ Property saved with slug: {property.slug}")
                 
+            except ValueError as ve:
+                # Inform user of validation error
+                print(f"❌ Validation error: {ve}")
+                listing_complete = False
+                ai_response += f"\n\n⚠️ Could not save property: {ve}"
+                
             except Exception as e:
-                print(f"Error saving property: {e}")
+                # Inform user of save error
+                print(f"❌ Error saving property: {e}")
+                listing_complete = False
+                ai_response += f"\n\n⚠️ Error saving property. Please try again or contact support."
         
         request.session.modified = True
         

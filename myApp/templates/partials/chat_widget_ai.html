@@ -1,5 +1,15 @@
 <!-- AI-Powered Chat Widget -->
-<div x-show="open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute bottom-20 right-0 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border max-h-[70vh] flex flex-col">
+<div x-data="{ open: false }" class="fixed bottom-6 right-6 z-50">
+    <!-- Chat FAB Button -->
+    <button x-on:click="open = true" 
+            class="bg-purple-600 text-white p-4 rounded-full shadow-lg hover:bg-purple-700 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+    </button>
+
+    <!-- Chat Bottom Sheet -->
+    <div x-show="open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute bottom-20 right-0 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border max-h-[70vh] flex flex-col">
     
     <!-- Header -->
     <div class="p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-2xl">
@@ -61,6 +71,7 @@
             </button>
         </form>
     </div>
+    </div>
 </div>
 
 <script>
@@ -81,9 +92,9 @@ function addUserMessage(button) {
         const userBubble = document.createElement('div');
         userBubble.className = 'flex justify-end';
         userBubble.innerHTML = `
-            <div class="bg-gradient-to-r from-orange-600 to-pink-600 text-white rounded-2xl rounded-tr-sm p-3 max-w-xs">
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-2xl rounded-tr-sm p-3 max-w-xs">
                 <p class="text-sm">${message}</p>
-                <p class="text-xs text-orange-100 mt-1">now</p>
+                <p class="text-xs text-purple-100 mt-1">now</p>
             </div>
         `;
         chatStream.appendChild(userBubble);
@@ -138,3 +149,4 @@ document.addEventListener('htmx:afterRequest', function(event) {
     }
 });
 </script>
+</div>

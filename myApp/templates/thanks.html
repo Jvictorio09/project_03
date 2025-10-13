@@ -28,7 +28,7 @@
                 <p><strong>Phone:</strong> {{ lead.phone }}</p>
                 {% if lead.email %}<p><strong>Email:</strong> {{ lead.email }}</p>{% endif %}
                 <p><strong>Interest:</strong> {{ lead.buy_or_rent|title }} properties</p>
-                {% if lead.budget_max %}<p><strong>Budget:</strong> Up to ₱{{ lead.budget_max|floatformat:0|add:"," }}</p>{% endif %}
+                {% if lead.budget_max %}<p><strong>Budget:</strong> Up to ${{ lead.budget_max|floatformat:0|add:"," }}</p>{% endif %}
                 {% if lead.beds %}<p><strong>Bedrooms:</strong> {{ lead.beds }}+</p>{% endif %}
                 {% if lead.areas %}<p><strong>Preferred Areas:</strong> {{ lead.areas }}</p>{% endif %}
             </div>

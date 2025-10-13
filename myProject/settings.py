@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',  # Add humanize for intcomma filter
     'widget_tweaks',  # Add widget_tweaks for template extras
     'cloudinary',
     'cloudinary_storage',

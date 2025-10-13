@@ -8,7 +8,7 @@
     <!-- Property Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ property.title }}</h1>
-        <p class="text-2xl font-bold text-orange-600 mb-4">₱{{ property.price_amount|floatformat:0|add:"," }}</p>
+        <p class="text-2xl font-bold text-purple-600 mb-4">{{ property.price_amount|peso }}</p>
         <p class="text-gray-600">{{ property.city }}{% if property.area %}, {{ property.area }}{% endif %}</p>
     </div>
 
@@ -28,21 +28,21 @@
                 <h2 class="text-xl font-semibold mb-4">Property Details</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-orange-600">{{ property.beds }}</div>
+                        <div class="text-2xl font-bold text-purple-600">{{ property.beds }}</div>
                         <div class="text-sm text-gray-600">Bedroom{{ property.beds|pluralize }}</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-orange-600">{{ property.baths }}</div>
+                        <div class="text-2xl font-bold text-purple-600">{{ property.baths }}</div>
                         <div class="text-sm text-gray-600">Bathroom{{ property.baths|pluralize }}</div>
                     </div>
                     {% if property.floor_area_sqm %}
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-orange-600">{{ property.floor_area_sqm }}</div>
+                        <div class="text-2xl font-bold text-purple-600">{{ property.floor_area_sqm }}</div>
                         <div class="text-sm text-gray-600">Sq Meters</div>
                     </div>
                     {% endif %}
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-orange-600">{% if property.parking %}Yes{% else %}No{% endif %}</div>
+                        <div class="text-2xl font-bold text-purple-600">{% if property.parking %}Yes{% else %}No{% endif %}</div>
                         <div class="text-sm text-gray-600">Parking</div>
                     </div>
                 </div>
@@ -114,7 +114,7 @@
             <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 sticky top-8">
                 <h3 class="text-lg font-semibold mb-4">Interested in this property?</h3>
                 <button onclick="openLeadForm('{{ property.id }}')" 
-                        class="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-700 transition mb-4">
+                        class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-purple-700 transition mb-4">
                     Ask About This Property
                 </button>
                 <a href="{% url 'book' %}" 
@@ -130,7 +130,7 @@
                 <div class="flex flex-wrap gap-2">
                     {% for badge in property.badges|split:"," %}
                     {% if badge %}
-                    <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">{{ badge|strip }}</span>
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">{{ badge|strip }}</span>
                     {% endif %}
                     {% endfor %}
                 </div>
@@ -148,7 +148,7 @@
         <div class="flex flex-wrap gap-2">
             {% for badge in property.badges|splitcsv %}
             {% if badge %}
-            <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">{{ badge|strip }}</span>
+            <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">{{ badge|strip }}</span>
             {% endif %}
             {% endfor %}
         </div>

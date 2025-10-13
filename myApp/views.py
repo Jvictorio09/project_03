@@ -1969,10 +1969,9 @@ def validate_manual_form_with_ai(upload: PropertyUpload):
     else:
         missing_critical.append("City")
     
+    # Street address is optional, not critical
     if comprehensive_data.get('street_address'):
         provided_fields.append("Street Address")
-    else:
-        missing_critical.append("Street Address")
     
     # Check other comprehensive fields
     if comprehensive_data.get('property_type'):
