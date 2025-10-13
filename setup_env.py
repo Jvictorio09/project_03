@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Environment Setup Helper Script
-Helps configure API keys for the PropertyHub application
+Helps configure API keys for the KaTek Property Hub application
 """
 
 import os
@@ -10,7 +10,7 @@ from pathlib import Path
 def create_env_file():
     """Create .env file with user input"""
     print("=" * 70)
-    print("🔑 PropertyHub API Configuration Setup")
+    print("🔑 KaTek Property Hub API Configuration Setup")
     print("=" * 70)
     print()
     
@@ -52,7 +52,7 @@ def create_env_file():
     
     # Create .env content
     env_content = f"""# ============================================================================
-# PropertyHub API Configuration
+# KaTek Property Hub API Configuration
 # Generated automatically - DO NOT commit this file to version control
 # ============================================================================
 

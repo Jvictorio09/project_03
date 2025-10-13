@@ -1,7 +1,7 @@
-# PropertyHub - Real Estate Listing Platform
+# KaTek Property Hub - Real Estate Listing Platform
 
 ## Overview
-PropertyHub is a Django-based real estate property listing application with AI-powered search capabilities. The platform allows users to search for properties using natural language prompts, upload listings, and interact with a chat widget for inquiries.
+KaTek Property Hub is a Django-based real estate property listing application with AI-powered search capabilities. The platform allows users to search for properties using natural language prompts, upload listings, and interact with a chat widget for inquiries.
 
 ## Project Architecture
 

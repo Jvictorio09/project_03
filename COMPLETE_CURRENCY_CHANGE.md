@@ -76,7 +76,7 @@ Max Budget (USD)
 
 **ALL PHP SYMBOLS SUCCESSFULLY CHANGED TO DOLLARS!**
 
-Your entire PropertyHub application now displays:
+Your entire KaTek Property Hub application now displays:
 - **Property prices**: $1,500,000
 - **Filter options**: Under $100,000  
 - **Budget fields**: Max Budget (USD)
