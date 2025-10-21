@@ -1,0 +1,370 @@
+{% extends 'base_internal.html' %}
+{% load static %}
+
+{% block title %}Setup Wizard - Company Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+  .setup-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .setup-header {
+    text-align: center;
+    margin-bottom: var(--space-12);
+  }
+  
+  .setup-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-4);
+  }
+  
+  .setup-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-8);
+  }
+  
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--surface-glass);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: var(--space-8);
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-purple), var(--electric-violet));
+    border-radius: 4px;
+    transition: width var(--transition-slow);
+  }
+  
+  .setup-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-12);
+    align-items: start;
+  }
+  
+  .setup-form {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .form-section {
+    margin-bottom: var(--space-8);
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+  
+  .logo-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-8);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    background: var(--surface-glass);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+  }
+  
+  .logo-upload:hover {
+    border-color: var(--primary-purple);
+    background: rgba(109, 40, 217, 0.1);
+  }
+  
+  .logo-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-glass);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--text-muted);
+  }
+  
+  .color-picker {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+  
+  .color-chip {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all var(--transition-fast);
+  }
+  
+  .color-chip:hover,
+  .color-chip.selected {
+    border-color: var(--text-primary);
+    transform: scale(1.1);
+  }
+  
+  .preview-card {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+    position: sticky;
+    top: var(--space-8);
+  }
+  
+  .preview-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  
+  .preview-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: var(--font-weight-bold);
+  }
+  
+  .preview-info h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+  }
+  
+  .preview-info p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+  
+  .preview-about {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .setup-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .save-exit {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.875rem;
+  }
+  
+  .save-exit:hover {
+    color: var(--text-primary);
+  }
+  
+  @media (max-width: 768px) {
+    .setup-content {
+      grid-template-columns: 1fr;
+    }
+    
+    .preview-card {
+      position: static;
+      order: -1;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="setup-container">
+  <!-- Header -->
+  <div class="setup-header">
+    <h1 class="setup-title">Welcome to KaTek AI</h1>
+    <p class="setup-subtitle">Let's set up your company profile to get started</p>
+    
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+      <div class="progress-fill" style="width: {{ progress }}%"></div>
+    </div>
+    
+    <p class="text-center text-muted">Step {{ step }} of {{ total_steps }} • ~3 mins left</p>
+  </div>
+  
+  <!-- Content -->
+  <div class="setup-content">
+    <!-- Form -->
+    <div class="setup-form">
+      <form method="post">
+        {% csrf_token %}
+        
+        <!-- Logo Upload -->
+        <div class="form-section">
+          <h3 class="section-title">Company Logo</h3>
+          <div class="logo-upload" onclick="document.getElementById('logo-input').click()">
+            <div class="logo-preview" id="logo-preview">
+              <i class="fas fa-plus"></i>
+            </div>
+            <p class="text-center text-muted">Click to upload logo</p>
+            <p class="text-small text-muted">Square format recommended</p>
+            <input type="file" id="logo-input" name="logo" accept="image/*" style="display: none;">
+          </div>
+        </div>
+        
+        <!-- Brand Color -->
+        <div class="form-section">
+          <h3 class="section-title">Brand Color</h3>
+          <div class="color-picker">
+            <div class="color-chip selected" style="background: #6D28D9;" data-color="#6D28D9"></div>
+            <div class="color-chip" style="background: #8B5CF6;" data-color="#8B5CF6"></div>
+            <div class="color-chip" style="background: #18AFAB;" data-color="#18AFAB"></div>
+            <div class="color-chip" style="background: #3B82F6;" data-color="#3B82F6"></div>
+            <div class="color-chip" style="background: #10B981;" data-color="#10B981"></div>
+            <div class="color-chip" style="background: #F59E0B;" data-color="#F59E0B"></div>
+          </div>
+          <input type="hidden" name="brand_color" id="brand-color" value="#6D28D9">
+        </div>
+        
+        <!-- Company Info -->
+        <div class="form-section">
+          <h3 class="section-title">About Your Company</h3>
+          
+          <div class="form-group">
+            <label class="form-label">Company Name</label>
+            <input type="text" name="company_name" class="form-input" placeholder="Your brokerage name" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Tagline</label>
+            <input type="text" name="tagline" class="form-input" placeholder="Your company tagline">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">About (≤ 280 characters)</label>
+            <textarea name="about" class="form-input form-textarea" placeholder="Tell us about your company..." maxlength="280"></textarea>
+            <p class="text-small text-muted">This will be shown to potential clients</p>
+          </div>
+        </div>
+        
+        <!-- Contact Info -->
+        <div class="form-section">
+          <h3 class="section-title">Contact Information</h3>
+          
+          <div class="form-group">
+            <label class="form-label">Website</label>
+            <input type="url" name="website" class="form-input" placeholder="https://yourcompany.com">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" name="phone" class="form-input" placeholder="+1 (555) 123-4567">
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="setup-actions">
+          <a href="#" class="save-exit">Save & Exit</a>
+          <button type="submit" class="btn btn-primary btn-lg">Continue to Properties</button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Preview -->
+    <div class="preview-card">
+      <h3 class="section-title">Live Preview</h3>
+      
+      <div class="preview-header">
+        <div class="preview-logo" id="preview-logo">K</div>
+        <div class="preview-info">
+          <h3 id="preview-name">Your Company Name</h3>
+          <p id="preview-tagline">Your tagline will appear here</p>
+        </div>
+      </div>
+      
+      <div class="preview-about">
+        <p id="preview-about" class="text-muted">Your company description will appear here...</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Logo upload preview
+  const logoInput = document.getElementById('logo-input');
+  const logoPreview = document.getElementById('logo-preview');
+  
+  logoInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        logoPreview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-lg);">`;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // Color picker
+  const colorChips = document.querySelectorAll('.color-chip');
+  const brandColorInput = document.getElementById('brand-color');
+  
+  colorChips.forEach(chip => {
+    chip.addEventListener('click', function() {
+      colorChips.forEach(c => c.classList.remove('selected'));
+      this.classList.add('selected');
+      brandColorInput.value = this.dataset.color;
+    });
+  });
+  
+  // Live preview updates
+  const companyNameInput = document.querySelector('input[name="company_name"]');
+  const taglineInput = document.querySelector('input[name="tagline"]');
+  const aboutInput = document.querySelector('textarea[name="about"]');
+  
+  const previewName = document.getElementById('preview-name');
+  const previewTagline = document.getElementById('preview-tagline');
+  const previewAbout = document.getElementById('preview-about');
+  
+  companyNameInput.addEventListener('input', function() {
+    previewName.textContent = this.value || 'Your Company Name';
+  });
+  
+  taglineInput.addEventListener('input', function() {
+    previewTagline.textContent = this.value || 'Your tagline will appear here';
+  });
+  
+  aboutInput.addEventListener('input', function() {
+    previewAbout.textContent = this.value || 'Your company description will appear here...';
+  });
+});
+</script>
+{% endblock %}

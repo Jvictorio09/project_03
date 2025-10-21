@@ -1,0 +1,792 @@
+{% extends 'base_internal.html' %}
+{% load static %}
+
+{% block title %}Analytics - KaTek AI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .analytics-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .analytics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-8);
+  }
+  
+  .analytics-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .analytics-actions {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+  }
+  
+  .date-picker {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+  
+  .date-input {
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .date-input:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+  }
+  
+  .analytics-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-8);
+    margin-bottom: var(--space-12);
+  }
+  
+  .chart-container {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+  
+  .chart-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .chart-filters {
+    display: flex;
+    gap: var(--space-2);
+  }
+  
+  .filter-btn {
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  
+  .filter-btn.active {
+    background: var(--primary-purple);
+    border-color: var(--primary-purple);
+    color: white;
+  }
+  
+  .chart-placeholder {
+    height: 300px;
+    background: linear-gradient(135deg, var(--surface-glass) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 1.125rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .chart-placeholder::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 40%, rgba(109, 40, 217, 0.1) 50%, transparent 60%);
+    animation: shimmer 2s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+  
+  .ai-insights {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .insights-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  
+  .insights-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+  }
+  
+  .insights-title {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--surface-glass);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-3);
+    border-left: 3px solid var(--primary-purple);
+  }
+  
+  .insight-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .insight-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  
+  .insight-content h4 {
+    margin: 0 0 var(--space-1) 0;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+  }
+  
+  .insight-content p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  
+  .performance-metrics {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .metrics-title {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+  
+  .metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .metric-item:last-child {
+    border-bottom: none;
+  }
+  
+  .metric-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+  
+  .metric-value {
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+  }
+  
+  .metric-change {
+    font-size: 0.75rem;
+    margin-left: var(--space-2);
+  }
+  
+  .metric-change.positive {
+    color: var(--success-emerald);
+  }
+  
+  .metric-change.negative {
+    color: var(--destructive-rose);
+  }
+  
+  .analytics-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--space-8);
+  }
+  
+  .section-card {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .section-action {
+    color: var(--primary-purple);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+  }
+  
+  .section-action:hover {
+    text-decoration: underline;
+  }
+  
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .data-table th {
+    text-align: left;
+    padding: var(--space-3) 0;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .data-table td {
+    padding: var(--space-3) 0;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .trend-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: 0.75rem;
+  }
+  
+  .trend-up {
+    color: var(--success-emerald);
+  }
+  
+  .trend-down {
+    color: var(--destructive-rose);
+  }
+  
+  .heatmap-container {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--space-1);
+    margin-top: var(--space-4);
+  }
+  
+  .heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    background: var(--surface-glass);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    transition: all var(--transition-fast);
+  }
+  
+  .heatmap-cell:hover {
+    transform: scale(1.1);
+    z-index: 1;
+  }
+  
+  .heatmap-cell.level-1 { background: rgba(16, 185, 129, 0.2); }
+  .heatmap-cell.level-2 { background: rgba(16, 185, 129, 0.4); }
+  .heatmap-cell.level-3 { background: rgba(16, 185, 129, 0.6); }
+  .heatmap-cell.level-4 { background: rgba(16, 185, 129, 0.8); }
+  .heatmap-cell.level-5 { background: var(--success-emerald); }
+  
+  .heatmap-legend {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-3);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  
+  .legend-items {
+    display: flex;
+    gap: var(--space-2);
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  
+  .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+  }
+  
+  .export-actions {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  @media (max-width: 768px) {
+    .analytics-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .analytics-sections {
+      grid-template-columns: 1fr;
+    }
+    
+    .analytics-header {
+      flex-direction: column;
+      gap: var(--space-4);
+      align-items: stretch;
+    }
+    
+    .date-picker {
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+  <!-- Header -->
+  <div class="analytics-header">
+    <h1 class="analytics-title">Analytics</h1>
+    <div class="analytics-actions">
+      <div class="date-picker">
+        <input type="date" class="date-input" value="2024-01-01">
+        <span>to</span>
+        <input type="date" class="date-input" value="2024-01-31">
+      </div>
+      <button class="btn btn-secondary">
+        <i class="fas fa-download"></i>
+        Export Report
+      </button>
+    </div>
+  </div>
+  
+  <!-- Main Analytics Grid -->
+  <div class="analytics-grid">
+    <!-- Lead Sources Chart -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <h3 class="chart-title">Lead Sources</h3>
+        <div class="chart-filters">
+          <button class="filter-btn active">7 Days</button>
+          <button class="filter-btn">30 Days</button>
+          <button class="filter-btn">90 Days</button>
+        </div>
+      </div>
+      <div class="chart-placeholder">
+        <i class="fas fa-chart-pie"></i>
+        <span style="margin-left: var(--space-2);">Lead Sources Chart</span>
+      </div>
+    </div>
+    
+    <!-- AI Insights Sidebar -->
+    <div class="sidebar">
+      <div class="ai-insights">
+        <div class="insights-header">
+          <div class="insights-icon">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h3 class="insights-title">AI Insights</h3>
+        </div>
+        
+        <div class="insight-item">
+          <div class="insight-icon">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+          <div class="insight-content">
+            <h4>Peak Engagement Times</h4>
+            <p>Your leads are most active between 2-4 PM. Consider scheduling campaigns during this window.</p>
+          </div>
+        </div>
+        
+        <div class="insight-item">
+          <div class="insight-icon">
+            <i class="fas fa-trending-up"></i>
+          </div>
+          <div class="insight-content">
+            <h4>High-Converting Keywords</h4>
+            <p>"Downtown", "Modern", and "Investment" are your top-performing property descriptors.</p>
+          </div>
+        </div>
+        
+        <div class="insight-item">
+          <div class="insight-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="insight-content">
+            <h4>Lead Quality Score</h4>
+            <p>Your AI agent is successfully qualifying 87% of leads, above industry average of 72%.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="performance-metrics">
+        <h3 class="metrics-title">Performance Metrics</h3>
+        
+        <div class="metric-item">
+          <span class="metric-label">Response Time</span>
+          <span class="metric-value">2.3s</span>
+          <span class="metric-change positive">-15%</span>
+        </div>
+        
+        <div class="metric-item">
+          <span class="metric-label">Conversion Rate</span>
+          <span class="metric-value">24.5%</span>
+          <span class="metric-change positive">+8%</span>
+        </div>
+        
+        <div class="metric-item">
+          <span class="metric-label">Lead Quality</span>
+          <span class="metric-value">87%</span>
+          <span class="metric-change positive">+12%</span>
+        </div>
+        
+        <div class="metric-item">
+          <span class="metric-label">Avg. Session</span>
+          <span class="metric-value">4.2m</span>
+          <span class="metric-change negative">-3%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Analytics Sections -->
+  <div class="analytics-sections">
+    <!-- Conversion by Channel -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3 class="section-title">Conversion by Channel</h3>
+        <a href="#" class="section-action">View Details</a>
+      </div>
+      <div class="chart-placeholder" style="height: 200px;">
+        <i class="fas fa-chart-bar"></i>
+        <span style="margin-left: var(--space-2);">Conversion Chart</span>
+      </div>
+    </div>
+    
+    <!-- Property Views -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3 class="section-title">Top Properties</h3>
+        <a href="#" class="section-action">View All</a>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Views</th>
+            <th>Inquiries</th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Modern 3BR Condo</td>
+            <td>1,247</td>
+            <td>23</td>
+            <td>
+              <div class="trend-indicator trend-up">
+                <i class="fas fa-arrow-up"></i>
+                +12%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Luxury Penthouse</td>
+            <td>892</td>
+            <td>18</td>
+            <td>
+              <div class="trend-indicator trend-up">
+                <i class="fas fa-arrow-up"></i>
+                +8%
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Cozy Studio</td>
+            <td>654</td>
+            <td>15</td>
+            <td>
+              <div class="trend-indicator trend-down">
+                <i class="fas fa-arrow-down"></i>
+                -3%
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Activity Heatmap -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3 class="section-title">Activity Heatmap</h3>
+        <a href="#" class="section-action">Full View</a>
+      </div>
+      <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: var(--space-4);">
+        Lead activity over the last 4 weeks
+      </p>
+      <div class="heatmap-container">
+        <div class="heatmap-cell">M</div>
+        <div class="heatmap-cell">T</div>
+        <div class="heatmap-cell">W</div>
+        <div class="heatmap-cell">T</div>
+        <div class="heatmap-cell">F</div>
+        <div class="heatmap-cell">S</div>
+        <div class="heatmap-cell">S</div>
+        <div class="heatmap-cell level-1"></div>
+        <div class="heatmap-cell level-2"></div>
+        <div class="heatmap-cell level-3"></div>
+        <div class="heatmap-cell level-4"></div>
+        <div class="heatmap-cell level-5"></div>
+        <div class="heatmap-cell level-3"></div>
+        <div class="heatmap-cell level-1"></div>
+        <div class="heatmap-cell level-2"></div>
+        <div class="heatmap-cell level-4"></div>
+        <div class="heatmap-cell level-5"></div>
+        <div class="heatmap-cell level-3"></div>
+        <div class="heatmap-cell level-2"></div>
+        <div class="heatmap-cell level-1"></div>
+        <div class="heatmap-cell level-3"></div>
+        <div class="heatmap-cell level-4"></div>
+        <div class="heatmap-cell level-5"></div>
+        <div class="heatmap-cell level-2"></div>
+        <div class="heatmap-cell level-1"></div>
+        <div class="heatmap-cell level-2"></div>
+        <div class="heatmap-cell level-3"></div>
+        <div class="heatmap-cell level-4"></div>
+        <div class="heatmap-cell level-5"></div>
+        <div class="heatmap-cell level-3"></div>
+        <div class="heatmap-cell level-1"></div>
+      </div>
+      <div class="heatmap-legend">
+        <span>Less</span>
+        <div class="legend-items">
+          <div class="legend-item">
+            <div class="legend-color" style="background: var(--surface-glass);"></div>
+            <span>0</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: rgba(16, 185, 129, 0.2);"></div>
+            <span>1</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: rgba(16, 185, 129, 0.4);"></div>
+            <span>2</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: rgba(16, 185, 129, 0.6);"></div>
+            <span>3</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: rgba(16, 185, 129, 0.8);"></div>
+            <span>4</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: var(--success-emerald);"></div>
+            <span>5+</span>
+          </div>
+        </div>
+        <span>More</span>
+      </div>
+    </div>
+    
+    <!-- Trending Neighborhoods -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3 class="section-title">Trending Neighborhoods</h3>
+        <a href="#" class="section-action">View Map</a>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Neighborhood</th>
+            <th>Interest</th>
+            <th>Growth</th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Downtown District</td>
+            <td>High</td>
+            <td>+23%</td>
+            <td>
+              <div class="trend-indicator trend-up">
+                <i class="fas fa-arrow-up"></i>
+                Hot
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Arts Quarter</td>
+            <td>Medium</td>
+            <td>+15%</td>
+            <td>
+              <div class="trend-indicator trend-up">
+                <i class="fas fa-arrow-up"></i>
+                Rising
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Uptown Heights</td>
+            <td>High</td>
+            <td>+8%</td>
+            <td>
+              <div class="trend-indicator trend-up">
+                <i class="fas fa-arrow-up"></i>
+                Stable
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Export Actions -->
+  <div class="export-actions">
+    <button class="btn btn-secondary">
+      <i class="fas fa-file-pdf"></i>
+      Export PDF Report
+    </button>
+    <button class="btn btn-secondary">
+      <i class="fas fa-file-excel"></i>
+      Export Excel Data
+    </button>
+    <button class="btn btn-primary">
+      <i class="fas fa-share"></i>
+      Share Dashboard
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Chart filter interactions
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+  
+  // Heatmap cell interactions
+  const heatmapCells = document.querySelectorAll('.heatmap-cell');
+  heatmapCells.forEach(cell => {
+    cell.addEventListener('mouseenter', function() {
+      this.style.transform = 'scale(1.1)';
+      this.style.zIndex = '1';
+    });
+    
+    cell.addEventListener('mouseleave', function() {
+      this.style.transform = 'scale(1)';
+      this.style.zIndex = 'auto';
+    });
+  });
+  
+  // Date picker interactions
+  const dateInputs = document.querySelectorAll('.date-input');
+  dateInputs.forEach(input => {
+    input.addEventListener('change', function() {
+      // Update analytics based on date range
+      console.log('Date range changed:', this.value);
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -5,12 +5,26 @@ from .views import (
     listing_choice, ai_prompt_listing, manual_form_listing,
     upload_listing, processing_listing, validation_chat, book, thanks, dashboard,
     lead_submit, health_check, ai_prompt_search, webhook_chat, init_webhook_chat,
-    get_property_titles
+    get_property_titles, landing, signup, login_view, logout_view, setup_wizard, properties, chat_agent, leads, campaigns, analytics, chat, settings, password_reset_request, password_reset_confirm
 )
 from .views_ai_validation import init_ai_validation_chat, ai_validation_chat
 
 urlpatterns = [
-    path("", home, name="home"),
+    path("", landing, name="home"),
+    path("landing/", landing, name="landing"),
+    path("signup/", signup, name="signup"),
+    path("login/", login_view, name="login"),
+    path("logout/", logout_view, name="logout"),
+    path("setup/", setup_wizard, name="setup_wizard"),
+    path("properties/", properties, name="properties"),
+    path("chat-agent/", chat_agent, name="chat_agent"),
+    path("leads/", leads, name="leads"),
+    path("campaigns/", campaigns, name="campaigns"),
+    path("analytics/", analytics, name="analytics"),
+    path("chat/", chat, name="chat"),
+    path("settings/", settings, name="settings"),
+    path("password-reset/", password_reset_request, name="password_reset"),
+    path("password-reset-confirm/<str:uidb64>/<str:token>/", password_reset_confirm, name="password_reset_confirm"),
     path("list", results, name="results"),
     path("property/<slug:slug>/", property_detail, name="property_detail"),
     path("property/<slug:slug>/chat", property_chat, name="property_chat"),

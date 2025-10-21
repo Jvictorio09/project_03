@@ -1,0 +1,831 @@
+{% extends 'base_internal.html' %}
+{% load static %}
+
+{% block title %}Property Upload - Setup Wizard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .setup-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .setup-header {
+    text-align: center;
+    margin-bottom: var(--space-12);
+  }
+  
+  .setup-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-4) 0;
+    color: var(--text-primary);
+  }
+  
+  .setup-subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-6) 0;
+  }
+  
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--surface-glass);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: var(--space-8);
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-purple), var(--electric-violet));
+    border-radius: var(--radius-full);
+    transition: width 0.6s ease;
+    width: {{ progress }}%;
+  }
+  
+  .step-indicator {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+  
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--surface-glass);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-normal);
+  }
+  
+  .step-item.active {
+    background: var(--primary-purple);
+    color: white;
+  }
+  
+  .step-item.completed {
+    background: var(--success-emerald);
+    color: white;
+  }
+  
+  .step-number {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-bold);
+  }
+  
+  .step-item.active .step-number {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .step-item.completed .step-number {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .upload-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+  }
+  
+  .upload-option {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    position: relative;
+  }
+  
+  .upload-option:hover {
+    border-color: var(--primary-purple);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .upload-option.selected {
+    border-color: var(--primary-purple);
+    background: rgba(109, 40, 217, 0.1);
+  }
+  
+  .upload-option.selected::before {
+    content: '✓';
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    width: 24px;
+    height: 24px;
+    background: var(--primary-purple);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-bold);
+  }
+  
+  .upload-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-xl);
+    background: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 auto var(--space-4);
+  }
+  
+  .upload-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-2) 0;
+    color: var(--text-primary);
+  }
+  
+  .upload-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4) 0;
+    line-height: 1.5;
+  }
+  
+  .upload-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+  }
+  
+  .upload-features li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-1);
+  }
+  
+  .upload-features li::before {
+    content: '✓';
+    color: var(--success-emerald);
+    font-weight: var(--font-weight-bold);
+  }
+  
+  .upload-form {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    margin-bottom: var(--space-8);
+    display: none;
+  }
+  
+  .upload-form.active {
+    display: block;
+  }
+  
+  .form-header {
+    margin-bottom: var(--space-6);
+  }
+  
+  .form-title {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-2) 0;
+    color: var(--text-primary);
+  }
+  
+  .form-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .form-label {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+  }
+  
+  .form-input {
+    padding: var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+  }
+  
+  .form-textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  .form-select {
+    padding: var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .form-select:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+  }
+  
+  .file-upload {
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    background: var(--surface-glass);
+  }
+  
+  .file-upload:hover {
+    border-color: var(--primary-purple);
+    background: rgba(109, 40, 217, 0.05);
+  }
+  
+  .file-upload.dragover {
+    border-color: var(--primary-purple);
+    background: rgba(109, 40, 217, 0.1);
+  }
+  
+  .upload-icon-large {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    background: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    margin: 0 auto var(--space-3);
+  }
+  
+  .upload-text {
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-1) 0;
+  }
+  
+  .upload-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+  
+  .csv-template {
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-top: var(--space-4);
+  }
+  
+  .template-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+  }
+  
+  .template-title {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+    color: var(--text-primary);
+  }
+  
+  .template-download {
+    padding: var(--space-2) var(--space-3);
+    background: var(--primary-purple);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  
+  .template-download:hover {
+    background: var(--primary-purple-hover);
+  }
+  
+  .template-preview {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: monospace;
+    background: rgba(0, 0, 0, 0.2);
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+  }
+  
+  .api-connections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  
+  .api-connection {
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+  }
+  
+  .api-connection:hover {
+    border-color: var(--primary-purple);
+    transform: translateY(-1px);
+  }
+  
+  .api-connection.selected {
+    border-color: var(--primary-purple);
+    background: rgba(109, 40, 217, 0.1);
+  }
+  
+  .api-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--surface-glass);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-3);
+    font-size: 1.25rem;
+  }
+  
+  .api-name {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-1) 0;
+    color: var(--text-primary);
+  }
+  
+  .api-status {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+  
+  .setup-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  
+  .btn-back {
+    padding: var(--space-3) var(--space-6);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-normal);
+  }
+  
+  .btn-back:hover {
+    background: var(--surface-glass-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  .btn-next {
+    padding: var(--space-3) var(--space-6);
+    background: var(--primary-purple);
+    border: none;
+    border-radius: var(--radius-lg);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+  }
+  
+  .btn-next:hover {
+    background: var(--primary-purple-hover);
+    transform: translateY(-1px);
+  }
+  
+  .btn-next:disabled {
+    background: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  @media (max-width: 768px) {
+    .upload-options {
+      grid-template-columns: 1fr;
+    }
+    
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .setup-actions {
+      flex-direction: column;
+    }
+    
+    .step-indicator {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="setup-container">
+  <!-- Header -->
+  <div class="setup-header">
+    <h1 class="setup-title">Property Upload</h1>
+    <p class="setup-subtitle">Import your listings to unlock AI-powered lead generation</p>
+    
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+      <div class="step-item completed">
+        <div class="step-number">1</div>
+        <span>Company Profile</span>
+      </div>
+      <div class="step-item active">
+        <div class="step-number">2</div>
+        <span>Property Upload</span>
+      </div>
+      <div class="step-item">
+        <div class="step-number">3</div>
+        <span>AI Agent</span>
+      </div>
+      <div class="step-item">
+        <div class="step-number">4</div>
+        <span>CRM Connection</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Upload Options -->
+  <div class="upload-options">
+    <div class="upload-option selected" data-type="manual">
+      <div class="upload-icon">
+        <i class="fas fa-plus"></i>
+      </div>
+      <h3 class="upload-title">Manual Entry</h3>
+      <p class="upload-description">Add properties one by one with our simple form</p>
+      <ul class="upload-features">
+        <li>Perfect for small portfolios</li>
+        <li>Guided property entry</li>
+        <li>Instant AI training</li>
+      </ul>
+    </div>
+    
+    <div class="upload-option" data-type="csv">
+      <div class="upload-icon">
+        <i class="fas fa-file-csv"></i>
+      </div>
+      <h3 class="upload-title">CSV Upload</h3>
+      <p class="upload-description">Bulk import properties from a spreadsheet</p>
+      <ul class="upload-features">
+        <li>Upload up to 1000 properties</li>
+        <li>CSV template provided</li>
+        <li>Bulk validation & processing</li>
+      </ul>
+    </div>
+    
+    <div class="upload-option" data-type="api">
+      <div class="upload-icon">
+        <i class="fas fa-plug"></i>
+      </div>
+      <h3 class="upload-title">API Sync</h3>
+      <p class="upload-description">Connect to your existing property management system</p>
+      <ul class="upload-features">
+        <li>Real-time synchronization</li>
+        <li>Multiple platform support</li>
+        <li>Automatic updates</li>
+      </ul>
+    </div>
+  </div>
+  
+  <!-- Manual Form -->
+  <div class="upload-form active" id="manual-form">
+    <div class="form-header">
+      <h3 class="form-title">Add Your First Property</h3>
+      <p class="form-subtitle">Fill in the details below to get started</p>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="upload_type" value="manual">
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Property Title</label>
+          <input type="text" name="title" class="form-input" placeholder="e.g., Modern 3BR Condo in Downtown" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Price</label>
+          <input type="number" name="price" class="form-input" placeholder="500000" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <input type="text" name="address" class="form-input" placeholder="123 Main Street" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">City</label>
+          <input type="text" name="city" class="form-input" placeholder="San Francisco" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Bedrooms</label>
+          <select name="beds" class="form-select" required>
+            <option value="">Select bedrooms</option>
+            <option value="1">1 Bedroom</option>
+            <option value="2">2 Bedrooms</option>
+            <option value="3">3 Bedrooms</option>
+            <option value="4">4 Bedrooms</option>
+            <option value="5">5+ Bedrooms</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Bathrooms</label>
+          <select name="baths" class="form-select" required>
+            <option value="">Select bathrooms</option>
+            <option value="1">1 Bathroom</option>
+            <option value="1.5">1.5 Bathrooms</option>
+            <option value="2">2 Bathrooms</option>
+            <option value="2.5">2.5 Bathrooms</option>
+            <option value="3">3 Bathrooms</option>
+            <option value="3.5">3.5 Bathrooms</option>
+            <option value="4">4+ Bathrooms</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-input form-textarea" placeholder="Describe the property's features, location, and unique selling points..." required></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Property Photos</label>
+        <div class="file-upload" onclick="document.getElementById('photos').click()">
+          <div class="upload-icon-large">
+            <i class="fas fa-camera"></i>
+          </div>
+          <p class="upload-text">Click to upload photos</p>
+          <p class="upload-hint">Upload up to 10 photos (JPG, PNG, max 5MB each)</p>
+          <input type="file" id="photos" name="photos" multiple accept="image/*" style="display: none;">
+        </div>
+      </div>
+    </form>
+  </div>
+  
+  <!-- CSV Upload Form -->
+  <div class="upload-form" id="csv-form">
+    <div class="form-header">
+      <h3 class="form-title">CSV Property Upload</h3>
+      <p class="form-subtitle">Upload your properties in bulk using our CSV template</p>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="upload_type" value="csv">
+      
+      <div class="file-upload" onclick="document.getElementById('csv-file').click()">
+        <div class="upload-icon-large">
+          <i class="fas fa-file-csv"></i>
+        </div>
+        <p class="upload-text">Click to upload CSV file</p>
+        <p class="upload-hint">CSV file with property data (max 10MB)</p>
+        <input type="file" id="csv-file" name="csv_file" accept=".csv" style="display: none;">
+      </div>
+      
+      <div class="csv-template">
+        <div class="template-header">
+          <h4 class="template-title">CSV Template</h4>
+          <button type="button" class="template-download" onclick="downloadTemplate()">Download Template</button>
+        </div>
+        <div class="template-preview">
+title,address,city,price,beds,baths,description
+"Modern 3BR Condo","123 Main St","San Francisco","750000","3","2","Beautiful downtown condo with city views"
+"Luxury Penthouse","456 Oak Ave","San Francisco","1200000","4","3","Spacious penthouse with panoramic views"
+        </div>
+      </div>
+    </form>
+  </div>
+  
+  <!-- API Sync Form -->
+  <div class="upload-form" id="api-form">
+    <div class="form-header">
+      <h3 class="form-title">API Integration</h3>
+      <p class="form-subtitle">Connect to your existing property management system</p>
+    </div>
+    
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="upload_type" value="api">
+      
+      <div class="api-connections">
+        <div class="api-connection selected" data-provider="rentcast">
+          <div class="api-logo">
+            <i class="fas fa-home"></i>
+          </div>
+          <h4 class="api-name">RentCast</h4>
+          <p class="api-status">Available now</p>
+        </div>
+        
+        <div class="api-connection" data-provider="zillow">
+          <div class="api-logo">
+            <i class="fas fa-building"></i>
+          </div>
+          <h4 class="api-name">Zillow Bridge</h4>
+          <p class="api-status">Coming soon</p>
+        </div>
+        
+        <div class="api-connection" data-provider="mls">
+          <div class="api-logo">
+            <i class="fas fa-database"></i>
+          </div>
+          <h4 class="api-name">MLS Integration</h4>
+          <p class="api-status">Contact support</p>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">API Key</label>
+        <input type="text" name="api_key" class="form-input" placeholder="Enter your API key">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Sync Frequency</label>
+        <select name="sync_frequency" class="form-select">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Actions -->
+  <div class="setup-actions">
+    <a href="{% url 'setup_wizard' %}?step=1" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+      Back to Company Profile
+    </a>
+    <button type="submit" class="btn-next" onclick="submitForm()">
+      Continue to AI Agent
+      <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Upload option selection
+  const uploadOptions = document.querySelectorAll('.upload-option');
+  const uploadForms = document.querySelectorAll('.upload-form');
+  
+  uploadOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      // Remove selected class from all options
+      uploadOptions.forEach(opt => opt.classList.remove('selected'));
+      // Add selected class to clicked option
+      this.classList.add('selected');
+      
+      // Hide all forms
+      uploadForms.forEach(form => form.classList.remove('active'));
+      
+      // Show corresponding form
+      const type = this.dataset.type;
+      const form = document.getElementById(type + '-form');
+      if (form) {
+        form.classList.add('active');
+      }
+    });
+  });
+  
+  // API connection selection
+  const apiConnections = document.querySelectorAll('.api-connection');
+  apiConnections.forEach(connection => {
+    connection.addEventListener('click', function() {
+      apiConnections.forEach(conn => conn.classList.remove('selected'));
+      this.classList.add('selected');
+    });
+  });
+  
+  // File upload drag and drop
+  const fileUploads = document.querySelectorAll('.file-upload');
+  fileUploads.forEach(upload => {
+    upload.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.classList.add('dragover');
+    });
+    
+    upload.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      this.classList.remove('dragover');
+    });
+    
+    upload.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const input = this.querySelector('input[type="file"]');
+        if (input) {
+          input.files = files;
+          this.querySelector('.upload-text').textContent = `${files.length} file(s) selected`;
+        }
+      }
+    });
+  });
+});
+
+function downloadTemplate() {
+  // Create and download CSV template
+  const csvContent = 'title,address,city,price,beds,baths,description\n"Modern 3BR Condo","123 Main St","San Francisco","750000","3","2","Beautiful downtown condo with city views"\n"Luxury Penthouse","456 Oak Ave","San Francisco","1200000","4","3","Spacious penthouse with panoramic views"';
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'property_template.csv';
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+function submitForm() {
+  const selectedOption = document.querySelector('.upload-option.selected');
+  const form = document.querySelector('.upload-form.active form');
+  
+  if (form) {
+    form.submit();
+  }
+}
+</script>
+{% endblock %}

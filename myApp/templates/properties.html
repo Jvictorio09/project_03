@@ -1,0 +1,641 @@
+{% extends 'base_internal.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Properties - KaTek AI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .properties-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .properties-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-8);
+  }
+  
+  .properties-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .properties-actions {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+  }
+  
+  .search-box {
+    position: relative;
+    min-width: 300px;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+  
+  .filters-section {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    margin-bottom: var(--space-8);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+  }
+  
+  .filters-title {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+  }
+  
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .filter-label {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+  }
+  
+  .filter-select {
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .filter-select:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+  }
+  
+  .properties-table-container {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .table-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .table-actions {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  
+  .bulk-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+  
+  .bulk-select {
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+  }
+  
+  .properties-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table-header-row {
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .table-header-cell {
+    padding: var(--space-4) var(--space-6);
+    text-align: left;
+    font-weight: var(--font-weight-bold);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .table-row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background var(--transition-fast);
+  }
+  
+  .table-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .table-cell {
+    padding: var(--space-4) var(--space-6);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .property-thumbnail {
+    width: 60px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--surface-glass) 0%, rgba(255, 255, 255, 0.05) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+  }
+  
+  .property-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  
+  .property-title {
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+    font-size: 0.875rem;
+  }
+  
+  .property-location {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin: 0;
+  }
+  
+  .property-price {
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-purple);
+    font-size: 1rem;
+  }
+  
+  .property-details {
+    display: flex;
+    gap: var(--space-2);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .status-active {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success-emerald);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  
+  .status-pending {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning-amber);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+  
+  .status-draft {
+    background: rgba(107, 114, 128, 0.2);
+    color: var(--text-muted);
+    border: 1px solid rgba(107, 114, 128, 0.3);
+  }
+  
+  .row-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+  
+  .action-btn {
+    padding: var(--space-2);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: 0.75rem;
+  }
+  
+  .action-btn:hover {
+    background: var(--surface-glass-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+  }
+  
+  .action-btn.primary {
+    background: var(--primary-purple);
+    border-color: var(--primary-purple);
+    color: white;
+  }
+  
+  .action-btn.primary:hover {
+    background: var(--primary-purple-hover);
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .pagination-btn {
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: all var(--transition-fast);
+  }
+  
+  .pagination-btn:hover {
+    background: var(--surface-glass-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+  }
+  
+  .pagination-btn.active {
+    background: var(--primary-purple);
+    border-color: var(--primary-purple);
+    color: white;
+  }
+  
+  .pagination-info {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin: 0 var(--space-4);
+  }
+  
+  @media (max-width: 768px) {
+    .properties-header {
+      flex-direction: column;
+      gap: var(--space-4);
+      align-items: stretch;
+    }
+    
+    .properties-actions {
+      flex-direction: column;
+    }
+    
+    .search-box {
+      min-width: auto;
+    }
+    
+    .filters-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .table-header {
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    
+    .bulk-actions {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="properties-container">
+  <!-- Header -->
+  <div class="properties-header">
+    <h1 class="properties-title">Properties</h1>
+    <div class="properties-actions">
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-input" placeholder="Search properties..." id="property-search">
+      </div>
+      <a href="#" class="btn btn-primary">
+        <i class="fas fa-plus"></i>
+        Add Property
+      </a>
+    </div>
+  </div>
+  
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filters-header">
+      <h3 class="filters-title">Filters</h3>
+      <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear All</button>
+    </div>
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label class="filter-label">City</label>
+        <select class="filter-select" id="city-filter">
+          <option value="">All Cities</option>
+          <option value="downtown">Downtown</option>
+          <option value="uptown">Uptown</option>
+          <option value="arts-district">Arts District</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Price Range</label>
+        <select class="filter-select" id="price-filter">
+          <option value="">All Prices</option>
+          <option value="0-300000">Under $300K</option>
+          <option value="300000-500000">$300K - $500K</option>
+          <option value="500000-1000000">$500K - $1M</option>
+          <option value="1000000+">Over $1M</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Bedrooms</label>
+        <select class="filter-select" id="beds-filter">
+          <option value="">Any</option>
+          <option value="1">1+</option>
+          <option value="2">2+</option>
+          <option value="3">3+</option>
+          <option value="4">4+</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Status</label>
+        <select class="filter-select" id="status-filter">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="draft">Draft</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Properties Table -->
+  <div class="properties-table-container">
+    <div class="table-header">
+      <h3 class="table-title">All Properties ({{ properties|length }})</h3>
+      <div class="table-actions">
+        <div class="bulk-actions">
+          <select class="bulk-select" id="bulk-action">
+            <option value="">Bulk Actions</option>
+            <option value="sync">Sync Estimates</option>
+            <option value="publish">Publish to Site</option>
+            <option value="push">Push to AI Brain</option>
+            <option value="archive">Archive</option>
+          </select>
+          <button class="btn btn-secondary btn-sm" onclick="applyBulkAction()">Apply</button>
+        </div>
+        <button class="btn btn-ghost btn-sm">
+          <i class="fas fa-download"></i>
+          Export
+        </button>
+      </div>
+    </div>
+    
+    <table class="properties-table">
+      <thead>
+        <tr class="table-header-row">
+          <th class="table-header-cell">
+            <input type="checkbox" id="select-all">
+          </th>
+          <th class="table-header-cell">Property</th>
+          <th class="table-header-cell">Price</th>
+          <th class="table-header-cell">Est. Value</th>
+          <th class="table-header-cell">Updated</th>
+          <th class="table-header-cell">Status</th>
+          <th class="table-header-cell">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for property in properties %}
+        <tr class="table-row">
+          <td class="table-cell">
+            <input type="checkbox" class="property-checkbox" value="{{ property.id }}">
+          </td>
+          <td class="table-cell">
+            <div style="display: flex; align-items: center; gap: var(--space-3);">
+              <div class="property-thumbnail">
+                <i class="fas fa-home"></i>
+              </div>
+              <div class="property-info">
+                <h4 class="property-title">{{ property.title }}</h4>
+                <p class="property-location">{{ property.city }}, {{ property.area }}</p>
+                <div class="property-details">
+                  <span><i class="fas fa-bed"></i> {{ property.beds }} beds</span>
+                  <span><i class="fas fa-bath"></i> {{ property.baths }} baths</span>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="table-cell">
+            <div class="property-price">${{ property.price_amount|floatformat:0|intcomma }}</div>
+          </td>
+          <td class="table-cell">
+            <div class="property-price">${{ property.price_amount|floatformat:0|intcomma }}</div>
+            <div class="text-small text-muted">Est. AVM</div>
+          </td>
+          <td class="table-cell">
+            <div class="text-small">{{ property.created_at|date:"M d, Y" }}</div>
+            <div class="text-small text-muted">{{ property.created_at|timesince }} ago</div>
+          </td>
+          <td class="table-cell">
+            <span class="status-badge status-active">Active</span>
+          </td>
+          <td class="table-cell">
+            <div class="row-actions">
+              <button class="action-btn" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="action-btn" title="Duplicate">
+                <i class="fas fa-copy"></i>
+              </button>
+              <button class="action-btn" title="Archive">
+                <i class="fas fa-archive"></i>
+              </button>
+              <button class="action-btn primary" title="Push to AI Brain">
+                <i class="fas fa-brain"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr class="table-row">
+          <td colspan="7" class="table-cell text-center" style="padding: var(--space-12);">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: var(--space-4);">
+              <i class="fas fa-home" style="font-size: 3rem; color: var(--text-muted);"></i>
+              <h3 style="color: var(--text-primary); margin: 0;">No properties yet</h3>
+              <p style="color: var(--text-muted); margin: 0;">Import your first 20 properties in under 2 minutes</p>
+              <a href="#" class="btn btn-primary">
+                <i class="fas fa-upload"></i>
+                Import Properties
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    
+    <!-- Pagination -->
+    <div class="pagination">
+      <a href="#" class="pagination-btn">
+        <i class="fas fa-chevron-left"></i>
+      </a>
+      <a href="#" class="pagination-btn active">1</a>
+      <a href="#" class="pagination-btn">2</a>
+      <a href="#" class="pagination-btn">3</a>
+      <a href="#" class="pagination-btn">
+        <i class="fas fa-chevron-right"></i>
+      </a>
+      <span class="pagination-info">Showing 1-12 of 48 properties</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Search functionality
+  const searchInput = document.getElementById('property-search');
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('.table-row');
+    
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      if (text.includes(searchTerm)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+  
+  // Filter functionality
+  const filters = ['city-filter', 'price-filter', 'beds-filter', 'status-filter'];
+  filters.forEach(filterId => {
+    const filter = document.getElementById(filterId);
+    filter.addEventListener('change', applyFilters);
+  });
+  
+  // Select all checkbox
+  const selectAllCheckbox = document.getElementById('select-all');
+  const propertyCheckboxes = document.querySelectorAll('.property-checkbox');
+  
+  selectAllCheckbox.addEventListener('change', function() {
+    propertyCheckboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+  
+  // Individual checkbox change
+  propertyCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const checkedBoxes = document.querySelectorAll('.property-checkbox:checked');
+      selectAllCheckbox.checked = checkedBoxes.length === propertyCheckboxes.length;
+    });
+  });
+});
+
+function applyFilters() {
+  // Implementation for filter logic
+  console.log('Applying filters...');
+}
+
+function clearFilters() {
+  const filters = ['city-filter', 'price-filter', 'beds-filter', 'status-filter'];
+  filters.forEach(filterId => {
+    document.getElementById(filterId).value = '';
+  });
+  applyFilters();
+}
+
+function applyBulkAction() {
+  const bulkAction = document.getElementById('bulk-action').value;
+  const checkedBoxes = document.querySelectorAll('.property-checkbox:checked');
+  
+  if (!bulkAction) {
+    alert('Please select a bulk action');
+    return;
+  }
+  
+  if (checkedBoxes.length === 0) {
+    alert('Please select at least one property');
+    return;
+  }
+  
+  // Implementation for bulk actions
+  console.log(`Applying ${bulkAction} to ${checkedBoxes.length} properties`);
+}
+</script>
+{% endblock %}

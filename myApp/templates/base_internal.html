@@ -1,0 +1,274 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}KaTek AI - Real Estate Intelligence{% endblock %}</title>
+    
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Additional CSS -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Meta tags -->
+    <meta name="description" content="{% block meta_description %}KaTek AI - Real Estate Intelligence Platform{% endblock %}">
+    <meta name="keywords" content="real estate, AI, chatbot, property management, lead generation">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+</head>
+<body>
+    <!-- Mobile-First Header -->
+    <header class="internal-header">
+        <div class="header-container">
+            <!-- Logo and Brand -->
+            <div class="header-brand">
+                <a href="{% url 'home' %}" class="brand-link">
+                    <div class="brand-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-name">KaTek</span>
+                        <span class="brand-ai">AI</span>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+            
+            <!-- Desktop Navigation -->
+            <nav class="desktop-nav">
+                <ul class="nav-list">
+                    <li><a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a></li>
+                    <li><a href="{% url 'properties' %}" class="nav-link">Properties</a></li>
+                    <li><a href="{% url 'leads' %}" class="nav-link">Leads</a></li>
+                    <li><a href="{% url 'campaigns' %}" class="nav-link">Campaigns</a></li>
+                    <li><a href="{% url 'analytics' %}" class="nav-link">Analytics</a></li>
+                </ul>
+            </nav>
+            
+            <!-- User Menu -->
+            <div class="user-section">
+                {% if user.is_authenticated %}
+                    <div class="user-menu">
+                        <button class="user-button" id="user-menu-toggle">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <span class="user-name">{{ user.first_name|default:user.username }}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        
+                        <!-- User Dropdown -->
+                        <div class="user-dropdown" id="user-dropdown">
+                            <div class="dropdown-header">
+                                <div class="user-info">
+                                    <div class="user-avatar-large">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="user-details">
+                                        <div class="user-name-large">{{ user.first_name|default:user.username }}</div>
+                                        <div class="user-email">{{ user.email }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="dropdown-menu">
+                                <a href="{% url 'chat_agent' %}" class="dropdown-item">
+                                    <i class="fas fa-robot"></i>
+                                    AI Agent
+                                </a>
+                                <a href="{% url 'chat' %}" class="dropdown-item">
+                                    <i class="fas fa-comments"></i>
+                                    Live Chat
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'settings' %}" class="dropdown-item">
+                                    <i class="fas fa-cog"></i>
+                                    Settings
+                                </a>
+                                <a href="{% url 'logout' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="auth-buttons">
+                        <a href="{% url 'login' %}" class="btn btn-ghost">Log in</a>
+                        <a href="{% url 'signup' %}" class="btn btn-primary">Get Started</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation Overlay -->
+        <div class="mobile-nav-overlay" id="mobile-nav-overlay">
+            <div class="mobile-nav-content">
+                <div class="mobile-nav-header">
+                    <div class="mobile-brand">
+                        <div class="brand-icon">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="brand-text">
+                            <span class="brand-name">KaTek</span>
+                            <span class="brand-ai">AI</span>
+                        </div>
+                    </div>
+                    <button class="mobile-nav-close" id="mobile-nav-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <nav class="mobile-nav">
+                    <ul class="mobile-nav-list">
+                        <li><a href="{% url 'dashboard' %}" class="mobile-nav-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Dashboard
+                        </a></li>
+                        <li><a href="{% url 'properties' %}" class="mobile-nav-link">
+                            <i class="fas fa-home"></i>
+                            Properties
+                        </a></li>
+                        <li><a href="{% url 'leads' %}" class="mobile-nav-link">
+                            <i class="fas fa-users"></i>
+                            Leads
+                        </a></li>
+                        <li><a href="{% url 'campaigns' %}" class="mobile-nav-link">
+                            <i class="fas fa-paper-plane"></i>
+                            Campaigns
+                        </a></li>
+                        <li><a href="{% url 'analytics' %}" class="mobile-nav-link">
+                            <i class="fas fa-chart-bar"></i>
+                            Analytics
+                        </a></li>
+                        <li><a href="{% url 'chat_agent' %}" class="mobile-nav-link">
+                            <i class="fas fa-robot"></i>
+                            AI Agent
+                        </a></li>
+                        <li><a href="{% url 'chat' %}" class="mobile-nav-link">
+                            <i class="fas fa-comments"></i>
+                            Live Chat
+                        </a></li>
+                    </ul>
+                </nav>
+                
+                {% if user.is_authenticated %}
+                    <div class="mobile-user-section">
+                        <div class="mobile-user-info">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-details">
+                                <div class="user-name">{{ user.first_name|default:user.username }}</div>
+                                <div class="user-email">{{ user.email }}</div>
+                            </div>
+                        </div>
+                        <div class="mobile-user-actions">
+                            <a href="{% url 'settings' %}" class="mobile-user-action">
+                                <i class="fas fa-cog"></i>
+                                Settings
+                            </a>
+                            <a href="{% url 'logout' %}" class="mobile-user-action">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="mobile-auth-section">
+                        <a href="{% url 'login' %}" class="btn btn-ghost mobile-auth-btn">Log in</a>
+                        <a href="{% url 'signup' %}" class="btn btn-primary mobile-auth-btn">Get Started</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="internal-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="internal-footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="brand-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <span class="brand-name">KaTek AI</span>
+                </div>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Help</a>
+                    <a href="#" class="footer-link">Privacy</a>
+                    <a href="#" class="footer-link">Terms</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{% static 'js/design-system.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileNavOverlay = document.getElementById('mobile-nav-overlay');
+        const mobileNavClose = document.getElementById('mobile-nav-close');
+        
+        mobileMenuToggle?.addEventListener('click', () => {
+            mobileNavOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        
+        mobileNavClose?.addEventListener('click', () => {
+            mobileNavOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+        
+        mobileNavOverlay?.addEventListener('click', (e) => {
+            if (e.target === mobileNavOverlay) {
+                mobileNavOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+        
+        // User menu toggle
+        const userMenuToggle = document.getElementById('user-menu-toggle');
+        const userDropdown = document.getElementById('user-dropdown');
+        
+        userMenuToggle?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('User menu clicked'); // Debug log
+            userDropdown.classList.toggle('active');
+            console.log('Dropdown classes:', userDropdown.classList.toString()); // Debug log
+        });
+        
+        // Close user dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userMenuToggle?.contains(e.target) && !userDropdown?.contains(e.target)) {
+                userDropdown?.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

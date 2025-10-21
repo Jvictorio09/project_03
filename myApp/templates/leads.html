@@ -1,0 +1,1008 @@
+{% extends 'base_internal.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Leads - KaTek AI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .leads-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .leads-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-8);
+  }
+  
+  .leads-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .leads-actions {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+  }
+  
+  .search-box {
+    position: relative;
+    min-width: 300px;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+  
+  .filters-section {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    margin-bottom: var(--space-8);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+  }
+  
+  .filters-title {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+  }
+  
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .filter-label {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+  }
+  
+  .filter-select {
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .filter-select:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+  }
+  
+  .leads-content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: var(--space-8);
+  }
+  
+  .leads-table-container {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .table-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .table-actions {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  
+  .bulk-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+  
+  .bulk-select {
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+  }
+  
+  .leads-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table-header-row {
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .table-header-cell {
+    padding: var(--space-4) var(--space-6);
+    text-align: left;
+    font-weight: var(--font-weight-bold);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .table-row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background var(--transition-fast);
+    cursor: pointer;
+  }
+  
+  .table-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .table-cell {
+    padding: var(--space-4) var(--space-6);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .lead-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  
+  .lead-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: var(--font-weight-bold);
+    font-size: 0.875rem;
+  }
+  
+  .lead-details h4 {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+  }
+  
+  .lead-details p {
+    margin: var(--space-1) 0 0 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  
+  .lead-property {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+  }
+  
+  .lead-source {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  
+  .source-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface-glass);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+  }
+  
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .status-new {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3B82F6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+  
+  .status-qualified {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success-emerald);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  
+  .status-contacted {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning-amber);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+  
+  .status-converted {
+    background: rgba(109, 40, 217, 0.2);
+    color: var(--primary-purple);
+    border: 1px solid rgba(109, 40, 217, 0.3);
+  }
+  
+  .lead-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+  
+  .action-btn {
+    padding: var(--space-2);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: 0.75rem;
+  }
+  
+  .action-btn:hover {
+    background: var(--surface-glass-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+  }
+  
+  .action-btn.primary {
+    background: var(--primary-purple);
+    border-color: var(--primary-purple);
+    color: white;
+  }
+  
+  .action-btn.primary:hover {
+    background: var(--primary-purple-hover);
+  }
+  
+  .lead-drawer {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+    height: fit-content;
+    position: sticky;
+    top: var(--space-8);
+  }
+  
+  .drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .drawer-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .drawer-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+  }
+  
+  .drawer-close:hover {
+    background: var(--surface-glass-hover);
+    color: var(--text-primary);
+  }
+  
+  .lead-summary {
+    margin-bottom: var(--space-6);
+  }
+  
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .summary-item:last-child {
+    border-bottom: none;
+  }
+  
+  .summary-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+  
+  .summary-value {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+  }
+  
+  .timeline {
+    margin-bottom: var(--space-6);
+  }
+  
+  .timeline-title {
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+  
+  .timeline-item {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    position: relative;
+  }
+  
+  .timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 24px;
+    bottom: -16px;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .timeline-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.625rem;
+    flex-shrink: 0;
+  }
+  
+  .timeline-content {
+    flex: 1;
+  }
+  
+  .timeline-text {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-1) 0;
+  }
+  
+  .timeline-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+  
+  .quick-actions {
+    margin-bottom: var(--space-6);
+  }
+  
+  .actions-title {
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+  
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  
+  .action-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all var(--transition-normal);
+    cursor: pointer;
+  }
+  
+  .action-button:hover {
+    background: var(--surface-glass-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+  }
+  
+  .action-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+  }
+  
+  .action-content h4 {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+  }
+  
+  .action-content p {
+    margin: var(--space-1) 0 0 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  
+  .notes-section {
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .notes-title {
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+  
+  .notes-textarea {
+    width: 100%;
+    min-height: 100px;
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    resize: vertical;
+  }
+  
+  .notes-textarea:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .pagination-btn {
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: all var(--transition-fast);
+  }
+  
+  .pagination-btn:hover {
+    background: var(--surface-glass-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+  }
+  
+  .pagination-btn.active {
+    background: var(--primary-purple);
+    border-color: var(--primary-purple);
+    color: white;
+  }
+  
+  .pagination-info {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin: 0 var(--space-4);
+  }
+  
+  @media (max-width: 768px) {
+    .leads-content {
+      grid-template-columns: 1fr;
+    }
+    
+    .lead-drawer {
+      position: static;
+      order: -1;
+    }
+    
+    .filters-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="leads-container">
+  <!-- Header -->
+  <div class="leads-header">
+    <h1 class="leads-title">Leads</h1>
+    <div class="leads-actions">
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-input" placeholder="Search leads..." id="lead-search">
+      </div>
+      <a href="#" class="btn btn-primary">
+        <i class="fas fa-plus"></i>
+        Add Lead
+      </a>
+    </div>
+  </div>
+  
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filters-header">
+      <h3 class="filters-title">Filters</h3>
+      <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear All</button>
+    </div>
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label class="filter-label">Source</label>
+        <select class="filter-select" id="source-filter">
+          <option value="">All Sources</option>
+          <option value="website">Website</option>
+          <option value="chat">AI Chat</option>
+          <option value="referral">Referral</option>
+          <option value="social">Social Media</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Status</label>
+        <select class="filter-select" id="status-filter">
+          <option value="">All Status</option>
+          <option value="new">New</option>
+          <option value="qualified">Qualified</option>
+          <option value="contacted">Contacted</option>
+          <option value="converted">Converted</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Date Range</label>
+        <select class="filter-select" id="date-filter">
+          <option value="">All Time</option>
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Owner</label>
+        <select class="filter-select" id="owner-filter">
+          <option value="">All Owners</option>
+          <option value="me">Me</option>
+          <option value="team">Team</option>
+          <option value="unassigned">Unassigned</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="leads-content">
+    <!-- Leads Table -->
+    <div class="leads-table-container">
+      <div class="table-header">
+        <h3 class="table-title">All Leads ({{ leads|length }})</h3>
+        <div class="table-actions">
+          <div class="bulk-actions">
+            <select class="bulk-select" id="bulk-action">
+              <option value="">Bulk Actions</option>
+              <option value="assign">Assign to Me</option>
+              <option value="qualify">Mark as Qualified</option>
+              <option value="contact">Mark as Contacted</option>
+              <option value="export">Export Selected</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="applyBulkAction()">Apply</button>
+          </div>
+          <button class="btn btn-ghost btn-sm">
+            <i class="fas fa-download"></i>
+            Export All
+          </button>
+        </div>
+      </div>
+      
+      <table class="leads-table">
+        <thead>
+          <tr class="table-header-row">
+            <th class="table-header-cell">
+              <input type="checkbox" id="select-all">
+            </th>
+            <th class="table-header-cell">Lead</th>
+            <th class="table-header-cell">Property Interest</th>
+            <th class="table-header-cell">Source</th>
+            <th class="table-header-cell">Date</th>
+            <th class="table-header-cell">Status</th>
+            <th class="table-header-cell">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lead in leads %}
+          <tr class="table-row" onclick="openLeadDrawer('{{ lead.id }}')">
+            <td class="table-cell">
+              <input type="checkbox" class="lead-checkbox" value="{{ lead.id }}">
+            </td>
+            <td class="table-cell">
+              <div class="lead-info">
+                <div class="lead-avatar">{{ lead.name|first|upper }}</div>
+                <div class="lead-details">
+                  <h4>{{ lead.name }}</h4>
+                  <p>{{ lead.email|default:"No email" }} • {{ lead.phone }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="table-cell">
+              <div class="lead-property">
+                {% if lead.interest_ids %}
+                  {{ lead.interest_ids|truncatechars:30 }}
+                {% else %}
+                  General inquiry
+                {% endif %}
+              </div>
+            </td>
+            <td class="table-cell">
+              <div class="lead-source">
+                <div class="source-icon">
+                  <i class="fas fa-robot"></i>
+                </div>
+                <span>AI Chat</span>
+              </div>
+            </td>
+            <td class="table-cell">
+              <div class="text-small">{{ lead.created_at|date:"M d, Y" }}</div>
+              <div class="text-small text-muted">{{ lead.created_at|timesince }} ago</div>
+            </td>
+            <td class="table-cell">
+              <span class="status-badge status-new">New</span>
+            </td>
+            <td class="table-cell">
+              <div class="lead-actions">
+                <button class="action-btn" title="Call">
+                  <i class="fas fa-phone"></i>
+                </button>
+                <button class="action-btn" title="Email">
+                  <i class="fas fa-envelope"></i>
+                </button>
+                <button class="action-btn primary" title="Schedule Tour">
+                  <i class="fas fa-calendar"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="table-row">
+            <td colspan="7" class="table-cell text-center" style="padding: var(--space-12);">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: var(--space-4);">
+                <i class="fas fa-users" style="font-size: 3rem; color: var(--text-muted);"></i>
+                <h3 style="color: var(--text-primary); margin: 0;">No leads yet</h3>
+                <p style="color: var(--text-muted); margin: 0;">Your AI agent will start capturing leads automatically</p>
+                <a href="#" class="btn btn-primary">
+                  <i class="fas fa-robot"></i>
+                  Configure AI Agent
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      
+      <!-- Pagination -->
+      <div class="pagination">
+        <a href="#" class="pagination-btn">
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        <a href="#" class="pagination-btn active">1</a>
+        <a href="#" class="pagination-btn">2</a>
+        <a href="#" class="pagination-btn">3</a>
+        <a href="#" class="pagination-btn">
+          <i class="fas fa-chevron-right"></i>
+        </a>
+        <span class="pagination-info">Showing 1-12 of 48 leads</span>
+      </div>
+    </div>
+    
+    <!-- Lead Drawer -->
+    <div class="lead-drawer" id="lead-drawer" style="display: none;">
+      <div class="drawer-header">
+        <h3 class="drawer-title">Lead Details</h3>
+        <button class="drawer-close" onclick="closeLeadDrawer()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="lead-summary">
+        <div class="summary-item">
+          <span class="summary-label">Name</span>
+          <span class="summary-value">Sarah Johnson</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Email</span>
+          <span class="summary-value">sarah@email.com</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Phone</span>
+          <span class="summary-value">+1 (555) 123-4567</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Budget</span>
+          <span class="summary-value">$400K - $500K</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Source</span>
+          <span class="summary-value">AI Chat</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Status</span>
+          <span class="summary-value">
+            <span class="status-badge status-new">New</span>
+          </span>
+        </div>
+      </div>
+      
+      <div class="timeline">
+        <h4 class="timeline-title">Activity Timeline</h4>
+        
+        <div class="timeline-item">
+          <div class="timeline-icon">
+            <i class="fas fa-robot"></i>
+          </div>
+          <div class="timeline-content">
+            <p class="timeline-text">Initial inquiry via AI chat</p>
+            <p class="timeline-time">2 hours ago</p>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-icon">
+            <i class="fas fa-home"></i>
+          </div>
+          <div class="timeline-content">
+            <p class="timeline-text">Viewed 3BR condo in downtown</p>
+            <p class="timeline-time">1 hour ago</p>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-icon">
+            <i class="fas fa-calendar"></i>
+          </div>
+          <div class="timeline-content">
+            <p class="timeline-text">Requested property tour</p>
+            <p class="timeline-time">30 minutes ago</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="quick-actions">
+        <h4 class="actions-title">Quick Actions</h4>
+        <div class="action-buttons">
+          <a href="#" class="action-button">
+            <div class="action-icon">
+              <i class="fas fa-phone"></i>
+            </div>
+            <div class="action-content">
+              <h4>Call Lead</h4>
+              <p>Start a phone conversation</p>
+            </div>
+          </a>
+          
+          <a href="#" class="action-button">
+            <div class="action-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="action-content">
+              <h4>Send Email</h4>
+              <p>Follow up with email</p>
+            </div>
+          </a>
+          
+          <a href="#" class="action-button">
+            <div class="action-icon">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="action-content">
+              <h4>Schedule Tour</h4>
+              <p>Book a property viewing</p>
+            </div>
+          </a>
+          
+          <a href="#" class="action-button">
+            <div class="action-icon">
+              <i class="fas fa-tasks"></i>
+            </div>
+            <div class="action-content">
+              <h4>Add Task</h4>
+              <p>Create a reminder</p>
+            </div>
+          </a>
+        </div>
+      </div>
+      
+      <div class="notes-section">
+        <h4 class="notes-title">Notes</h4>
+        <textarea class="notes-textarea" placeholder="Add notes about this lead..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Search functionality
+  const searchInput = document.getElementById('lead-search');
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('.table-row');
+    
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      if (text.includes(searchTerm)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+  
+  // Filter functionality
+  const filters = ['source-filter', 'status-filter', 'date-filter', 'owner-filter'];
+  filters.forEach(filterId => {
+    const filter = document.getElementById(filterId);
+    filter.addEventListener('change', applyFilters);
+  });
+  
+  // Select all checkbox
+  const selectAllCheckbox = document.getElementById('select-all');
+  const leadCheckboxes = document.querySelectorAll('.lead-checkbox');
+  
+  selectAllCheckbox.addEventListener('change', function() {
+    leadCheckboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+  
+  // Individual checkbox change
+  leadCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const checkedBoxes = document.querySelectorAll('.lead-checkbox:checked');
+      selectAllCheckbox.checked = checkedBoxes.length === leadCheckboxes.length;
+    });
+  });
+});
+
+function applyFilters() {
+  // Implementation for filter logic
+  console.log('Applying filters...');
+}
+
+function clearFilters() {
+  const filters = ['source-filter', 'status-filter', 'date-filter', 'owner-filter'];
+  filters.forEach(filterId => {
+    document.getElementById(filterId).value = '';
+  });
+  applyFilters();
+}
+
+function applyBulkAction() {
+  const bulkAction = document.getElementById('bulk-action').value;
+  const checkedBoxes = document.querySelectorAll('.lead-checkbox:checked');
+  
+  if (!bulkAction) {
+    alert('Please select a bulk action');
+    return;
+  }
+  
+  if (checkedBoxes.length === 0) {
+    alert('Please select at least one lead');
+    return;
+  }
+  
+  // Implementation for bulk actions
+  console.log(`Applying ${bulkAction} to ${checkedBoxes.length} leads`);
+}
+
+function openLeadDrawer(leadId) {
+  const drawer = document.getElementById('lead-drawer');
+  drawer.style.display = 'block';
+  drawer.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeLeadDrawer() {
+  const drawer = document.getElementById('lead-drawer');
+  drawer.style.display = 'none';
+}
+</script>
+{% endblock %}

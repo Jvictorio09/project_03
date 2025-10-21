@@ -1,5 +1,32 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 from .models import Lead, PropertyUpload
+
+
+class LoginForm(AuthenticationForm):
+    """Custom login form with better styling"""
+    username = forms.EmailField(
+        label="Email address",
+        widget=forms.EmailInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'you@company.com',
+            'autocomplete': 'email'
+        })
+    )
+    password = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Enter your password',
+            'autocomplete': 'current-password'
+        })
+    )
+    remember_me = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-checkbox'
+        })
+    )
 
 
 class LeadForm(forms.ModelForm):

@@ -1,0 +1,697 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}KaTek AI - Turn every inquiry into a conversation{% endblock %}
+
+{% block meta_description %}Your AI agent learns your inventory, answers instantly, and books viewings. Transform your real estate business with intelligent automation.{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* -------------------------------------------------
+     Layout rhythm & spacing helpers
+  --------------------------------------------------*/
+  .container {
+    /* gentle side padding for all viewports */
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1200px; /* keeps hero lines optimal */
+  }
+
+  /* Standardize top/bottom breathing room */
+  section {
+    margin-top: 6rem;
+    margin-bottom: 6rem;
+  }
+
+  @media (max-width: 768px) {
+    section {
+      margin-top: 4rem;
+      margin-bottom: 4rem;
+    }
+  }
+
+  /* -------------------------------------------------
+     Landing Page Specific Styles
+  --------------------------------------------------*/
+  .hero-section {
+    background: linear-gradient(135deg, var(--deep-navy) 0%, #1a1d29 100%);
+    /* bigger top/bottom, relies on section margins for extra spacing */
+    padding: 8rem 0 6rem;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .hero-background {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(109, 40, 217, 0.12) 0%, transparent 52%),
+      radial-gradient(circle at 70% 80%, rgba(139, 92, 246, 0.10) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4rem; /* consistent left/right spacing */
+  }
+
+  .hero-left {
+    flex: 1;
+    max-width: 600px;
+  }
+
+  .hero-right {
+    flex: 1;
+    max-width: 520px;
+    margin-left: var(--space-12);
+  }
+
+  .hero-headline {
+    font-size: 3.5rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-6);
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-8);
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    margin-bottom: var(--space-10);
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: var(--space-8);
+    margin-top: var(--space-6);
+  }
+
+  .stat-item { text-align: center; }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-purple);
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: var(--space-1);
+  }
+
+  /* -------------------------------------------------
+     Mock Chat
+  --------------------------------------------------*/
+  .mock-chat {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-glow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .chat-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .chat-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: var(--font-weight-bold);
+  }
+
+  .chat-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+
+  .chat-info p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .message {
+    display: flex;
+    gap: var(--space-3);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: messageSlideIn 0.6s ease-out forwards;
+  }
+
+  .message.user { flex-direction: row-reverse; }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-bold);
+    flex-shrink: 0;
+  }
+
+  .message.user .message-avatar { background: var(--primary-purple); color: white; }
+  .message.ai .message-avatar {
+    background: var(--surface-glass);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .message-content {
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+    max-width: 80%;
+    position: relative;
+  }
+
+  .message.user .message-content {
+    background: var(--primary-purple);
+    border-color: var(--primary-purple);
+    color: white;
+  }
+
+  .message-text {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .message-time {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    margin-top: var(--space-1);
+  }
+
+  .message.user .message-time { color: rgba(255, 255, 255, 0.8); }
+
+  .chat-input {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .chat-input input {
+    flex: 1;
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+  }
+
+  .chat-input input::placeholder { color: var(--text-muted); }
+
+  .chat-send {
+    background: var(--primary-purple);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    color: white;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+  }
+
+  .chat-send:hover {
+    background: var(--primary-purple-hover);
+    transform: translateY(-1px);
+  }
+
+  /* -------------------------------------------------
+     Signup Form
+  --------------------------------------------------*/
+  .signup-form {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .form-header {
+    text-align: center;
+    margin-bottom: var(--space-8);
+  }
+
+  .form-title {
+    font-size: 1.75rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-2);
+  }
+
+  .form-subtitle { color: var(--text-secondary); font-size: 1rem; }
+
+  .oauth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+
+  .oauth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-normal);
+  }
+
+  .oauth-btn:hover {
+    background: var(--surface-glass-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .oauth-btn.google { background: white; color: #333; }
+  .oauth-btn.google:hover { background: #f8f9fa; }
+
+  .form-divider {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin: var(--space-6) 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+
+  .form-divider::before,
+  .form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .form-group { margin-bottom: 1.25rem; } /* tighter & consistent */
+
+  .form-actions {
+    display: flex;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+  }
+
+  .form-actions .btn { flex: 1; }
+
+  .legal-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: var(--space-4);
+    line-height: 1.5;
+  }
+
+  .legal-text a {
+    color: var(--primary-purple);
+    text-decoration: none;
+  }
+
+  .legal-text a:hover { text-decoration: underline; }
+
+  /* -------------------------------------------------
+     Cards (Features)
+  --------------------------------------------------*/
+  .card {
+    background: var(--surface-glass);
+    padding: 2rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .card-header { margin-bottom: 1.5rem; }
+
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* -------------------------------------------------
+     Animations
+  --------------------------------------------------*/
+  @keyframes messageSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .message:nth-child(1) { animation-delay: 0.5s; }
+  .message:nth-child(2) { animation-delay: 1.5s; }
+  .message:nth-child(3) { animation-delay: 2.5s; }
+  .message:nth-child(4) { animation-delay: 3.5s; }
+  .message:nth-child(5) { animation-delay: 4.5s; }
+
+  /* -------------------------------------------------
+     Responsive
+  --------------------------------------------------*/
+  @media (max-width: 1024px) {
+    /* smooth down grid gaps globally */
+    .grid { gap: 4rem; }
+  }
+
+  @media (max-width: 768px) {
+    .hero-content { flex-direction: column; }
+    .hero-right { margin-left: 0; margin-top: var(--space-8); }
+    .hero-headline { font-size: 2.5rem; }
+    .hero-cta { flex-direction: column; align-items: stretch; }
+    .hero-stats { justify-content: space-around; }
+    .grid { gap: 2rem; }
+    .hero-section { padding-top: 6rem; padding-bottom: 4rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-background"></div>
+  <div class="container">
+    <div class="hero-content">
+      <!-- Left Content -->
+      <div class="hero-left">
+        <h1 class="hero-headline">
+          Turn every inquiry into a conversation—and every conversation into a client.
+        </h1>
+        <p class="hero-subtitle">
+          Your AI agent learns your inventory, answers instantly, and books viewings.
+        </p>
+
+        <div class="hero-cta">
+          <a href="#signup" class="btn btn-primary btn-lg">Get Started Free</a>
+          <a href="#demo" class="btn btn-secondary btn-lg">Watch Demo</a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">2.4k+</span>
+            <span class="stat-label">Active Brokers</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">87%</span>
+            <span class="stat-label">Lead Conversion</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">24/7</span>
+            <span class="stat-label">AI Availability</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Content - Mock Chat -->
+      <div class="hero-right">
+        <div class="mock-chat">
+          <div class="chat-header">
+            <div class="chat-avatar">A</div>
+            <div class="chat-info">
+              <h4>Ava from KaTek Realty</h4>
+              <p>Online now</p>
+            </div>
+          </div>
+
+          <div class="chat-messages">
+            <div class="message ai">
+              <div class="message-avatar">A</div>
+              <div class="message-content">
+                <p class="message-text">Hi! I'm Ava from KaTek Realty. How can I help you find your perfect home today?</p>
+                <p class="message-time">2:34 PM</p>
+              </div>
+            </div>
+
+            <div class="message user">
+              <div class="message-avatar">U</div>
+              <div class="message-content">
+                <p class="message-text">I'm looking for a 3BR condo under $500k in downtown</p>
+                <p class="message-time">2:35 PM</p>
+              </div>
+            </div>
+
+            <div class="message ai">
+              <div class="message-avatar">A</div>
+              <div class="message-content">
+                <p class="message-text">Perfect! I found 3 great options in your budget. The newest is a modern 3BR with city views at $485k. Would you like to see the details?</p>
+                <p class="message-time">2:35 PM</p>
+              </div>
+            </div>
+
+            <div class="message user">
+              <div class="message-avatar">U</div>
+              <div class="message-content">
+                <p class="message-text">Yes, that sounds amazing!</p>
+                <p class="message-time">2:36 PM</p>
+              </div>
+            </div>
+
+            <div class="message ai">
+              <div class="message-avatar">A</div>
+              <div class="message-content">
+                <p class="message-text">Great! I can schedule a tour for this weekend. What's the best way to reach you?</p>
+                <p class="message-time">2:36 PM</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input">
+            <input type="text" placeholder="Type your message..." readonly>
+            <button class="chat-send">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div> <!-- /hero-content -->
+  </div> <!-- /container -->
+</section>
+
+<!-- Signup Section -->
+<section id="signup">
+  <div class="container">
+    <div class="grid grid-cols-2 gap-12 items-center">
+      <!-- Left: Benefits -->
+      <div>
+        <h2 class="text-4xl font-bold mb-6">Why 2,400+ brokers choose KaTek AI</h2>
+
+        <div class="space-y-6">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-primary-purple rounded-lg flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-brain text-white"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Smart Property Matching</h3>
+              <p class="text-secondary">AI learns your inventory and instantly matches inquiries to the perfect properties.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-primary-purple rounded-lg flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-clock text-white"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">24/7 Availability</h3>
+              <p class="text-secondary">Never miss a lead. Your AI agent responds instantly, even at 2 AM.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-primary-purple rounded-lg flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-chart-line text-white"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Proven Results</h3>
+              <p class="text-secondary">Average 87% increase in lead conversion and 3x faster response times.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Signup Form -->
+      <div class="signup-form">
+        <div class="form-header">
+          <h3 class="form-title">Start your free trial</h3>
+          <p class="form-subtitle">No credit card required • Setup in 3 minutes</p>
+        </div>
+
+        <form method="post" action="{% url 'signup' %}">
+          {% csrf_token %}
+
+          <!-- OAuth Buttons -->
+          <div class="oauth-buttons">
+            <a href="#" class="oauth-btn google">
+              <i class="fab fa-google"></i>
+              Continue with Google
+            </a>
+            <a href="#" class="oauth-btn">
+              <i class="fab fa-facebook"></i>
+              Connect Facebook/Instagram
+            </a>
+          </div>
+
+          <div class="form-divider">or</div>
+
+          <!-- Form Fields -->
+          <div class="form-group">
+            <label class="form-label">Organization Name</label>
+            <input type="text" name="org_name" class="form-input" placeholder="Your brokerage name" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Admin Email</label>
+            <input type="email" name="email" class="form-input" placeholder="your@email.com" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-input" placeholder="Create a strong password" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Region</label>
+            <select name="region" class="form-input form-select" required>
+              <option value="">Select your region</option>
+              <option value="ca">Canada</option>
+              <option value="us">United States</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg">Get Started</button>
+            <a href="{% url 'login' %}" class="btn btn-ghost btn-lg">Already have an account?</a>
+          </div>
+
+          <p class="legal-text">
+            By continuing you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section>
+  <div class="container">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl font-bold mb-6">Everything you need to convert more leads</h2>
+      <p class="text-xl text-secondary max-w-2xl mx-auto">
+        From intelligent property matching to automated follow-ups, KaTek AI handles the entire lead journey.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-8">
+      <div class="card">
+        <div class="card-header">
+          <div class="w-16 h-16 bg-primary-purple rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-robot text-2xl text-white"></i>
+          </div>
+          <h3 class="card-title">AI-Powered Responses</h3>
+        </div>
+        <div class="card-body">
+          <p>Your AI agent learns your properties and responds with accurate, personalized information instantly.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="w-16 h-16 bg-primary-purple rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-calendar-check text-2xl text-white"></i>
+          </div>
+          <h3 class="card-title">Automated Scheduling</h3>
+        </div>
+        <div class="card-body">
+          <p>Seamlessly book viewings and appointments without manual coordination or back-and-forth emails.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="w-16 h-16 bg-primary-purple rounded-xl flex items-center justify-center mb-4">
+            <i class="fas fa-chart-bar text-2xl text-white"></i>
+          </div>
+          <h3 class="card-title">Smart Analytics</h3>
+        </div>
+        <div class="card-body">
+          <p>Track performance, identify trends, and optimize your lead conversion with detailed insights.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Auto-advance mock chat messages
+  const messages = document.querySelectorAll('.message');
+  messages.forEach((message, index) => {
+    setTimeout(() => {
+      message.style.opacity = '1';
+      message.style.transform = 'translateY(0)';
+    }, index * 1000 + 500);
+  });
+
+  // Simulate typing in chat input
+  setTimeout(() => {
+    const chatInput = document.querySelector('.chat-input input');
+    if (chatInput) {
+      chatInput.value = 'Book a tour';
+      chatInput.style.color = 'var(--text-primary)';
+    }
+  }, 6000);
+});
+</script>
+{% endblock %}

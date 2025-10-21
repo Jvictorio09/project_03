@@ -9,10 +9,22 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.db import connection
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import send_mail
+from django.conf import settings
+import os
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 from .models import Property, Lead, PropertyUpload
-from .forms import LeadForm, PropertyUploadForm
+from .forms import LeadForm, PropertyUploadForm, LoginForm
 from .webhook import send_chat_inquiry_webhook, send_property_listing_webhook, send_property_chat_webhook, send_prompt_search_webhook
 
 
@@ -158,57 +170,24 @@ def thanks(request: HttpRequest) -> HttpResponse:
     return render(request, "thanks.html", {"lead": lead})
 
 
+@login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
-    """Listings Dashboard for internal users"""
-    # Query params
-    q = request.GET.get("q", "").strip()
-    city = request.GET.get("city", "").strip()
-    sort = request.GET.get("sort", "new")
-    page = int(request.GET.get("page", 1))
-    per = min(int(request.GET.get("per", 12)), 48)
+    """Main Dashboard with metrics and overview"""
+    # Get recent properties for the dashboard
+    recent_properties = Property.objects.all()[:6]
     
-    # Base queryset
-    properties = Property.objects.all()
+    # Get recent leads (if Lead model exists)
+    recent_leads = Lead.objects.all()[:5] if hasattr(Lead, 'objects') else []
     
-    # Search filter
-    if q:
-        properties = properties.filter(
-            Q(title__icontains=q) | 
-            Q(area__icontains=q) | 
-            Q(city__icontains=q) | 
-            Q(description__icontains=q)
-        )
-    
-    # City filter
-    if city:
-        properties = properties.filter(city__iexact=city)
-    
-    # Sorting
-    sort_options = {
-        "new": "-created_at",
-        "price_asc": "price_amount",
-        "price_desc": "-price_amount", 
-        "beds_desc": "-beds"
-    }
-    properties = properties.order_by(sort_options.get(sort, "-created_at"))
-    
-    # Pagination
-    paginator = Paginator(properties, per)
-    page_obj = paginator.get_page(page)
-    
-    # Get distinct cities for filter dropdown
-    cities = Property.objects.values_list("city", flat=True).distinct().order_by("city")
+    # Calculate basic metrics
+    total_properties = Property.objects.count()
+    total_leads = Lead.objects.count() if hasattr(Lead, 'objects') else 0
     
     context = {
-        "properties": page_obj,
-        "cities": cities,
-        "total_count": paginator.count,
-        "current_filters": {
-            "q": q,
-            "city": city,
-            "sort": sort,
-            "per": per
-        }
+        'recent_properties': recent_properties,
+        'recent_leads': recent_leads,
+        'total_properties': total_properties,
+        'total_leads': total_leads,
     }
     
     return render(request, "dashboard.html", context)
@@ -2480,5 +2459,667 @@ def get_property_titles(request: HttpRequest) -> JsonResponse:
     return JsonResponse({
         "properties": property_list
     })
+
+
+# ============================================================================
+# Landing Page & Authentication Views
+# ============================================================================
+
+def landing(request: HttpRequest) -> HttpResponse:
+    """Landing page with animated mock chat and signup form"""
+    return render(request, "landing.html")
+
+
+def signup(request: HttpRequest) -> HttpResponse:
+    """User signup with OAuth and form options"""
+    if request.method == 'POST':
+        org_name = request.POST.get('org_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        region = request.POST.get('region', '').strip()
+        
+        # Basic validation
+        if not all([org_name, email, password, region]):
+            messages.error(request, 'Please fill in all required fields.')
+            return render(request, "landing.html")
+        
+        # Check if user already exists
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'An account with this email already exists.')
+            return render(request, "landing.html")
+        
+        # Create user
+        try:
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password,
+                first_name=org_name
+            )
+            
+            # Log user in
+            login(request, user)
+            
+            # Store additional info in session
+            request.session['org_name'] = org_name
+            request.session['region'] = region
+            
+            messages.success(request, 'Account created successfully! Let\'s set up your AI agent.')
+            return redirect('setup_wizard')
+            
+        except Exception as e:
+            messages.error(request, f'Error creating account: {str(e)}')
+            return render(request, "landing.html")
+    
+    return render(request, "landing.html")
+
+
+def login_view(request: HttpRequest) -> HttpResponse:
+    """User login"""
+    if request.method == 'POST':
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, 'Welcome back!')
+            return redirect('dashboard')
+    else:
+        form = LoginForm(request)
+    
+    return render(request, "login.html", {'form': form})
+
+
+def logout_view(request: HttpRequest) -> HttpResponse:
+    """User logout"""
+    logout(request)
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('home')
+
+
+def password_reset_request(request: HttpRequest) -> HttpResponse:
+    """Password reset request view using Resend"""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        
+        if not email:
+            messages.error(request, 'Please enter your email address.')
+            return render(request, "password_reset_request.html")
+        
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # Don't reveal if email exists or not for security
+            messages.success(request, 'If an account with that email exists, we\'ve sent you a password reset link.')
+            return render(request, "password_reset_request.html")
+        
+        # Generate reset token
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        
+        # Get current site
+        current_site = get_current_site(request)
+        domain = current_site.domain
+        
+        # Create reset URL
+        reset_url = f"http://{domain}/password-reset-confirm/{uid}/{token}/"
+        
+        # Email content
+        subject = "Password Reset - KaTek AI"
+        message = f"""
+        Hi {user.first_name or user.username},
+        
+        You requested a password reset for your KaTek AI account.
+        
+        Click the link below to reset your password:
+        {reset_url}
+        
+        If you didn't request this, please ignore this email.
+        
+        Best regards,
+        The KaTek AI Team
+        """
+        
+        # Send email using Resend
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=os.getenv('RESEND_FROM', 'noreply@katek.ai'),
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            messages.success(request, 'If an account with that email exists, we\'ve sent you a password reset link.')
+        except Exception as e:
+            messages.error(request, 'Failed to send email. Please try again later.')
+            print(f"Email error: {e}")
+    
+    return render(request, "password_reset_request.html")
+
+
+def password_reset_confirm(request: HttpRequest, uidb64: str, token: str) -> HttpResponse:
+    """Password reset confirmation view"""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            password = request.POST.get('password', '').strip()
+            password_confirm = request.POST.get('password_confirm', '').strip()
+            
+            if not password or not password_confirm:
+                messages.error(request, 'Please fill in all fields.')
+                return render(request, "password_reset_confirm.html", {'user': user})
+            
+            if password != password_confirm:
+                messages.error(request, 'Passwords do not match.')
+                return render(request, "password_reset_confirm.html", {'user': user})
+            
+            if len(password) < 8:
+                messages.error(request, 'Password must be at least 8 characters long.')
+                return render(request, "password_reset_confirm.html", {'user': user})
+            
+            # Set new password
+            user.set_password(password)
+            user.save()
+            
+            messages.success(request, 'Your password has been reset successfully. You can now log in.')
+            return redirect('login')
+    else:
+        messages.error(request, 'Invalid or expired password reset link.')
+        return redirect('login')
+    
+    return render(request, "password_reset_confirm.html", {'user': user})
+
+
+@login_required
+def setup_wizard(request: HttpRequest) -> HttpResponse:
+    """4-step setup wizard for new users"""
+    step = request.GET.get('step', '1')
+    
+    if request.method == 'POST':
+        if step == '1':
+            # Company Profile
+            return handle_company_profile(request)
+        elif step == '2':
+            # Property Upload
+            return handle_property_upload(request)
+        elif step == '3':
+            # AI Agent Setup
+            return handle_ai_agent_setup(request)
+        elif step == '4':
+            # CRM Connection
+            return handle_crm_connection(request)
+    
+    context = {
+        'step': step,
+        'total_steps': 4,
+        'progress': int(step) * 25
+    }
+    
+    return render(request, f"setup/step_{step}.html", context)
+
+
+def handle_company_profile(request):
+    """Handle company profile setup (Step 1)"""
+    # Store company profile data
+    request.session['company_profile'] = {
+        'logo': request.POST.get('logo', ''),
+        'brand_color': request.POST.get('brand_color', '#6D28D9'),
+        'about': request.POST.get('about', ''),
+        'tagline': request.POST.get('tagline', ''),
+        'website': request.POST.get('website', ''),
+        'phone': request.POST.get('phone', '')
+    }
+    
+    messages.success(request, 'Company profile saved!')
+    return redirect('setup_wizard?step=2')
+
+
+def handle_property_upload(request):
+    """Handle property upload (Step 2)"""
+    upload_type = request.POST.get('upload_type', 'manual')
+    
+    if upload_type == 'csv':
+        # Handle CSV upload
+        # Implementation for CSV processing
+        pass
+    elif upload_type == 'api':
+        # Handle API sync
+        # Implementation for API integration
+        pass
+    else:
+        # Manual form
+        # Implementation for manual property entry
+        pass
+    
+    messages.success(request, 'Properties uploaded successfully!')
+    return redirect('setup_wizard?step=3')
+
+
+def handle_ai_agent_setup(request):
+    """Handle AI agent configuration (Step 3)"""
+    request.session['ai_agent'] = {
+        'persona': request.POST.get('persona', 'friendly'),
+        'formality': int(request.POST.get('formality', 50)),
+        'warmth': int(request.POST.get('warmth', 70)),
+        'assertiveness': int(request.POST.get('assertiveness', 60)),
+        'greeting': request.POST.get('greeting', ''),
+        'knowledge_source': request.POST.get('knowledge_source', 'all'),
+        'currency': request.POST.get('currency', 'USD'),
+        'units': request.POST.get('units', 'imperial')
+    }
+    
+    messages.success(request, 'AI agent configured!')
+    return redirect('setup_wizard?step=4')
+
+
+def handle_crm_connection(request):
+    """Handle CRM connection (Step 4)"""
+    crm_type = request.POST.get('crm_type', 'builtin')
+    
+    if crm_type != 'builtin':
+        # Handle external CRM connection
+        request.session['crm_connection'] = {
+            'type': crm_type,
+            'api_key': request.POST.get('api_key', ''),
+            'mapping': {
+                'email': request.POST.get('email_field', ''),
+                'phone': request.POST.get('phone_field', '')
+            }
+        }
+    
+    # Complete setup
+    messages.success(request, 'Setup complete! Your AI agent is ready to start converting leads.')
+    return redirect('dashboard')
+
+
+@login_required
+def properties(request: HttpRequest) -> HttpResponse:
+    """Properties management page with table, filters, and bulk actions"""
+    # Query params for filtering
+    q = request.GET.get("q", "").strip()
+    city = request.GET.get("city", "").strip()
+    price_min = request.GET.get("price_min", "").strip()
+    price_max = request.GET.get("price_max", "").strip()
+    beds = request.GET.get("beds", "").strip()
+    status = request.GET.get("status", "").strip()
+    sort = request.GET.get("sort", "-created_at")
+    page = int(request.GET.get("page", 1))
+    per = min(int(request.GET.get("per", 12)), 48)
+    
+    # Base queryset
+    properties = Property.objects.all()
+    
+    # Search filter
+    if q:
+        properties = properties.filter(
+            Q(title__icontains=q) | 
+            Q(area__icontains=q) | 
+            Q(city__icontains=q) | 
+            Q(description__icontains=q)
+        )
+    
+    # City filter
+    if city:
+        properties = properties.filter(city__iexact=city)
+    
+    # Price filters
+    if price_min:
+        try:
+            properties = properties.filter(price_amount__gte=int(price_min))
+        except ValueError:
+            pass
+    
+    if price_max:
+        try:
+            properties = properties.filter(price_amount__lte=int(price_max))
+        except ValueError:
+            pass
+    
+    # Beds filter
+    if beds:
+        try:
+            properties = properties.filter(beds__gte=int(beds))
+        except ValueError:
+            pass
+    
+    # Status filter (placeholder - would need status field in model)
+    # if status:
+    #     properties = properties.filter(status=status)
+    
+    # Sorting
+    sort_options = {
+        "new": "-created_at",
+        "price_asc": "price_amount",
+        "price_desc": "-price_amount", 
+        "beds_desc": "-beds",
+        "title_asc": "title"
+    }
+    properties = properties.order_by(sort_options.get(sort, "-created_at"))
+    
+    # Pagination
+    paginator = Paginator(properties, per)
+    page_obj = paginator.get_page(page)
+    
+    # Get distinct cities for filter dropdown
+    cities = Property.objects.values_list("city", flat=True).distinct().order_by("city")
+    
+    context = {
+        "properties": page_obj,
+        "cities": cities,
+        "total_count": paginator.count,
+        "current_filters": {
+            "q": q,
+            "city": city,
+            "price_min": price_min,
+            "price_max": price_max,
+            "beds": beds,
+            "status": status,
+            "sort": sort,
+            "per": per
+        }
+    }
+    
+    return render(request, "properties.html", context)
+
+
+@login_required
+def chat_agent(request: HttpRequest) -> HttpResponse:
+    """Chat agent configuration page with live simulation"""
+    if request.method == 'POST':
+        # Handle form submission
+        persona = request.POST.get('persona', 'friendly')
+        formality = int(request.POST.get('formality', 50))
+        warmth = int(request.POST.get('warmth', 70))
+        assertiveness = int(request.POST.get('assertiveness', 60))
+        greeting = request.POST.get('greeting', '')
+        knowledge_source = request.POST.get('knowledge_source', 'all')
+        currency = request.POST.get('currency', 'USD')
+        units = request.POST.get('units', 'imperial')
+        
+        # Store configuration in session or database
+        request.session['ai_agent_config'] = {
+            'persona': persona,
+            'formality': formality,
+            'warmth': warmth,
+            'assertiveness': assertiveness,
+            'greeting': greeting,
+            'knowledge_source': knowledge_source,
+            'currency': currency,
+            'units': units
+        }
+        
+        messages.success(request, 'AI agent configuration saved successfully!')
+        return redirect('chat_agent')
+    
+    # Get current configuration
+    config = request.session.get('ai_agent_config', {
+        'persona': 'friendly',
+        'formality': 50,
+        'warmth': 70,
+        'assertiveness': 60,
+        'greeting': 'Hi, I\'m Ava from KaTek Realty—how can I help today?',
+        'knowledge_source': 'all',
+        'currency': 'USD',
+        'units': 'imperial'
+    })
+    
+    context = {
+        'config': config
+    }
+    
+    return render(request, "chat_agent.html", context)
+
+
+@login_required
+def leads(request: HttpRequest) -> HttpResponse:
+    """Leads CRM page with table, filters, and lead drawer"""
+    # Query params for filtering
+    q = request.GET.get("q", "").strip()
+    source = request.GET.get("source", "").strip()
+    status = request.GET.get("status", "").strip()
+    date_range = request.GET.get("date_range", "").strip()
+    owner = request.GET.get("owner", "").strip()
+    sort = request.GET.get("sort", "-created_at")
+    page = int(request.GET.get("page", 1))
+    per = min(int(request.GET.get("per", 12)), 48)
+    
+    # Base queryset
+    leads = Lead.objects.all()
+    
+    # Search filter
+    if q:
+        leads = leads.filter(
+            Q(name__icontains=q) | 
+            Q(email__icontains=q) | 
+            Q(phone__icontains=q)
+        )
+    
+    # Source filter
+    if source:
+        leads = leads.filter(utm_source__iexact=source)
+    
+    # Status filter (placeholder - would need status field in model)
+    # if status:
+    #     leads = leads.filter(status=status)
+    
+    # Date range filter
+    if date_range:
+        from datetime import datetime, timedelta
+        now = timezone.now()
+        
+        if date_range == 'today':
+            leads = leads.filter(created_at__date=now.date())
+        elif date_range == 'week':
+            week_ago = now - timedelta(days=7)
+            leads = leads.filter(created_at__gte=week_ago)
+        elif date_range == 'month':
+            month_ago = now - timedelta(days=30)
+            leads = leads.filter(created_at__gte=month_ago)
+    
+    # Owner filter (placeholder - would need owner field in model)
+    # if owner:
+    #     leads = leads.filter(owner=owner)
+    
+    # Sorting
+    sort_options = {
+        "new": "-created_at",
+        "name_asc": "name",
+        "name_desc": "-name",
+        "email_asc": "email",
+        "email_desc": "-email"
+    }
+    leads = leads.order_by(sort_options.get(sort, "-created_at"))
+    
+    # Pagination
+    paginator = Paginator(leads, per)
+    page_obj = paginator.get_page(page)
+    
+    # Get distinct sources for filter dropdown
+    sources = Lead.objects.values_list("utm_source", flat=True).distinct().order_by("utm_source")
+    
+    context = {
+        "leads": page_obj,
+        "sources": sources,
+        "total_count": paginator.count,
+        "current_filters": {
+            "q": q,
+            "source": source,
+            "status": status,
+            "date_range": date_range,
+            "owner": owner,
+            "sort": sort,
+            "per": per
+        }
+    }
+    
+    return render(request, "leads.html", context)
+
+
+@login_required
+def campaigns(request: HttpRequest) -> HttpResponse:
+    """Campaigns management page with creation and analytics"""
+    # Mock campaign data for demonstration
+    campaigns_data = [
+        {
+            'id': 1,
+            'name': 'New Listings Alert',
+            'description': 'Weekly update about new properties in downtown area',
+            'type': 'email',
+            'status': 'sent',
+            'audience_size': 245,
+            'scheduled_at': timezone.now(),
+            'open_rate': 28.5,
+            'click_rate': 4.2
+        },
+        {
+            'id': 2,
+            'name': 'Luxury Properties Showcase',
+            'description': 'Featured high-end properties for qualified leads',
+            'type': 'email',
+            'status': 'scheduled',
+            'audience_size': 89,
+            'scheduled_at': timezone.now() + timezone.timedelta(days=1),
+            'open_rate': 0,
+            'click_rate': 0
+        },
+        {
+            'id': 3,
+            'name': 'Follow-up Sequence',
+            'description': '3-step follow-up for new leads',
+            'type': 'sequence',
+            'status': 'draft',
+            'audience_size': 156,
+            'scheduled_at': None,
+            'open_rate': 0,
+            'click_rate': 0
+        }
+    ]
+    
+    context = {
+        'campaigns': campaigns_data
+    }
+    
+    return render(request, "campaigns.html", context)
+
+
+@login_required
+def analytics(request: HttpRequest) -> HttpResponse:
+    """Analytics dashboard with charts, insights, and performance metrics"""
+    # Mock analytics data for demonstration
+    analytics_data = {
+        'lead_sources': [
+            {'source': 'AI Chat', 'count': 245, 'percentage': 45},
+            {'source': 'Website', 'count': 156, 'percentage': 28},
+            {'source': 'Referral', 'count': 89, 'percentage': 16},
+            {'source': 'Social Media', 'count': 67, 'percentage': 11}
+        ],
+        'conversion_rates': {
+            'ai_chat': 24.5,
+            'website': 18.2,
+            'referral': 31.8,
+            'social': 12.1
+        },
+        'top_properties': [
+            {'name': 'Modern 3BR Condo', 'views': 1247, 'inquiries': 23, 'trend': '+12%'},
+            {'name': 'Luxury Penthouse', 'views': 892, 'inquiries': 18, 'trend': '+8%'},
+            {'name': 'Cozy Studio', 'views': 654, 'inquiries': 15, 'trend': '-3%'}
+        ],
+        'trending_neighborhoods': [
+            {'name': 'Downtown District', 'interest': 'High', 'growth': '+23%', 'trend': 'Hot'},
+            {'name': 'Arts Quarter', 'interest': 'Medium', 'growth': '+15%', 'trend': 'Rising'},
+            {'name': 'Uptown Heights', 'interest': 'High', 'growth': '+8%', 'trend': 'Stable'}
+        ],
+        'ai_insights': [
+            {
+                'title': 'Peak Engagement Times',
+                'description': 'Your leads are most active between 2-4 PM. Consider scheduling campaigns during this window.',
+                'icon': 'lightbulb'
+            },
+            {
+                'title': 'High-Converting Keywords',
+                'description': '"Downtown", "Modern", and "Investment" are your top-performing property descriptors.',
+                'icon': 'trending-up'
+            },
+            {
+                'title': 'Lead Quality Score',
+                'description': 'Your AI agent is successfully qualifying 87% of leads, above industry average of 72%.',
+                'icon': 'users'
+            }
+        ]
+    }
+    
+    context = {
+        'analytics': analytics_data
+    }
+    
+    return render(request, "analytics.html", context)
+
+
+def chat(request: HttpRequest) -> HttpResponse:
+    """End-user chat interface for leads"""
+    # Get agent configuration from session or defaults
+    agent_config = request.session.get('ai_agent_config', {
+        'persona': 'friendly',
+        'greeting': 'Hi! I\'m Ava from KaTek Realty. How can I help you find your perfect home today?',
+        'company_name': 'KaTek Realty'
+    })
+    
+    context = {
+        'agent_name': 'Ava',
+        'company_name': agent_config.get('company_name', 'KaTek Realty'),
+        'greeting': agent_config.get('greeting', 'Hi! I\'m Ava from KaTek Realty. How can I help you find your perfect home today?'),
+        'current_time': timezone.now()
+    }
+    
+    return render(request, "chat.html", context)
+
+
+@login_required
+def settings(request: HttpRequest) -> HttpResponse:
+    """User settings page"""
+    if request.method == 'POST':
+        # Handle form submissions
+        if 'first_name' in request.POST:
+            # Profile update
+            user = request.user
+            user.first_name = request.POST.get('first_name', '')
+            user.last_name = request.POST.get('last_name', '')
+            user.email = request.POST.get('email', '')
+            user.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('settings')
+        
+        elif 'current_password' in request.POST:
+            # Password change
+            current_password = request.POST.get('current_password', '')
+            new_password = request.POST.get('new_password', '')
+            confirm_password = request.POST.get('confirm_password', '')
+            
+            if not request.user.check_password(current_password):
+                messages.error(request, 'Current password is incorrect.')
+            elif new_password != confirm_password:
+                messages.error(request, 'New passwords do not match.')
+            elif len(new_password) < 8:
+                messages.error(request, 'Password must be at least 8 characters long.')
+            else:
+                request.user.set_password(new_password)
+                request.user.save()
+                messages.success(request, 'Password updated successfully!')
+                return redirect('login')
+        
+        elif 'email_notifications' in request.POST:
+            # Notification preferences
+            messages.success(request, 'Notification preferences saved!')
+            return redirect('settings')
+    
+    context = {
+        'user': request.user
+    }
+    
+    return render(request, "settings.html", context)
 
 

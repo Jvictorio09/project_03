@@ -1,0 +1,778 @@
+{% extends 'base_internal.html' %}
+{% load static %}
+
+{% block title %}AI Agent Setup - Setup Wizard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .setup-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .setup-header {
+    text-align: center;
+    margin-bottom: var(--space-12);
+  }
+  
+  .setup-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-4) 0;
+    color: var(--text-primary);
+  }
+  
+  .setup-subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-6) 0;
+  }
+  
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--surface-glass);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: var(--space-8);
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-purple), var(--electric-violet));
+    border-radius: var(--radius-full);
+    transition: width 0.6s ease;
+    width: {{ progress }}%;
+  }
+  
+  .step-indicator {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+  
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--surface-glass);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-normal);
+  }
+  
+  .step-item.active {
+    background: var(--primary-purple);
+    color: white;
+  }
+  
+  .step-item.completed {
+    background: var(--success-emerald);
+    color: white;
+  }
+  
+  .step-number {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-bold);
+  }
+  
+  .step-item.active .step-number {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .step-item.completed .step-number {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .agent-setup {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: var(--space-8);
+    margin-bottom: var(--space-8);
+  }
+  
+  .setup-form {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .form-section {
+    margin-bottom: var(--space-8);
+  }
+  
+  .form-section:last-child {
+    margin-bottom: 0;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-4) 0;
+    color: var(--text-primary);
+  }
+  
+  .persona-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  
+  .persona-option {
+    background: var(--surface-glass);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    position: relative;
+  }
+  
+  .persona-option:hover {
+    border-color: var(--primary-purple);
+    transform: translateY(-2px);
+  }
+  
+  .persona-option.selected {
+    border-color: var(--primary-purple);
+    background: rgba(109, 40, 217, 0.1);
+  }
+  
+  .persona-option.selected::before {
+    content: '✓';
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    width: 20px;
+    height: 20px;
+    background: var(--primary-purple);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-bold);
+  }
+  
+  .persona-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    background: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    margin: 0 auto var(--space-3);
+  }
+  
+  .persona-name {
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-1) 0;
+    color: var(--text-primary);
+  }
+  
+  .persona-description {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.4;
+  }
+  
+  .tone-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  
+  .tone-control {
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+  }
+  
+  .tone-label {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    margin: 0 0 var(--space-3) 0;
+    color: var(--text-primary);
+  }
+  
+  .tone-slider {
+    width: 100%;
+    height: 6px;
+    background: var(--surface-glass);
+    border-radius: var(--radius-full);
+    outline: none;
+    -webkit-appearance: none;
+    margin-bottom: var(--space-2);
+  }
+  
+  .tone-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-purple);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .tone-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-purple);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .tone-value {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  
+  .form-group {
+    margin-bottom: var(--space-4);
+  }
+  
+  .form-label {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-2);
+    color: var(--text-primary);
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+  }
+  
+  .form-textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+  
+  .form-select {
+    width: 100%;
+    padding: var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .form-select:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+  }
+  
+  .preview-panel {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+    height: fit-content;
+    position: sticky;
+    top: var(--space-8);
+  }
+  
+  .preview-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .preview-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: var(--font-weight-bold);
+    font-size: 1.125rem;
+  }
+  
+  .preview-info h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+  }
+  
+  .preview-info p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  
+  .preview-chat {
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  
+  .preview-message {
+    background: var(--primary-purple);
+    color: white;
+    padding: var(--space-3);
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    margin-bottom: var(--space-2);
+  }
+  
+  .preview-message:last-child {
+    margin-bottom: 0;
+  }
+  
+  .preview-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+  
+  .preview-btn {
+    flex: 1;
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  
+  .preview-btn:hover {
+    background: var(--surface-glass-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  .integration-info {
+    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    color: white;
+    margin-top: var(--space-6);
+  }
+  
+  .integration-title {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-2) 0;
+  }
+  
+  .integration-text {
+    font-size: 0.75rem;
+    margin: 0 0 var(--space-3) 0;
+    opacity: 0.9;
+  }
+  
+  .integration-url {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2);
+    font-size: 0.75rem;
+    font-family: monospace;
+    margin-bottom: var(--space-3);
+    word-break: break-all;
+  }
+  
+  .integration-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+  
+  .integration-btn {
+    flex: 1;
+    padding: var(--space-2);
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-sm);
+    color: white;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  
+  .integration-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .setup-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  
+  .btn-back {
+    padding: var(--space-3) var(--space-6);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-normal);
+  }
+  
+  .btn-back:hover {
+    background: var(--surface-glass-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  .btn-next {
+    padding: var(--space-3) var(--space-6);
+    background: var(--primary-purple);
+    border: none;
+    border-radius: var(--radius-lg);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+  }
+  
+  .btn-next:hover {
+    background: var(--primary-purple-hover);
+    transform: translateY(-1px);
+  }
+  
+  @media (max-width: 768px) {
+    .agent-setup {
+      grid-template-columns: 1fr;
+    }
+    
+    .preview-panel {
+      position: static;
+      order: -1;
+    }
+    
+    .persona-options {
+      grid-template-columns: 1fr;
+    }
+    
+    .tone-controls {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="setup-container">
+  <!-- Header -->
+  <div class="setup-header">
+    <h1 class="setup-title">AI Agent Setup</h1>
+    <p class="setup-subtitle">Configure your AI assistant's personality and behavior</p>
+    
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+      <div class="step-item completed">
+        <div class="step-number">1</div>
+        <span>Company Profile</span>
+      </div>
+      <div class="step-item completed">
+        <div class="step-number">2</div>
+        <span>Property Upload</span>
+      </div>
+      <div class="step-item active">
+        <div class="step-number">3</div>
+        <span>AI Agent</span>
+      </div>
+      <div class="step-item">
+        <div class="step-number">4</div>
+        <span>CRM Connection</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Agent Setup -->
+  <div class="agent-setup">
+    <!-- Setup Form -->
+    <div class="setup-form">
+      <form method="post">
+        {% csrf_token %}
+        
+        <!-- Persona Selection -->
+        <div class="form-section">
+          <h3 class="section-title">Choose Your Agent's Persona</h3>
+          <div class="persona-options">
+            <div class="persona-option selected" data-persona="friendly">
+              <div class="persona-icon">
+                <i class="fas fa-heart"></i>
+              </div>
+              <h4 class="persona-name">Friendly Consultant</h4>
+              <p class="persona-description">Warm, approachable, and helpful</p>
+            </div>
+            
+            <div class="persona-option" data-persona="luxury">
+              <div class="persona-icon">
+                <i class="fas fa-crown"></i>
+              </div>
+              <h4 class="persona-name">Luxury Expert</h4>
+              <p class="persona-description">Sophisticated and premium-focused</p>
+            </div>
+            
+            <div class="persona-option" data-persona="investor">
+              <div class="persona-icon">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <h4 class="persona-name">Investor Advisor</h4>
+              <p class="persona-description">Data-driven and ROI-focused</p>
+            </div>
+          </div>
+          <input type="hidden" name="persona" value="friendly" id="persona-input">
+        </div>
+        
+        <!-- Tone Controls -->
+        <div class="form-section">
+          <h3 class="section-title">Fine-tune Your Agent's Tone</h3>
+          <div class="tone-controls">
+            <div class="tone-control">
+              <label class="tone-label">Formality</label>
+              <input type="range" name="formality" class="tone-slider" min="0" max="100" value="50" oninput="updateToneValue(this)">
+              <div class="tone-value">50%</div>
+            </div>
+            
+            <div class="tone-control">
+              <label class="tone-label">Warmth</label>
+              <input type="range" name="warmth" class="tone-slider" min="0" max="100" value="70" oninput="updateToneValue(this)">
+              <div class="tone-value">70%</div>
+            </div>
+            
+            <div class="tone-control">
+              <label class="tone-label">Assertiveness</label>
+              <input type="range" name="assertiveness" class="tone-slider" min="0" max="100" value="60" oninput="updateToneValue(this)">
+              <div class="tone-value">60%</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Custom Greeting -->
+        <div class="form-section">
+          <h3 class="section-title">Custom Greeting Message</h3>
+          <div class="form-group">
+            <label class="form-label">Greeting Text</label>
+            <textarea name="greeting" class="form-input form-textarea" placeholder="Hi, I'm Ava from KaTek Realty—how can I help today?" oninput="updatePreview()">Hi, I'm Ava from KaTek Realty—how can I help today?</textarea>
+          </div>
+        </div>
+        
+        <!-- Knowledge Source -->
+        <div class="form-section">
+          <h3 class="section-title">Knowledge Source</h3>
+          <div class="form-group">
+            <label class="form-label">What properties should your agent know about?</label>
+            <select name="knowledge_source" class="form-select" onchange="updatePreview()">
+              <option value="all">All Properties</option>
+              <option value="active">Only Active Listings</option>
+              <option value="rentals">Only Rental Properties</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Output Controls -->
+        <div class="form-section">
+          <h3 class="section-title">Output Preferences</h3>
+          <div class="form-group">
+            <label class="form-label">Currency</label>
+            <select name="currency" class="form-select">
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="CAD">CAD (C$)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Units</label>
+            <select name="units" class="form-select">
+              <option value="imperial">Imperial (sq ft, miles)</option>
+              <option value="metric">Metric (sq m, km)</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Preview Panel -->
+    <div class="preview-panel">
+      <div class="preview-header">
+        <div class="preview-avatar">A</div>
+        <div class="preview-info">
+          <h3>Ava from KaTek Realty</h3>
+          <p>Your AI real estate assistant</p>
+        </div>
+      </div>
+      
+      <div class="preview-chat">
+        <div class="preview-message" id="preview-greeting">
+          Hi, I'm Ava from KaTek Realty—how can I help today?
+        </div>
+      </div>
+      
+      <div class="preview-actions">
+        <button class="preview-btn">Homes under $500k</button>
+        <button class="preview-btn">3 bedroom condos</button>
+        <button class="preview-btn">Book a tour</button>
+      </div>
+      
+      <div class="integration-info">
+        <h4 class="integration-title">Integration Ready</h4>
+        <p class="integration-text">Your AI agent is ready to be embedded on your website</p>
+        <div class="integration-url" id="integration-url">
+          chat.katek.ai/your-company
+        </div>
+        <div class="integration-actions">
+          <button class="integration-btn" onclick="copyUrl()">Copy URL</button>
+          <button class="integration-btn" onclick="copyEmbed()">Copy Embed</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Actions -->
+  <div class="setup-actions">
+    <a href="{% url 'setup_wizard' %}?step=2" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+      Back to Property Upload
+    </a>
+    <button type="submit" class="btn-next" onclick="submitForm()">
+      Continue to CRM Connection
+      <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Persona selection
+  const personaOptions = document.querySelectorAll('.persona-option');
+  const personaInput = document.getElementById('persona-input');
+  
+  personaOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      personaOptions.forEach(opt => opt.classList.remove('selected'));
+      this.classList.add('selected');
+      personaInput.value = this.dataset.persona;
+      updatePreview();
+    });
+  });
+  
+  // Initialize preview
+  updatePreview();
+});
+
+function updateToneValue(slider) {
+  const value = slider.value;
+  const valueDisplay = slider.parentElement.querySelector('.tone-value');
+  valueDisplay.textContent = value + '%';
+  updatePreview();
+}
+
+function updatePreview() {
+  const greeting = document.querySelector('textarea[name="greeting"]').value;
+  const previewGreeting = document.getElementById('preview-greeting');
+  previewGreeting.textContent = greeting || 'Hi, I\'m Ava from KaTek Realty—how can I help today?';
+}
+
+function copyUrl() {
+  const url = document.getElementById('integration-url').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('URL copied to clipboard!', 'success');
+  });
+}
+
+function copyEmbed() {
+  const embedCode = `<script src="https://chat.katek.ai/widget.js" data-company="your-company"></script>`;
+  navigator.clipboard.writeText(embedCode).then(() => {
+    showToast('Embed code copied to clipboard!', 'success');
+  });
+}
+
+function submitForm() {
+  const form = document.querySelector('form');
+  form.submit();
+}
+
+function showToast(message, type) {
+  // Simple toast notification
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--primary-purple);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+  `;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+</script>
+{% endblock %}

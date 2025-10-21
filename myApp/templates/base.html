@@ -1,159 +1,179 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en" x-data="{ mobileOpen:false }" :class="mobileOpen ? 'overflow-hidden' : ''">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{% block title %}Real Estate Leads{% endblock %}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <script src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
-  
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
-  {% load static %}
-  <script src="{% static 'app.js' %}"></script>
-  <style>[x-cloak]{display:none!important}</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}KaTek AI - Real Estate Intelligence{% endblock %}</title>
+    
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Additional CSS -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Meta tags -->
+    <meta name="description" content="{% block meta_description %}Turn every inquiry into a conversation—and every conversation into a client. Your AI agent learns your inventory, answers instantly, and books viewings.{% endblock %}">
+    <meta name="keywords" content="real estate, AI, chatbot, property management, lead generation">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="{% block og_title %}KaTek AI - Real Estate Intelligence{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Turn every inquiry into a conversation—and every conversation into a client.{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
 </head>
-<body class="bg-gray-50">
-  <!-- Navbar -->
-  <nav class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <!-- Brand -->
-        <a href="{% url 'home' %}" class="shrink-0 text-xl sm:text-2xl font-bold text-violet-600">
-          KaTek Property Hub
-        </a>
-
-        <!-- Right side (desktop) -->
-        <div class="hidden md:flex items-center gap-3">
-          <span class="saved-chip bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">Saved (0)</span>
-
-          <a href="{% url 'results' %}"
-             class="inline-flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-            </svg>
-            View All Listings
-          </a>
-
-          <a href="{% url 'ai_prompt_listing' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">AI Listing</a>
-          <a href="{% url 'listing_choice' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Upload a Listing</a>
-          <a href="{% url 'book' %}" class="bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 transition">Book a Call</a>
+<body>
+    <!-- Announcement Bar -->
+    <div id="announcement-bar" class="announcement-bar" style="display: none;">
+        <div class="container">
+            <div class="announcement-content">
+                <span class="announcement-text">
+                    <i class="fas fa-sparkles"></i>
+                    New: AI Suite v2 for Brokers — <a href="#" class="announcement-link">See what's new →</a>
+                </span>
+                <button class="announcement-close" onclick="dismissAnnouncement()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
-
-        <!-- Mobile: saved + burger -->
-        <div class="flex items-center gap-2 md:hidden">
-          <span class="saved-chip bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full text-xs">Saved (0)</span>
-          <button type="button"
-                  class="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 hover:bg-gray-50"
-                  @click="mobileOpen = !mobileOpen"
-                  :aria-expanded="mobileOpen.toString()"
-                  aria-controls="mobile-menu"
-                  aria-label="Toggle navigation">
-            <svg x-show="!mobileOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-            <svg x-show="mobileOpen" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-      </div>
     </div>
 
-    <!-- Mobile panel -->
-    <div id="mobile-menu"
-         class="md:hidden border-t bg-white"
-         x-show="mobileOpen" x-transition.origin.top x-cloak>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 grid gap-2">
-        <a href="{% url 'results' %}"
-           class="w-full inline-flex items-center justify-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 6h16M4 12h16M4 18h16"/>
-          </svg>
-          View All Listings
-        </a>
-        <a href="{% url 'ai_prompt_listing' %}" class="w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">AI Listing</a>
-        <a href="{% url 'listing_choice' %}" class="w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Upload a Listing</a>
-        <a href="{% url 'book' %}" class="w-full text-center bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 transition">Book a Call</a>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Main -->
-  <main class="min-h-[60vh]">
-    {% block content %}{% endblock %}
-  </main>
-
-  <!-- Footer -->
-  <footer class="bg-gray-800 text-white py-8 mt-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center text-sm">
-        <p>&copy; 2024 KaTek Property Hub. All rights reserved.</p>
-        <div class="mt-2 space-x-4">
-          <a href="#" class="text-gray-300 hover:text-white">Privacy Policy</a>
-          <a href="#" class="text-gray-300 hover:text-white">Terms of Service</a>
+    <!-- Global Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content flex items-center justify-between">
+                <!-- Logo -->
+                <a href="{% url 'home' %}" class="navbar-brand">
+                    <i class="fas fa-home"></i>
+                    KaTek AI
+                </a>
+                
+                <!-- Navigation Links -->
+                <ul class="navbar-nav">
+                    <li><a href="#" class="nav-link">Products <i class="fas fa-chevron-down"></i></a></li>
+                    <li><a href="#" class="nav-link">Use Cases</a></li>
+                    <li><a href="#" class="nav-link">Pricing</a></li>
+                    <li><a href="#" class="nav-link">Case Studies</a></li>
+                    <li><a href="#" class="nav-link">Resources</a></li>
+                </ul>
+                
+                <!-- Auth Actions -->
+                <div class="navbar-actions flex items-center gap-4">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-ghost">Dashboard</a>
+                        <a href="{% url 'properties' %}" class="btn btn-ghost">Properties</a>
+                        <a href="{% url 'leads' %}" class="btn btn-ghost">Leads</a>
+                        <a href="{% url 'campaigns' %}" class="btn btn-ghost">Campaigns</a>
+                        <a href="{% url 'analytics' %}" class="btn btn-ghost">Analytics</a>
+                        <a href="{% url 'chat_agent' %}" class="btn btn-ghost">AI Agent</a>
+                        <a href="{% url 'chat' %}" class="btn btn-ghost">Live Chat</a>
+                        <div class="user-menu">
+                            <button class="btn btn-ghost user-avatar">
+                                <i class="fas fa-user"></i>
+                                {{ user.first_name|default:user.username }}
+                            </button>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-ghost">Log in</a>
+                        <a href="{% url 'signup' %}" class="btn btn-primary">Get Started</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </footer>
+    </nav>
 
-  <!-- Scripts -->
-  <script>
-    // UTM capture (persist once)
-    document.addEventListener('DOMContentLoaded', function() {
-      const p = new URLSearchParams(location.search);
-      const src = p.get('utm_source');
-      const camp = p.get('utm_campaign');
-      if (src && !getCookie('utm_source')) setCookie('utm_source', src, 30);
-      if (camp && !getCookie('utm_campaign')) setCookie('utm_campaign', camp, 30);
-    });
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
 
-    function setCookie(name, value, days){
-      const d = new Date(); d.setTime(d.getTime()+days*864e5);
-      document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
-    }
-    function getCookie(name){
-      const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)'));
-      return m ? decodeURIComponent(m[1]) : undefined;
-    }
+    <!-- Global Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">Pricing</a></li>
+                        <li><a href="#">API</a></li>
+                        <li><a href="#">Integrations</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Case Studies</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Press</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Security</a></li>
+                        <li><a href="#">Compliance</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <p class="newsletter-description">Weekly Playbooks — zero fluff</p>
+                    <form class="newsletter-form">
+                        <div class="form-group">
+                            <input type="email" class="form-input" placeholder="Enter your email" required>
+                            <button type="submit" class="btn btn-primary">Subscribe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <p>&copy; 2024 KaTek AI. All rights reserved.</p>
+                    <div class="footer-locale">
+                        <select class="form-select" style="width: auto;">
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-    // HTMX CSRF
-    document.body.addEventListener('htmx:configRequest', function(evt){
-      const csrf = document.querySelector('[name=csrfmiddlewaretoken]');
-      if (csrf) evt.detail.headers['X-CSRFToken'] = csrf.value;
-    });
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
 
-    // Copy helper
-    window.copyToClipboard = function(text){
-      navigator.clipboard.writeText(text).then(function(){
-        const n = document.createElement('div');
-        n.className = 'fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-        n.textContent = 'Link copied!';
-        document.body.appendChild(n);
-        setTimeout(()=>n.remove(), 2000);
-      });
-    };
-
-    // Analytics example
-    document.addEventListener('chat_open', function(event){
-      if (window.dataLayer){
-        window.dataLayer.push({
-          event: 'chat_open',
-          property_slug: event.detail?.property_slug || 'unknown'
-        });
-      }
-    });
-
-    // Initialize Lucide Icons
-    if (typeof lucide !== 'undefined') {
-      lucide.createIcons();
-    }
-  </script>
+    <!-- JavaScript -->
+    <script src="{% static 'js/design-system.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

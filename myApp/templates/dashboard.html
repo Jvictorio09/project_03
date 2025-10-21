@@ -1,209 +1,615 @@
-{% extends "base.html" %}
-{% load static %}{% load extras %}
+{% extends 'base_internal.html' %}
+{% load static %}
 
-{% block title %}Listings Dashboard - PropertyHub{% endblock %}
+{% block title %}Dashboard - KaTek AI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .dashboard-header {
+    margin-bottom: var(--space-8);
+  }
+  
+  .dashboard-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-2);
+  }
+  
+  .dashboard-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+  }
+  
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-12);
+  }
+  
+  .metric-tile {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    text-align: center;
+    transition: all var(--transition-normal);
+    cursor: pointer;
+  }
+  
+  .metric-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-4);
+    color: white;
+    font-size: 1.25rem;
+  }
+  
+  .metric-value {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-purple);
+    margin: 0;
+    line-height: 1;
+  }
+  
+  .metric-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-top: var(--space-2);
+    font-weight: var(--font-weight-medium);
+  }
+  
+  .metric-change {
+    font-size: 0.75rem;
+    margin-top: var(--space-1);
+    font-weight: var(--font-weight-medium);
+  }
+  
+  .metric-change.positive {
+    color: var(--success-emerald);
+  }
+  
+  .metric-change.negative {
+    color: var(--destructive-rose);
+  }
+  
+  .dashboard-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-8);
+    margin-bottom: var(--space-12);
+  }
+  
+  .chart-container {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+  
+  .chart-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .chart-filters {
+    display: flex;
+    gap: var(--space-2);
+  }
+  
+  .filter-btn {
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  
+  .filter-btn.active {
+    background: var(--primary-purple);
+    border-color: var(--primary-purple);
+    color: white;
+  }
+  
+  .chart-placeholder {
+    height: 300px;
+    background: linear-gradient(135deg, var(--surface-glass) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 1.125rem;
+  }
+  
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+  
+  .conversations-card {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .conversations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+  }
+  
+  .conversations-title {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+  }
+  
+  .conversation-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    transition: background var(--transition-fast);
+    cursor: pointer;
+  }
+  
+  .conversation-item:hover {
+    background: var(--surface-glass-hover);
+  }
+  
+  .conversation-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: var(--font-weight-bold);
+    font-size: 0.875rem;
+  }
+  
+  .conversation-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .conversation-name {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    margin: 0;
+    font-size: 0.875rem;
+  }
+  
+  .conversation-preview {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin: var(--space-1) 0 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .conversation-time {
+    color: var(--text-muted);
+    font-size: 0.625rem;
+    white-space: nowrap;
+  }
+  
+  .quick-actions {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .quick-actions-title {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-4) 0;
+  }
+  
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all var(--transition-normal);
+    cursor: pointer;
+  }
+  
+  .action-btn:hover {
+    background: var(--surface-glass-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+  }
+  
+  .action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+  }
+  
+  .action-content h4 {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+  }
+  
+  .action-content p {
+    margin: var(--space-1) 0 0 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  
+  .recent-properties {
+    margin-top: var(--space-8);
+  }
+  
+  .properties-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-6);
+  }
+  
+  .property-card {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    transition: all var(--transition-normal);
+    cursor: pointer;
+  }
+  
+  .property-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .property-image {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, var(--surface-glass) 0%, rgba(255, 255, 255, 0.05) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 3rem;
+  }
+  
+  .property-content {
+    padding: var(--space-4);
+  }
+  
+  .property-title {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-2) 0;
+    color: var(--text-primary);
+  }
+  
+  .property-location {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin: 0 0 var(--space-2) 0;
+  }
+  
+  .property-price {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-purple);
+    margin: 0;
+  }
+  
+  .property-details {
+    display: flex;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  
+  @media (max-width: 768px) {
+    .dashboard-content {
+      grid-template-columns: 1fr;
+    }
+    
+    .metrics-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .properties-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Listings Dashboard</h1>
-        <p class="text-gray-600 mt-2">{{ total_count }} properties found</p>
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+    <p class="dashboard-subtitle">Here's what's happening with your AI agent today</p>
+  </div>
+  
+  <!-- Metrics -->
+  <div class="metrics-grid">
+    <div class="metric-tile">
+      <div class="metric-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="metric-value">24</div>
+      <div class="metric-label">Leads Today</div>
+      <div class="metric-change positive">+12% from yesterday</div>
     </div>
-
-    <!-- Search and Filters -->
-    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-        <form method="get" class="flex flex-col lg:flex-row gap-4">
-            <div class="flex-1">
-                <input type="text" name="q" value="{{ current_filters.q }}" 
-                       placeholder="Search title, city, area..." 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-            </div>
-            
-            <div class="flex gap-4">
-                <select name="city" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
-                    <option value="">All Cities</option>
-                    {% for city in cities %}
-                    <option value="{{ city }}" {% if current_filters.city == city %}selected{% endif %}>{{ city }}</option>
-                    {% endfor %}
-                </select>
-                
-                <select name="sort" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
-                    <option value="new" {% if current_filters.sort == "new" %}selected{% endif %}>Newest</option>
-                    <option value="price_asc" {% if current_filters.sort == "price_asc" %}selected{% endif %}>Price ↑</option>
-                    <option value="price_desc" {% if current_filters.sort == "price_desc" %}selected{% endif %}>Price ↓</option>
-                    <option value="beds_desc" {% if current_filters.sort == "beds_desc" %}selected{% endif %}>Beds ↓</option>
-                </select>
-                
-                <button type="submit" class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition">
-                    Search
-                </button>
-            </div>
-        </form>
+    
+    <div class="metric-tile">
+      <div class="metric-icon">
+        <i class="fas fa-comments"></i>
+      </div>
+      <div class="metric-value">8</div>
+      <div class="metric-label">Active Conversations</div>
+      <div class="metric-change positive">+3 this hour</div>
     </div>
-
-    <!-- Results -->
-    {% if properties %}
-    <!-- Desktop Table -->
-    <div class="hidden lg:block bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Property</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specs</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Badges</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    {% for property in properties %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <div class="w-16 h-12 rounded-lg overflow-hidden mr-4">
-                                    <img src="{{ property.hero_image|default:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=200' }}" 
-                                         alt="{{ property.title }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">{{ property.title }}</div>
-                                    <div class="text-sm text-gray-500">{{ property.affiliate_source|default:"Direct" }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm text-gray-900">{{ property.city }}</div>
-                            {% if property.area %}<div class="text-sm text-gray-500">{{ property.area }}</div>{% endif %}
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm text-gray-900">{{ property.beds }} bed{{ property.beds|pluralize }} / {{ property.baths }} bath{{ property.baths|pluralize }}</div>
-                            {% if property.floor_area_sqm %}<div class="text-sm text-gray-500">{{ property.floor_area_sqm }} sqm</div>{% endif %}
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-orange-600">${{ property.price_amount|floatformat:0|add:"," }}</div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex flex-wrap gap-1">
-                                {% for badge in property.badges|splitcsv %}
-                                {% if badge %}
-                                <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">{{ badge|strip }}</span>
-                                {% endif %}
-                                {% endfor %}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500">
-                            {{ property.created_at|date:"M d, Y" }}
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex gap-2">
-                                <a href="{% url 'property_detail' property.slug %}" 
-                                   class="text-orange-600 hover:text-orange-700 text-sm font-medium">
-                                    Open
-                                </a>
-                                <button onclick="copyToClipboard('{{ request.build_absolute_uri }}{% url 'property_detail' property.slug %}')" 
-                                        class="text-gray-600 hover:text-gray-700 text-sm">
-                                    Copy link
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    
+    <div class="metric-tile">
+      <div class="metric-icon">
+        <i class="fas fa-home"></i>
+      </div>
+      <div class="metric-value">$2.4M</div>
+      <div class="metric-label">Inventory Value</div>
+      <div class="metric-change positive">+$180K this week</div>
+    </div>
+    
+    <div class="metric-tile">
+      <div class="metric-icon">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <div class="metric-value">87%</div>
+      <div class="metric-label">Conversion Rate</div>
+      <div class="metric-change positive">+5% this month</div>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="dashboard-content">
+    <!-- Chart -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <h3 class="chart-title">Leads Over Time</h3>
+        <div class="chart-filters">
+          <button class="filter-btn active">7 Days</button>
+          <button class="filter-btn">30 Days</button>
+          <button class="filter-btn">90 Days</button>
         </div>
+      </div>
+      <div class="chart-placeholder">
+        <i class="fas fa-chart-area"></i>
+        <span style="margin-left: var(--space-2);">Chart visualization will appear here</span>
+      </div>
     </div>
-
-    <!-- Mobile Cards -->
-    <div class="lg:hidden space-y-4">
-        {% for property in properties %}
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="flex">
-                <div class="w-24 h-20 flex-shrink-0">
-                    <img src="{{ property.hero_image|default:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=200' }}" 
-                         alt="{{ property.title }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
-                </div>
-                <div class="flex-1 p-4">
-                    <h3 class="font-semibold text-gray-900 text-sm">{{ property.title }}</h3>
-                    <p class="text-orange-600 font-bold">${{ property.price_amount|floatformat:0|add:"," }}</p>
-                    <p class="text-gray-600 text-xs">{{ property.city }}{% if property.area %}, {{ property.area }}{% endif %}</p>
-                    <p class="text-gray-500 text-xs">{{ property.beds }} bed{{ property.beds|pluralize }} / {{ property.baths }} bath{{ property.baths|pluralize }}</p>
-                    <div class="flex gap-2 mt-2">
-                        <a href="{% url 'property_detail' property.slug %}" 
-                           class="text-orange-600 hover:text-orange-700 text-xs font-medium">
-                            Open
-                        </a>
-                        <button onclick="copyToClipboard('{{ request.build_absolute_uri }}{% url 'property_detail' property.slug %}')" 
-                                class="text-gray-600 hover:text-gray-700 text-xs">
-                            Copy link
-                        </button>
-                    </div>
-                </div>
-            </div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Recent Conversations -->
+      <div class="conversations-card">
+        <div class="conversations-header">
+          <h3 class="conversations-title">Recent Conversations</h3>
+          <a href="#" class="text-small text-primary">View All</a>
         </div>
-        {% endfor %}
-    </div>
-
-    <!-- Pagination -->
-    {% if properties.has_other_pages %}
-    <div class="mt-8 flex justify-center">
-        <nav class="flex items-center space-x-2">
-            {% if properties.has_previous %}
-            <a href="?page={{ properties.previous_page_number }}{% if current_filters.q %}&q={{ current_filters.q }}{% endif %}{% if current_filters.city %}&city={{ current_filters.city }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}" 
-               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                Previous
-            </a>
-            {% endif %}
-            
-            {% for num in properties.paginator.page_range %}
-            {% if num == properties.number %}
-            <span class="px-3 py-2 text-sm font-medium text-white bg-orange-600 border border-orange-600 rounded-lg">{{ num }}</span>
-            {% elif num > properties.number|add:'-3' and num < properties.number|add:'3' %}
-            <a href="?page={{ num }}{% if current_filters.q %}&q={{ current_filters.q }}{% endif %}{% if current_filters.city %}&city={{ current_filters.city }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}" 
-               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                {{ num }}
-            </a>
-            {% endif %}
-            {% endfor %}
-            
-            {% if properties.has_next %}
-            <a href="?page={{ properties.next_page_number }}{% if current_filters.q %}&q={{ current_filters.q }}{% endif %}{% if current_filters.city %}&city={{ current_filters.city }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}" 
-               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                Next
-            </a>
-            {% endif %}
-        </nav>
-    </div>
-    {% endif %}
-
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-16">
-        <div class="text-gray-400 text-6xl mb-4">🏠</div>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2">No properties found</h3>
-        <p class="text-gray-600 mb-6">Try adjusting your search criteria</p>
-        <a href="{% url 'dashboard' %}" class="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition">
-            Clear Filters
-        </a>
-    </div>
-    {% endif %}
-</div>
-
-<script>
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
-        // Show a brief notification
-        const notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-        notification.textContent = 'Link copied!';
-        document.body.appendChild(notification);
         
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 2000);
+        <div class="conversation-item">
+          <div class="conversation-avatar">S</div>
+          <div class="conversation-info">
+            <p class="conversation-name">Sarah Johnson</p>
+            <p class="conversation-preview">Looking for a 3BR condo in downtown...</p>
+          </div>
+          <div class="conversation-time">2m ago</div>
+        </div>
+        
+        <div class="conversation-item">
+          <div class="conversation-avatar">M</div>
+          <div class="conversation-info">
+            <p class="conversation-name">Mike Chen</p>
+            <p class="conversation-preview">Interested in the luxury penthouse...</p>
+          </div>
+          <div class="conversation-time">15m ago</div>
+        </div>
+        
+        <div class="conversation-item">
+          <div class="conversation-avatar">A</div>
+          <div class="conversation-info">
+            <p class="conversation-name">Alex Rodriguez</p>
+            <p class="conversation-preview">Can you send me more details about...</p>
+          </div>
+          <div class="conversation-time">1h ago</div>
+        </div>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h3 class="quick-actions-title">Quick Actions</h3>
+        <div class="action-buttons">
+          <a href="{% url 'properties' %}" class="action-btn">
+            <div class="action-icon">
+              <i class="fas fa-plus"></i>
+            </div>
+            <div class="action-content">
+              <h4>Add Property</h4>
+              <p>Upload new listing</p>
+            </div>
+          </a>
+          
+          <a href="#" class="action-btn">
+            <div class="action-icon">
+              <i class="fas fa-paper-plane"></i>
+            </div>
+            <div class="action-content">
+              <h4>Send Campaign</h4>
+              <p>Email your leads</p>
+            </div>
+          </a>
+          
+          <a href="{% url 'chat_agent' %}" class="action-btn">
+            <div class="action-icon">
+              <i class="fas fa-robot"></i>
+            </div>
+            <div class="action-content">
+              <h4>Configure AI</h4>
+              <p>Setup your agent</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Recent Properties -->
+  <div class="recent-properties">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">Recent Properties</h2>
+      <a href="#" class="btn btn-secondary">View All Properties</a>
+    </div>
+    
+    <div class="properties-grid">
+      <div class="property-card">
+        <div class="property-image">
+          <i class="fas fa-home"></i>
+        </div>
+        <div class="property-content">
+          <h3 class="property-title">Modern 3BR Condo</h3>
+          <p class="property-location">Downtown District</p>
+          <p class="property-price">$485,000</p>
+          <div class="property-details">
+            <span><i class="fas fa-bed"></i> 3 beds</span>
+            <span><i class="fas fa-bath"></i> 2 baths</span>
+            <span><i class="fas fa-ruler"></i> 1,200 sqft</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="property-card">
+        <div class="property-image">
+          <i class="fas fa-home"></i>
+        </div>
+        <div class="property-content">
+          <h3 class="property-title">Luxury Penthouse</h3>
+          <p class="property-location">Uptown Heights</p>
+          <p class="property-price">$1,250,000</p>
+          <div class="property-details">
+            <span><i class="fas fa-bed"></i> 4 beds</span>
+            <span><i class="fas fa-bath"></i> 3 baths</span>
+            <span><i class="fas fa-ruler"></i> 2,800 sqft</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="property-card">
+        <div class="property-image">
+          <i class="fas fa-home"></i>
+        </div>
+        <div class="property-content">
+          <h3 class="property-title">Cozy Studio</h3>
+          <p class="property-location">Arts District</p>
+          <p class="property-price">$285,000</p>
+          <div class="property-details">
+            <span><i class="fas fa-bed"></i> 1 bed</span>
+            <span><i class="fas fa-bath"></i> 1 bath</span>
+            <span><i class="fas fa-ruler"></i> 650 sqft</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Chart filter interactions
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
     });
-}
+  });
+  
+  // Metric tile interactions
+  const metricTiles = document.querySelectorAll('.metric-tile');
+  metricTiles.forEach(tile => {
+    tile.addEventListener('click', function() {
+      // Add click animation
+      this.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        this.style.transform = '';
+      }, 150);
+    });
+  });
+});
 </script>
 {% endblock %}

@@ -1,0 +1,532 @@
+{% extends 'base_internal.html' %}
+{% load static %}
+
+{% block title %}Settings - KaTek AI{% endblock %}
+
+{% block extra_css %}
+<style>
+  .settings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-4);
+    background: var(--deep-navy);
+    min-height: calc(100vh - 80px);
+  }
+  
+  .settings-header {
+    margin-bottom: var(--space-8);
+  }
+  
+  .settings-title {
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+  }
+  
+  .settings-subtitle {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin: 0;
+  }
+  
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-8);
+  }
+  
+  .settings-sidebar {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    height: fit-content;
+  }
+  
+  .settings-nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .settings-nav-item {
+    margin-bottom: var(--space-2);
+  }
+  
+  .settings-nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-fast);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+  }
+  
+  .settings-nav-link:hover,
+  .settings-nav-link.active {
+    color: var(--text-primary);
+    background: var(--surface-glass-hover);
+    color: var(--primary-purple);
+  }
+  
+  .settings-content {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+  }
+  
+  .settings-section {
+    margin-bottom: var(--space-8);
+  }
+  
+  .settings-section:last-child {
+    margin-bottom: 0;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-4) 0;
+  }
+  
+  .section-description {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin: 0 0 var(--space-6) 0;
+  }
+  
+  .form-group {
+    margin-bottom: var(--space-6);
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+  }
+  
+  .form-textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+  
+  .form-select {
+    width: 100%;
+    padding: var(--space-3);
+    background: var(--surface-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  .form-select:focus {
+    outline: none;
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+  
+  .form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  
+  .form-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-purple);
+  }
+  
+  .form-checkbox label {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  
+  .btn-save {
+    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    padding: var(--space-3) var(--space-6);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+  }
+  
+  .btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(109, 40, 217, 0.4);
+  }
+  
+  .danger-zone {
+    background: linear-gradient(180deg, rgba(255,82,82,.14), rgba(255,82,82,.08));
+    border: 1px solid rgba(255,82,82,.35);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-top: var(--space-8);
+  }
+  
+  .danger-title {
+    color: #ff9c9c;
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-2) 0;
+  }
+  
+  .danger-description {
+    color: #ff9c9c;
+    font-size: 0.875rem;
+    margin: 0 0 var(--space-4) 0;
+  }
+  
+  .btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    padding: var(--space-3) var(--space-6);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+  }
+  
+  .btn-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+  }
+  
+  @media (max-width: 768px) {
+    .settings-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+  <div class="settings-header">
+    <h1 class="settings-title">Settings</h1>
+    <p class="settings-subtitle">Manage your account preferences and security settings.</p>
+  </div>
+  
+  <div class="settings-grid">
+    <!-- Settings Sidebar -->
+    <div class="settings-sidebar">
+      <nav class="settings-nav">
+        <ul>
+          <li class="settings-nav-item">
+            <a href="#profile" class="settings-nav-link active">
+              <i class="fas fa-user"></i>
+              Profile
+            </a>
+          </li>
+          <li class="settings-nav-item">
+            <a href="#security" class="settings-nav-link">
+              <i class="fas fa-shield-alt"></i>
+              Security
+            </a>
+          </li>
+          <li class="settings-nav-item">
+            <a href="#notifications" class="settings-nav-link">
+              <i class="fas fa-bell"></i>
+              Notifications
+            </a>
+          </li>
+          <li class="settings-nav-item">
+            <a href="#billing" class="settings-nav-link">
+              <i class="fas fa-credit-card"></i>
+              Billing
+            </a>
+          </li>
+          <li class="settings-nav-item">
+            <a href="#api" class="settings-nav-link">
+              <i class="fas fa-key"></i>
+              API Keys
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    
+    <!-- Settings Content -->
+    <div class="settings-content">
+      <!-- Profile Section -->
+      <div class="settings-section" id="profile">
+        <h2 class="section-title">Profile Information</h2>
+        <p class="section-description">Update your personal information and preferences.</p>
+        
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="first_name">First Name</label>
+              <input type="text" id="first_name" name="first_name" class="form-input" value="{{ user.first_name }}" placeholder="Enter your first name">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="last_name">Last Name</label>
+              <input type="text" id="last_name" name="last_name" class="form-input" value="{{ user.last_name }}" placeholder="Enter your last name">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input type="email" id="email" name="email" class="form-input" value="{{ user.email }}" placeholder="Enter your email address">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="company">Company Name</label>
+            <input type="text" id="company" name="company" class="form-input" value="{{ user.profile.company|default:'' }}" placeholder="Enter your company name">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" class="form-input" value="{{ user.profile.phone|default:'' }}" placeholder="Enter your phone number">
+          </div>
+          
+          <button type="submit" class="btn-save">
+            <i class="fas fa-save"></i>
+            Save Changes
+          </button>
+        </form>
+      </div>
+      
+      <!-- Security Section -->
+      <div class="settings-section" id="security">
+        <h2 class="section-title">Security Settings</h2>
+        <p class="section-description">Manage your password and security preferences.</p>
+        
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label" for="current_password">Current Password</label>
+            <input type="password" id="current_password" name="current_password" class="form-input" placeholder="Enter your current password">
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="new_password">New Password</label>
+              <input type="password" id="new_password" name="new_password" class="form-input" placeholder="Enter new password">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="confirm_password">Confirm Password</label>
+              <input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="Confirm new password">
+            </div>
+          </div>
+          
+          <div class="form-checkbox">
+            <input type="checkbox" id="two_factor" name="two_factor">
+            <label for="two_factor">Enable Two-Factor Authentication</label>
+          </div>
+          
+          <button type="submit" class="btn-save">
+            <i class="fas fa-shield-alt"></i>
+            Update Security
+          </button>
+        </form>
+      </div>
+      
+      <!-- Notifications Section -->
+      <div class="settings-section" id="notifications">
+        <h2 class="section-title">Notification Preferences</h2>
+        <p class="section-description">Choose how you want to be notified about important updates.</p>
+        
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-checkbox">
+            <input type="checkbox" id="email_notifications" name="email_notifications" checked>
+            <label for="email_notifications">Email Notifications</label>
+          </div>
+          
+          <div class="form-checkbox">
+            <input type="checkbox" id="lead_notifications" name="lead_notifications" checked>
+            <label for="lead_notifications">New Lead Alerts</label>
+          </div>
+          
+          <div class="form-checkbox">
+            <input type="checkbox" id="property_notifications" name="property_notifications">
+            <label for="property_notifications">Property Updates</label>
+          </div>
+          
+          <div class="form-checkbox">
+            <input type="checkbox" id="marketing_notifications" name="marketing_notifications">
+            <label for="marketing_notifications">Marketing Emails</label>
+          </div>
+          
+          <button type="submit" class="btn-save">
+            <i class="fas fa-bell"></i>
+            Save Preferences
+          </button>
+        </form>
+      </div>
+      
+      <!-- API Keys Section -->
+      <div class="settings-section" id="api">
+        <h2 class="section-title">API Keys</h2>
+        <p class="section-description">Manage your API keys for integrations and automation.</p>
+        
+        <div class="form-group">
+          <label class="form-label" for="api_key">Your API Key</label>
+          <input type="text" id="api_key" name="api_key" class="form-input" value="katek_sk_1234567890abcdef" readonly>
+          <button type="button" class="btn-save" onclick="copyApiKey()">
+            <i class="fas fa-copy"></i>
+            Copy Key
+          </button>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="webhook_url">Webhook URL</label>
+          <input type="url" id="webhook_url" name="webhook_url" class="form-input" value="https://api.katek.ai/webhooks/your-webhook" readonly>
+        </div>
+        
+        <button type="button" class="btn-save">
+          <i class="fas fa-sync"></i>
+          Regenerate Keys
+        </button>
+      </div>
+      
+      <!-- Danger Zone -->
+      <div class="danger-zone">
+        <h3 class="danger-title">Danger Zone</h3>
+        <p class="danger-description">These actions are irreversible. Please proceed with caution.</p>
+        
+        <button type="button" class="btn-danger" onclick="confirmDeleteAccount()">
+          <i class="fas fa-trash"></i>
+          Delete Account
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Settings navigation
+  document.querySelectorAll('.settings-nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      // Remove active class from all links
+      document.querySelectorAll('.settings-nav-link').forEach(l => l.classList.remove('active'));
+      
+      // Add active class to clicked link
+      link.classList.add('active');
+      
+      // Show corresponding section
+      const targetId = link.getAttribute('href').substring(1);
+      const targetSection = document.getElementById(targetId);
+      
+      if (targetSection) {
+        // Hide all sections
+        document.querySelectorAll('.settings-section').forEach(section => {
+          section.style.display = 'none';
+        });
+        
+        // Show target section
+        targetSection.style.display = 'block';
+      }
+    });
+  });
+  
+  // Copy API key
+  function copyApiKey() {
+    const apiKeyInput = document.getElementById('api_key');
+    apiKeyInput.select();
+    document.execCommand('copy');
+    
+    // Show success message
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+    
+    setTimeout(() => {
+      button.innerHTML = originalText;
+      button.style.background = '';
+    }, 2000);
+  }
+  
+  // Confirm delete account
+  function confirmDeleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      if (confirm('This will permanently delete all your data. Type "DELETE" to confirm.')) {
+        // Here you would implement the actual deletion
+        alert('Account deletion would be processed here.');
+      }
+    }
+  }
+  
+  // Form validation
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      // Basic validation
+      const requiredFields = form.querySelectorAll('input[required]');
+      let isValid = true;
+      
+      requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+          field.style.borderColor = '#ef4444';
+          isValid = false;
+        } else {
+          field.style.borderColor = '';
+        }
+      });
+      
+      if (isValid) {
+        // Here you would submit the form
+        alert('Settings saved successfully!');
+      } else {
+        alert('Please fill in all required fields.');
+      }
+    });
+  });
+</script>
+{% endblock %}
