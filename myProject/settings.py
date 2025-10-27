@@ -140,8 +140,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']          # where YOUR assets live during dev
-STATIC_ROOT = BASE_DIR / 'staticfiles'            # where collectstatic puts files for prod
+
+# Static files configuration
+if DEBUG:
+    # Development: serve from static/ directory
+    STATICFILES_DIRS = [BASE_DIR / 'static']
+    STATIC_ROOT = None
+else:
+    # Production: serve from staticfiles/ directory (after collectstatic)
+    STATICFILES_DIRS = []
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Production static files serving
 if not DEBUG:
