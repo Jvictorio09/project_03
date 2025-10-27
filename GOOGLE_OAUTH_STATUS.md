@@ -19,8 +19,8 @@
   - Google provider configured
   - Custom OAuth views implemented
 - ✅ **Google Cloud Console Setup**
-  - OAuth credentials file exists: `client_secret_610349257261-mqg1rrv9sqf8sv3h363pni6acmnrsu6m.apps.googleusercontent.com.json`
-  - Client ID: `610349257261-mqg1rrv9sqf8sv3h363pni6acmnrsu6m.apps.googleusercontent.com`
+  - OAuth credentials file exists: `client_secret_[CLIENT_ID].apps.googleusercontent.com.json`
+  - Client ID: `[YOUR_CLIENT_ID].apps.googleusercontent.com`
   - Redirect URIs configured for development
 - ✅ **Environment Configuration**
   - Settings configured to read `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
@@ -52,8 +52,8 @@
 #### **Missing Configuration:**
 ```env
 # Missing from .env file
-GOOGLE_CLIENT_ID=610349257261-mqg1rrv9sqf8sv3h363pni6acmnrsu6m.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
+GOOGLE_CLIENT_ID=[YOUR_CLIENT_ID].apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=[YOUR_CLIENT_SECRET]
 ```
 
 #### **Required Action:**
@@ -152,8 +152,8 @@ def google_oauth_callback(request):
 ### **Step 1: Environment Variables (2 minutes)**
 ```bash
 # Create .env file
-echo "GOOGLE_CLIENT_ID=610349257261-mqg1rrv9sqf8sv3h363pni6acmnrsu6m.apps.googleusercontent.com" >> .env
-echo "GOOGLE_CLIENT_SECRET=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" >> .env
+echo "GOOGLE_CLIENT_ID=[YOUR_CLIENT_ID].apps.googleusercontent.com" >> .env
+echo "GOOGLE_CLIENT_SECRET=[YOUR_CLIENT_SECRET]" >> .env
 ```
 
 ### **Step 2: Database Migrations (1 minute)**
@@ -173,8 +173,8 @@ python manage.py runserver
 3. Create new application:
    - Provider: Google
    - Name: KaTek AI
-   - Client ID: `610349257261-mqg1rrv9sqf8sv3h363pni6acmnrsu6m.apps.googleusercontent.com`
-   - Secret: `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`
+   - Client ID: `[YOUR_CLIENT_ID].apps.googleusercontent.com`
+   - Secret: `[YOUR_CLIENT_SECRET]`
    - Sites: localhost
 
 ---
