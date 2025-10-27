@@ -1,0 +1,40 @@
+# Django Core Settings
+SECRET_KEY=your-secret-key-here-change-in-production
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1,*.replit.dev,*.replit.app,project03-production.up.railway.app
+CSRF_TRUSTED_ORIGINS=https://*.replit.dev,https://*.replit.app,https://project03-production.up.railway.app
+ENVIRONMENT=development
+
+# Database Configuration
+DATABASE_URL=sqlite:///db.sqlite3
+# For production: postgresql://user:password@host:port/database
+
+# Webhook Security
+WEBHOOK_SIGNING_SECRET=your-webhook-secret-key-here
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID=your-google-client-id-here
+GOOGLE_CLIENT_SECRET=your-google-client-secret-here
+
+# Email Configuration (Resend)
+RESEND_API_KEY=your-resend-api-key-here
+RESEND_FROM=noreply@yourdomain.com
+RESEND_REPLY_TO=support@yourdomain.com
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
+CLOUDINARY_API_KEY=your-cloudinary-api-key
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+
+# OpenAI Configuration
+OPENAI_API_KEY=your-openai-api-key-here
+
+# Optional: Redis for caching and rate limiting (only if/when needed)
+# REDIS_URL=redis://localhost:6379/0
+
+# Optional: Sentry for error tracking
+# SENTRY_DSN=https://your-sentry-dsn-here
+
+# Optional: Additional API Keys
+# RENTCAST_API_KEY=your-rentcast-api-key-here
+# GOOGLE_MAPS_API_KEY=your-google-maps-api-key-here

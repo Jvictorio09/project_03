@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Authentication Error - KaTek AI{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== OAuth Error Page Styling ===== */
+.oauth-error-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0b0e14 0%, #101523 50%, #0f1320 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.oauth-error-page::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: conic-gradient(from 180deg at 50% 50%, rgba(139,92,246,.14), rgba(24,175,171,.12), rgba(139,92,246,.14));
+  filter: blur(80px);
+  opacity: .6;
+  animation: aurora 20s linear infinite;
+}
+
+@keyframes aurora {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.oauth-error-container {
+  position: relative;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 3rem;
+  max-width: 480px;
+  width: 100%;
+  margin: 2rem;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+}
+
+.oauth-error-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #ef4444, #f87171);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2rem;
+  box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+}
+
+.oauth-error-icon i {
+  font-size: 28px;
+  color: white;
+}
+
+.oauth-error-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #f7f8fc;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.oauth-error-subtitle {
+  color: #b9bfd4;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.error-details {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  color: #fca5a5;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.error-details strong {
+  color: #f87171;
+}
+
+.retry-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease-out;
+  box-shadow: 0 10px 30px rgba(109, 40, 217, 0.35);
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.retry-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(109, 40, 217, 0.42);
+  color: white;
+  text-decoration: none;
+}
+
+.retry-button:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 30px rgba(109, 40, 217, 0.35);
+}
+
+.retry-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.5);
+}
+
+.alternative-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #b9bfd4;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease-out;
+  cursor: pointer;
+}
+
+.alternative-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f7f8fc;
+  text-decoration: none;
+}
+
+.oauth-error-info {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #9aa3b2;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.oauth-error-info i {
+  color: #18afab;
+  margin-right: 8px;
+}
+
+.back-link {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  color: #b9bfd4;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: #f7f8fc;
+  text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .oauth-error-container {
+    margin: 1rem;
+    padding: 2rem;
+  }
+  
+  .oauth-error-title {
+    font-size: 1.75rem;
+  }
+  
+  .back-link {
+    position: static;
+    margin-bottom: 2rem;
+    justify-content: center;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="oauth-error-page">
+  <a href="{% url 'login' %}" class="back-link">
+    <i class="fas fa-arrow-left"></i>
+    Back to Login
+  </a>
+  
+  <div class="oauth-error-container">
+    <div class="oauth-error-icon">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    
+    <h1 class="oauth-error-title">Authentication Error</h1>
+    <p class="oauth-error-subtitle">
+      We encountered an issue while trying to sign you in with Google.<br>
+      This usually happens when the authentication was cancelled or there was a temporary issue.
+    </p>
+    
+    {% if error %}
+    <div class="error-details">
+      <strong>Error Details:</strong><br>
+      {{ error }}
+    </div>
+    {% endif %}
+    
+    <a href="{% url 'google_login' %}" class="retry-button">
+      <i class="fas fa-redo"></i>
+      Try Again with Google
+    </a>
+    
+    <a href="{% url 'login' %}" class="alternative-button">
+      <i class="fas fa-envelope"></i>
+      Use Email Instead
+    </a>
+    
+    <div class="oauth-error-info">
+      <i class="fas fa-info-circle"></i>
+      <strong>Need Help?</strong> If you continue to experience issues, please try using your email and password to sign in, or contact our support team.
+    </div>
+  </div>
+</div>
+{% endblock %}
+

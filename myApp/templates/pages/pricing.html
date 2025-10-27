@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+  <div class="max-w-6xl mx-auto px-4 py-16">
+    <div class="text-center mb-16">
+      <h1 class="text-5xl font-bold text-gray-900 mb-6">Pricing</h1>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+        Flexible pricing plans for real estate professionals. Choose the perfect plan for your brokerage or agency.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- Starter Plan -->
+      <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
+          <p class="text-gray-600 mb-4">Perfect for individual agents</p>
+          <div class="text-4xl font-bold text-gray-900">$29<span class="text-lg text-gray-500">/month</span></div>
+        </div>
+        <ul class="space-y-4 mb-8">
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Up to 50 properties</span>
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Basic AI insights</span>
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Email support</span>
+          </li>
+        </ul>
+        <a href="{% url 'signup' %}" class="w-full bg-gray-900 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors text-center block">Get Started</a>
+      </div>
+
+      <!-- Professional Plan -->
+      <div class="bg-white rounded-xl shadow-lg p-8 border-2 border-indigo-500 relative">
+        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <span class="bg-indigo-500 text-white px-4 py-1 rounded-full text-sm font-medium">Most Popular</span>
+        </div>
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
+          <p class="text-gray-600 mb-4">Ideal for growing teams</p>
+          <div class="text-4xl font-bold text-gray-900">$99<span class="text-lg text-gray-500">/month</span></div>
+        </div>
+        <ul class="space-y-4 mb-8">
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Up to 500 properties</span>
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Advanced AI insights</span>
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Lead automation</span>
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Priority support</span>
+          </li>
+        </ul>
+        <a href="{% url 'signup' %}" class="w-full bg-indigo-500 text-white py-3 px-6 rounded-lg hover:bg-indigo-600 transition-colors text-center block">Get Started</a>
+      </div>
+
+      <!-- Enterprise Plan -->
+      <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+          <p class="text-gray-600 mb-4">For large brokerages</p>
+          <div class="text-4xl font-bold text-gray-900">Custom</div>
+        </div>
+        <ul class="space-y-4 mb-8">
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Unlimited properties</span>
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Full AI suite</span>
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Custom integrations</span>
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-3"></i>
+            <span>Dedicated support</span>
+          </li>
+        </ul>
+        <a href="{% url 'contact' %}" class="w-full bg-gray-900 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors text-center block">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

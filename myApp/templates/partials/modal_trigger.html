@@ -1,0 +1,10 @@
+<!-- Modal Trigger Button -->
+<button 
+    type="button" 
+    class="{{ button_class }}" 
+    data-modal-target="#{{ modal_id }}"
+    {% if htmx_url %}hx-get="{{ htmx_url }}" hx-target="#{{ modal_id }} .modal-body"{% endif %}
+    {% for key, value in kwargs.items %}{{ key }}="{{ value }}"{% endfor %}
+>
+    {{ button_text }}
+</button>

@@ -1,5 +1,10 @@
 .env
 
+# Google OAuth Credentials (NEVER commit these!)
+client_secret_*.json
+*client_secret*.json
+google_oauth_credentials.json
+
 # Python
 __pycache__/
 *.py[cod]

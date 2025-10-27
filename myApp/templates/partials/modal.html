@@ -1,0 +1,22 @@
+<!-- Canonical Modal Component -->
+<div id="{{ modal_id }}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="{{ modal_id }}Label" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="{{ modal_id }}Label">{{ title }}</h5>
+                <button type="button" class="btn-close" data-modal-close aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here via HTMX -->
+                {% if content %}
+                    {{ content|safe }}
+                {% endif %}
+            </div>
+            {% if footer %}
+            <div class="modal-footer">
+                {{ footer|safe }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

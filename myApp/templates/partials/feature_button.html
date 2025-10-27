@@ -1,0 +1,9 @@
+{% if is_enabled %}
+    <a href="{{ htmx_url|default:'#' }}" class="{{ button_class }}" {% if htmx_url %}data-modal-target="#add-property-modal"{% endif %} {% for key, value in kwargs.items %}{{ key }}="{{ value }}"{% endfor %}>
+        {{ content|safe }}
+    </a>
+{% else %}
+    <a href="#" class="{{ button_class }}" disabled title="{{ tooltip }}" data-bs-toggle="tooltip" data-bs-placement="top">
+        {{ content|safe }}
+    </a>
+{% endif %}

@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Complete Your Account - KaTek AI{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== Google OAuth Signup Page Styling ===== */
+.oauth-signup-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0b0e14 0%, #101523 50%, #0f1320 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.oauth-signup-page::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: conic-gradient(from 180deg at 50% 50%, rgba(139,92,246,.14), rgba(24,175,171,.12), rgba(139,92,246,.14));
+  filter: blur(80px);
+  opacity: .6;
+  animation: aurora 20s linear infinite;
+}
+
+@keyframes aurora {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.oauth-signup-container {
+  position: relative;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 3rem;
+  max-width: 480px;
+  width: 100%;
+  margin: 2rem;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+}
+
+.oauth-signup-logo {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2rem;
+  box-shadow: 0 10px 30px rgba(109, 40, 217, 0.3);
+}
+
+.oauth-signup-logo i {
+  font-size: 28px;
+  color: white;
+}
+
+.oauth-signup-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #f7f8fc;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.oauth-signup-subtitle {
+  color: #b9bfd4;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.google-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  color: #b9bfd4;
+}
+
+.google-info img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.google-info .user-details {
+  text-align: left;
+}
+
+.google-info .user-name {
+  font-weight: 600;
+  color: #f7f8fc;
+  margin-bottom: 0.25rem;
+}
+
+.google-info .user-email {
+  font-size: 0.9rem;
+  color: #9aa3b2;
+}
+
+.continue-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease-out;
+  box-shadow: 0 10px 30px rgba(109, 40, 217, 0.35);
+  cursor: pointer;
+}
+
+.continue-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(109, 40, 217, 0.42);
+  color: white;
+  text-decoration: none;
+}
+
+.continue-button:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 30px rgba(109, 40, 217, 0.35);
+}
+
+.continue-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.5);
+}
+
+.oauth-signup-info {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #9aa3b2;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.oauth-signup-info i {
+  color: #18afab;
+  margin-right: 8px;
+}
+
+.back-link {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  color: #b9bfd4;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: #f7f8fc;
+  text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .oauth-signup-container {
+    margin: 1rem;
+    padding: 2rem;
+  }
+  
+  .oauth-signup-title {
+    font-size: 1.75rem;
+  }
+  
+  .back-link {
+    position: static;
+    margin-bottom: 2rem;
+    justify-content: center;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="oauth-signup-page">
+  <a href="{% url 'login' %}" class="back-link">
+    <i class="fas fa-arrow-left"></i>
+    Back to Login
+  </a>
+  
+  <div class="oauth-signup-container">
+    <div class="oauth-signup-logo">
+      <i class="fas fa-home"></i>
+    </div>
+    
+    <h1 class="oauth-signup-title">Complete Your Account</h1>
+    <p class="oauth-signup-subtitle">
+      Almost there! We just need to set up your account with the information from your Google profile.
+    </p>
+    
+    <div class="google-info">
+      <img src="https://via.placeholder.com/32x32/4285F4/FFFFFF?text=G" alt="Google Profile" />
+      <div class="user-details">
+        <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="user-email">{{ user.email }}</div>
+      </div>
+    </div>
+    
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="continue-button">
+        <i class="fas fa-check"></i>
+        Complete Setup
+      </button>
+    </form>
+    
+    <div class="oauth-signup-info">
+      <i class="fas fa-shield-alt"></i>
+      <strong>Secure Setup:</strong> Your account will be created with your Google profile information. You can always update your details later in your account settings.
+    </div>
+  </div>
+</div>
+{% endblock %}

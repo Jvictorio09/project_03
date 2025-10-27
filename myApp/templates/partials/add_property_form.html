@@ -1,0 +1,105 @@
+<form hx-post="{% url 'add_property_modal' %}" hx-target="#add-property-modal .modal-body" hx-swap="innerHTML">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="{{ form.title.id_for_label }}" class="form-label">Property Title</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="text-danger">{{ form.title.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="{{ form.price_amount.id_for_label }}" class="form-label">Price (PHP)</label>
+                {{ form.price_amount }}
+                {% if form.price_amount.errors %}
+                    <div class="text-danger">{{ form.price_amount.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-3">
+        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+        {{ form.description }}
+        {% if form.description.errors %}
+            <div class="text-danger">{{ form.description.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="mb-3">
+                <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
+                {{ form.city }}
+                {% if form.city.errors %}
+                    <div class="text-danger">{{ form.city.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="mb-3">
+                <label for="{{ form.area.id_for_label }}" class="form-label">Area</label>
+                {{ form.area }}
+                {% if form.area.errors %}
+                    <div class="text-danger">{{ form.area.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="mb-3">
+                <label for="{{ form.hero_image.id_for_label }}" class="form-label">Image URL</label>
+                {{ form.hero_image }}
+                {% if form.hero_image.errors %}
+                    <div class="text-danger">{{ form.hero_image.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="mb-3">
+                <label for="{{ form.beds.id_for_label }}" class="form-label">Bedrooms</label>
+                {{ form.beds }}
+                {% if form.beds.errors %}
+                    <div class="text-danger">{{ form.beds.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="mb-3">
+                <label for="{{ form.baths.id_for_label }}" class="form-label">Bathrooms</label>
+                {{ form.baths }}
+                {% if form.baths.errors %}
+                    <div class="text-danger">{{ form.baths.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="mb-3">
+                <label for="{{ form.floor_area_sqm.id_for_label }}" class="form-label">Floor Area (sqm)</label>
+                {{ form.floor_area_sqm }}
+                {% if form.floor_area_sqm.errors %}
+                    <div class="text-danger">{{ form.floor_area_sqm.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="mb-3">
+                <div class="form-check">
+                    {{ form.parking }}
+                    <label for="{{ form.parking.id_for_label }}" class="form-check-label">Parking</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Property</button>
+    </div>
+</form>

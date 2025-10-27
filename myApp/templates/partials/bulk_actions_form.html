@@ -1,0 +1,56 @@
+<form hx-post="{% url 'bulk_actions_modal' %}" hx-target="#bulk-actions-modal .modal-body" hx-swap="innerHTML">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+        <label class="form-label">Select Action</label>
+        <select name="action" class="form-select" required>
+            <option value="">Choose an action...</option>
+            <option value="delete">Delete Selected Properties</option>
+            <option value="export">Export Selected Properties</option>
+            <option value="update_status">Update Status</option>
+        </select>
+    </div>
+    
+    <div class="mb-3">
+        <label class="form-label">Selected Properties</label>
+        <div id="selected-properties" class="border rounded p-2" style="min-height: 100px;">
+            <p class="text-muted">No properties selected</p>
+        </div>
+        <input type="hidden" name="property_ids" id="property-ids" value="">
+    </div>
+    
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Warning:</strong> This action cannot be undone.
+    </div>
+    
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+        <button type="submit" class="btn btn-danger">Confirm Action</button>
+    </div>
+</form>
+
+<script>
+    // Update selected properties display
+    function updateSelectedProperties() {
+        const checkboxes = document.querySelectorAll('input[name="property_ids"]:checked');
+        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+        const display = document.getElementById('selected-properties');
+        const hiddenInput = document.getElementById('property-ids');
+        
+        hiddenInput.value = selectedIds.join(',');
+        
+        if (selectedIds.length > 0) {
+            display.innerHTML = `<p>${selectedIds.length} properties selected</p>`;
+        } else {
+            display.innerHTML = '<p class="text-muted">No properties selected</p>';
+        }
+    }
+    
+    // Listen for checkbox changes
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'property_ids') {
+            updateSelectedProperties();
+        }
+    });
+</script>

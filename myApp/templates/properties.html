@@ -381,10 +381,20 @@
         <i class="fas fa-search search-icon"></i>
         <input type="text" class="search-input" placeholder="Search properties..." id="property-search">
       </div>
-      <a href="#" class="btn btn-primary">
-        <i class="fas fa-plus"></i>
-        Add Property
-      </a>
+      {% load extras %}
+      {% is_feature_enabled 'property_creation' as property_creation_enabled %}
+      {% if property_creation_enabled %}
+        <a href="#" class="btn btn-primary" data-modal-target="#add-property-modal" hx-get="/modal/add-property/" hx-target="#add-property-modal" hx-trigger="click">
+          <i class="fas fa-plus"></i>
+          Add Property
+        </a>
+      {% else %}
+        {% get_disabled_tooltip 'property_creation' as property_creation_tooltip %}
+        <a href="#" class="btn btn-secondary" disabled title="{{ property_creation_tooltip }}">
+          <i class="fas fa-plus"></i>
+          Add Property
+        </a>
+      {% endif %}
     </div>
   </div>
   
@@ -638,4 +648,21 @@ function applyBulkAction() {
   console.log(`Applying ${bulkAction} to ${checkedBoxes.length} properties`);
 }
 </script>
+
+<!-- Add Property Modal -->
+<div id="add-property-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add-property-modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="add-property-modalLabel">Add New Property</h5>
+                <button type="button" class="btn-close" data-modal-close aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here via HTMX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/modal.js' %}"></script>
 {% endblock %}

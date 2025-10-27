@@ -1,0 +1,31 @@
+Thank you for your interest - {{ company.name }}
+
+Hello {{ lead.name }},
+
+Thank you for reaching out to us! We've received your inquiry and our team will get back to you within 24 hours.
+
+Your preferences:
+- Looking to: {{ lead.get_buy_or_rent_display }}
+{% if lead.budget_max %}- Budget: ₱{{ lead.budget_max|floatformat:0 }}{% endif %}
+{% if lead.beds %}- Bedrooms: {{ lead.beds }}{% endif %}
+{% if lead.areas %}- Areas of interest: {{ lead.areas }}{% endif %}
+
+Here are some properties you might like:
+
+{% for property in properties %}
+{{ property.title }}
+₱{{ property.price_amount|floatformat:0 }}
+{{ property.city }}, {{ property.area }}
+{{ property.beds }} bed{{ property.beds|pluralize }} • {{ property.baths }} bath{{ property.baths|pluralize }}
+View: http://{{ site_url }}/property/{{ property.slug }}/
+
+{% endfor %}
+
+If you have any questions or would like to schedule a viewing, please don't hesitate to contact us.
+
+Best regards,
+The {{ company.name }} Team
+
+---
+{{ company.name }} | Real Estate Services
+This email was sent because you expressed interest in our properties.

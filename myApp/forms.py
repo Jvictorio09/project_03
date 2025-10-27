@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Lead, PropertyUpload
+from .models import Lead, PropertyUpload, Property
 
 
 class LoginForm(AuthenticationForm):
@@ -98,5 +98,70 @@ class PropertyUploadForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['hero_image'].required = True
+
+
+class PropertyForm(forms.ModelForm):
+    """Form for creating/editing properties"""
+    
+    class Meta:
+        model = Property
+        fields = [
+            'title', 'description', 'price_amount', 'city', 'area', 
+            'beds', 'baths', 'floor_area_sqm', 'parking', 'hero_image',
+            'badges', 'affiliate_source', 'commissionable'
+        ]
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Property title'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Property description'
+            }),
+            'price_amount': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Price in PHP'
+            }),
+            'city': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'City'
+            }),
+            'area': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Area/Neighborhood'
+            }),
+            'beds': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0'
+            }),
+            'baths': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0'
+            }),
+            'floor_area_sqm': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0'
+            }),
+            'parking': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'hero_image': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Image URL'
+            }),
+            'badges': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Comma-separated badges'
+            }),
+            'affiliate_source': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Source'
+            }),
+            'commissionable': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
 
 

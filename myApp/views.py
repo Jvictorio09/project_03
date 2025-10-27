@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from .decorators import wizard_required, company_required, public_route
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -23,8 +24,9 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
 
-from .models import Property, Lead, PropertyUpload
-from .forms import LeadForm, PropertyUploadForm, LoginForm
+from .models import Property, Lead, PropertyUpload, Company
+from .forms import LeadForm, PropertyUploadForm, LoginForm, PropertyForm
+from django.forms import ModelForm
 from .webhook import send_chat_inquiry_webhook, send_property_listing_webhook, send_property_chat_webhook, send_prompt_search_webhook
 
 
@@ -102,20 +104,44 @@ def property_detail(request: HttpRequest, slug: str) -> HttpResponse:
     return render(request, "property_detail.html", {"property": prop})
 
 
+@public_route
 def lead_submit(request: HttpRequest) -> HttpResponse:
+    """Public lead submission with deduplication and company context"""
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
 
+    from .services import CompanyService, LeadService
+    
+    # Get company context (from URL or default)
+    company = CompanyService.get_company_from_request(request)
+    
     form = LeadForm(request.POST)
     if form.is_valid():
-        lead: Lead = form.save(commit=False)
-        # capture tracking
-        lead.utm_source = request.COOKIES.get("utm_source", request.GET.get("utm_source", ""))
-        lead.utm_campaign = request.COOKIES.get("utm_campaign", request.GET.get("utm_campaign", ""))
-        lead.referrer = request.META.get("HTTP_REFERER", "")
-        # interest ids if provided
-        lead.interest_ids = request.POST.get("interest_ids", "")
-        lead.save()
+        # Prepare lead data
+        lead_data = form.cleaned_data.copy()
+        lead_data.update({
+            'utm_source': request.COOKIES.get("utm_source", request.GET.get("utm_source", "")),
+            'utm_campaign': request.COOKIES.get("utm_campaign", request.GET.get("utm_campaign", "")),
+            'referrer': request.META.get("HTTP_REFERER", ""),
+            'interest_ids': request.POST.get("interest_ids", ""),
+        })
+        
+        # Create lead with deduplication
+        lead, error_message = LeadService.create_lead(company, **lead_data)
+        
+        if error_message:
+            # Return friendly duplicate message
+            return JsonResponse({
+                'success': False,
+                'message': error_message,
+                'duplicate': True
+            })
+        
+        if not lead:
+            return JsonResponse({
+                'success': False,
+                'message': 'Failed to create lead. Please try again.'
+            })
 
         # Send webhook to Katalyst CRM
         try:
@@ -170,24 +196,31 @@ def thanks(request: HttpRequest) -> HttpResponse:
     return render(request, "thanks.html", {"lead": lead})
 
 
-@login_required
+@wizard_required
 def dashboard(request: HttpRequest) -> HttpResponse:
-    """Main Dashboard with metrics and overview"""
-    # Get recent properties for the dashboard
-    recent_properties = Property.objects.all()[:6]
+    """Main Dashboard with real metrics and company-scoped data"""
+    from .services import CompanyService, EventLogger
     
-    # Get recent leads (if Lead model exists)
-    recent_leads = Lead.objects.all()[:5] if hasattr(Lead, 'objects') else []
+    company = request.company
     
-    # Calculate basic metrics
-    total_properties = Property.objects.count()
-    total_leads = Lead.objects.count() if hasattr(Lead, 'objects') else 0
+    # Get company-scoped data
+    recent_properties = Property.objects.filter(company=company)[:6]
+    recent_leads = Lead.objects.filter(company=company)[:5]
+    
+    # Calculate real metrics
+    total_properties = Property.objects.filter(company=company).count()
+    total_leads = Lead.objects.filter(company=company).count()
+    
+    # Get recent activity
+    recent_events = EventLogger.get_recent_events(company, limit=5)
     
     context = {
         'recent_properties': recent_properties,
         'recent_leads': recent_leads,
         'total_properties': total_properties,
         'total_leads': total_leads,
+        'recent_events': recent_events,
+        'company': company,
     }
     
     return render(request, "dashboard.html", context)
@@ -281,15 +314,39 @@ def property_chat_ai(request: HttpRequest, slug: str) -> HttpResponse:
 
 
 def health_check(request: HttpRequest) -> HttpResponse:
-    """Health check endpoint for Railway"""
+    """Health check endpoint - quick OK"""
+    return JsonResponse({"status": "ok", "timestamp": timezone.now().isoformat()})
+
+
+def readiness_check(request: HttpRequest) -> HttpResponse:
+    """Readiness check - checks DB and outbox depth"""
+    from .models import OutboxMessage
+    
     try:
-        # Test database connection
+        # Check database connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
         
-        return JsonResponse({"status": "healthy", "database": "connected"})
+        # Check outbox depth
+        pending_count = OutboxMessage.objects.filter(status='pending').count()
+        failed_count = OutboxMessage.objects.filter(status='failed').count()
+        
+        return JsonResponse({
+            "status": "ready",
+            "database": "ok",
+            "outbox": {
+                "pending": pending_count,
+                "failed": failed_count
+            },
+            "timestamp": timezone.now().isoformat()
+        })
+        
     except Exception as e:
-        return JsonResponse({"status": "unhealthy", "error": str(e)}, status=500)
+        return JsonResponse({
+            "status": "not_ready",
+            "error": str(e),
+            "timestamp": timezone.now().isoformat()
+        }, status=503)
 
 
 def process_ai_search_prompt(prompt: str) -> dict:
@@ -2664,15 +2721,63 @@ def setup_wizard(request: HttpRequest) -> HttpResponse:
 
 def handle_company_profile(request):
     """Handle company profile setup (Step 1)"""
-    # Store company profile data
-    request.session['company_profile'] = {
-        'logo': request.POST.get('logo', ''),
-        'brand_color': request.POST.get('brand_color', '#6D28D9'),
-        'about': request.POST.get('about', ''),
-        'tagline': request.POST.get('tagline', ''),
-        'website': request.POST.get('website', ''),
-        'phone': request.POST.get('phone', '')
-    }
+    from .services import CompanyService, EventLogger
+    
+    # Get form data
+    company_name = request.POST.get('company_name', '').strip()
+    company_slug = request.POST.get('company_slug', '').strip()
+    brand_primary = request.POST.get('brand_primary', '#3B82F6')
+    brand_secondary = request.POST.get('brand_secondary', '#1E40AF')
+    brand_tone = request.POST.get('brand_tone', 'professional')
+    logo_url = request.POST.get('logo', '')
+    
+    # Basic validation
+    if not company_name:
+        messages.error(request, 'Company name is required.')
+        return redirect('setup_wizard?step=1')
+    
+    # Create or update company
+    if not company_slug:
+        company_slug = company_name.lower().replace(' ', '-').replace('&', 'and')
+    
+    # Ensure unique slug
+    original_slug = company_slug
+    counter = 1
+    while Company.objects.filter(slug=company_slug).exists():
+        company_slug = f"{original_slug}-{counter}"
+        counter += 1
+    
+    company, created = Company.objects.get_or_create(
+        slug=company_slug,
+        defaults={
+            'name': company_name,
+            'brand_primary_color': brand_primary,
+            'brand_secondary_color': brand_secondary,
+            'brand_tone': brand_tone,
+            'logo': logo_url,
+        }
+    )
+    
+    if not created:
+        # Update existing company
+        company.name = company_name
+        company.brand_primary_color = brand_primary
+        company.brand_secondary_color = brand_secondary
+        company.brand_tone = brand_tone
+        company.logo = logo_url
+        company.save()
+    
+    # Set as active company
+    CompanyService.set_active_company(request, company)
+    
+    # Log the event
+    EventLogger.log_event(
+        company=company,
+        user=request.user,
+        event_type='company.setup',
+        description=f'Company profile setup completed: {company.name}',
+        metadata={'company_id': str(company.id)}
+    )
     
     messages.success(request, 'Company profile saved!')
     return redirect('setup_wizard?step=2')
@@ -2736,9 +2841,9 @@ def handle_crm_connection(request):
     return redirect('dashboard')
 
 
-@login_required
+@wizard_required
 def properties(request: HttpRequest) -> HttpResponse:
-    """Properties management page with table, filters, and bulk actions"""
+    """Properties management page with company-scoped data"""
     # Query params for filtering
     q = request.GET.get("q", "").strip()
     city = request.GET.get("city", "").strip()
@@ -2750,8 +2855,8 @@ def properties(request: HttpRequest) -> HttpResponse:
     page = int(request.GET.get("page", 1))
     per = min(int(request.GET.get("per", 12)), 48)
     
-    # Base queryset
-    properties = Property.objects.all()
+    # Company-scoped queryset
+    properties = Property.objects.filter(company=request.company)
     
     # Search filter
     if q:
@@ -2874,9 +2979,9 @@ def chat_agent(request: HttpRequest) -> HttpResponse:
     return render(request, "chat_agent.html", context)
 
 
-@login_required
+@wizard_required
 def leads(request: HttpRequest) -> HttpResponse:
-    """Leads CRM page with table, filters, and lead drawer"""
+    """Leads CRM page with company-scoped data"""
     # Query params for filtering
     q = request.GET.get("q", "").strip()
     source = request.GET.get("source", "").strip()
@@ -2887,8 +2992,8 @@ def leads(request: HttpRequest) -> HttpResponse:
     page = int(request.GET.get("page", 1))
     per = min(int(request.GET.get("per", 12)), 48)
     
-    # Base queryset
-    leads = Lead.objects.all()
+    # Company-scoped queryset
+    leads = Lead.objects.filter(company=request.company)
     
     # Search filter
     if q:
@@ -3121,5 +3226,194 @@ def settings(request: HttpRequest) -> HttpResponse:
     }
     
     return render(request, "settings.html", context)
+
+
+# Modal Views for HTMX Integration
+@wizard_required
+def add_property_modal(request: HttpRequest) -> HttpResponse:
+    """Modal content for adding a new property"""
+    if request.method == 'POST':
+        form = PropertyForm(request.POST)
+        if form.is_valid():
+            property = form.save(commit=False)
+            property.company = request.company
+            property.slug = property.title.lower().replace(' ', '-').replace('&', 'and')
+            property.save()
+            
+            # Log the event
+            from .services import EventLogger
+            EventLogger.log_event(
+                company=request.company,
+                user=request.user,
+                event_type='property.created',
+                description=f'New property added: {property.title}',
+                metadata={'property_id': str(property.id)}
+            )
+            
+            # Return success response for HTMX
+            return render(request, 'partials/property_success.html', {
+                'property': property,
+                'message': 'Property added successfully!'
+            })
+        else:
+            # Return form with errors
+            return render(request, 'partials/add_property_form.html', {
+                'form': form
+            })
+    else:
+        form = PropertyForm()
+        return render(request, 'partials/add_property_form.html', {
+            'form': form
+        })
+
+
+@wizard_required
+def sync_estimates_modal(request: HttpRequest, property_id: str) -> HttpResponse:
+    """Modal for syncing property estimates"""
+    from .services import OutboxService, EventLogger
+    
+    try:
+        property = Property.objects.get(id=property_id, company=request.company)
+        
+        # Create outbox message for n8n
+        OutboxService.create_message(
+            company=request.company,
+            event_type='property.enrich',
+            payload={
+                'property_id': str(property.id),
+                'title': property.title,
+                'price_amount': property.price_amount,
+                'city': property.city,
+                'area': property.area,
+                'beds': property.beds,
+                'baths': property.baths,
+            }
+        )
+        
+        # Log the event
+        EventLogger.log_event(
+            company=request.company,
+            user=request.user,
+            event_type='property.enrich_requested',
+            description=f'Property estimates sync requested: {property.title}',
+            metadata={'property_id': str(property.id)}
+        )
+        
+        return render(request, 'partials/sync_estimates_success.html', {
+            'property': property,
+            'message': 'Property estimates sync initiated. Updates will appear shortly.'
+        })
+        
+    except Property.DoesNotExist:
+        return render(request, 'partials/error.html', {
+            'message': 'Property not found.'
+        })
+
+
+@wizard_required
+def bulk_actions_modal(request: HttpRequest) -> HttpResponse:
+    """Modal for bulk property actions"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        property_ids = request.POST.getlist('property_ids')
+        
+        if not property_ids:
+            return render(request, 'partials/error.html', {
+                'message': 'No properties selected.'
+            })
+        
+        properties = Property.objects.filter(
+            id__in=property_ids, 
+            company=request.company
+        )
+        
+        if action == 'delete':
+            count = properties.count()
+            properties.delete()
+            
+            from .services import EventLogger
+            EventLogger.log_event(
+                company=request.company,
+                user=request.user,
+                event_type='property.bulk_delete',
+                description=f'Deleted {count} properties',
+                metadata={'count': count}
+            )
+            
+            return render(request, 'partials/bulk_success.html', {
+                'message': f'Successfully deleted {count} properties.'
+            })
+        
+        return render(request, 'partials/error.html', {
+            'message': 'Invalid action.'
+        })
+    
+    return render(request, 'partials/bulk_actions_form.html')
+
+
+# Public Pages
+def use_cases(request):
+    """Use cases page"""
+    return render(request, 'pages/use_cases.html', {
+        'title': 'Use Cases - KaTek AI',
+        'meta_description': 'Discover how KaTek AI transforms real estate operations with AI-powered solutions for brokers, agents, and property managers.'
+    })
+
+
+def pricing(request):
+    """Pricing page"""
+    return render(request, 'pages/pricing.html', {
+        'title': 'Pricing - KaTek AI',
+        'meta_description': 'Flexible pricing plans for real estate professionals. Choose the perfect plan for your brokerage or agency.'
+    })
+
+
+def case_studies(request):
+    """Case studies page"""
+    return render(request, 'pages/case_studies.html', {
+        'title': 'Case Studies - KaTek AI',
+        'meta_description': 'Real success stories from real estate professionals using KaTek AI to grow their business and improve client experience.'
+    })
+
+
+def resources(request):
+    """Resources page"""
+    return render(request, 'pages/resources.html', {
+        'title': 'Resources - KaTek AI',
+        'meta_description': 'Documentation, guides, and resources to help you get the most out of KaTek AI for your real estate business.'
+    })
+
+
+# Product Pages
+def property_iq(request):
+    """Property IQ product page"""
+    return render(request, 'products/property_iq.html', {
+        'title': 'Property IQ - KaTek AI',
+        'meta_description': 'AI-powered property insights and market analysis. Get instant property valuations, neighborhood data, and investment recommendations.'
+    })
+
+
+def lead_robot(request):
+    """Lead Robot product page"""
+    return render(request, 'products/lead_robot.html', {
+        'title': 'Lead Robot - KaTek AI',
+        'meta_description': 'Automated lead qualification and nurturing. Let AI handle initial prospect conversations and qualify leads 24/7.'
+    })
+
+
+def ai_concierge(request):
+    """AI Concierge product page"""
+    return render(request, 'products/ai_concierge.html', {
+        'title': 'AI Concierge - KaTek AI',
+        'meta_description': '24/7 AI-powered customer service for your real estate business. Provide instant responses and book appointments automatically.'
+    })
+
+
+def contact(request):
+    """Contact page"""
+    return render(request, 'pages/contact.html', {
+        'title': 'Contact - KaTek AI',
+        'meta_description': 'Get in touch with our team. We\'re here to help you transform your real estate business with AI.'
+    })
 
 

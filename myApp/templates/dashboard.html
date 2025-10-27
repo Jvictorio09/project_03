@@ -493,25 +493,54 @@
       <div class="quick-actions">
         <h3 class="quick-actions-title">Quick Actions</h3>
         <div class="action-buttons">
-          <a href="{% url 'properties' %}" class="action-btn">
-            <div class="action-icon">
-              <i class="fas fa-plus"></i>
-            </div>
-            <div class="action-content">
-              <h4>Add Property</h4>
-              <p>Upload new listing</p>
-            </div>
-          </a>
+          {% load extras %}
+          {% is_feature_enabled 'property_creation' as property_creation_enabled %}
+          {% if property_creation_enabled %}
+            <a href="#" class="action-btn" data-modal-target="#add-property-modal" hx-get="/modal/add-property/" hx-target="#add-property-modal" hx-trigger="click">
+              <div class="action-icon">
+                <i class="fas fa-plus"></i>
+              </div>
+              <div class="action-content">
+                <h4>Add Property</h4>
+                <p>Upload new listing</p>
+              </div>
+            </a>
+          {% else %}
+            {% get_disabled_tooltip 'property_creation' as property_creation_tooltip %}
+            <a href="#" class="action-btn disabled" disabled title="{{ property_creation_tooltip }}">
+              <div class="action-icon">
+                <i class="fas fa-plus"></i>
+              </div>
+              <div class="action-content">
+                <h4>Add Property</h4>
+                <p>Upload new listing</p>
+              </div>
+            </a>
+          {% endif %}
           
-          <a href="#" class="action-btn">
-            <div class="action-icon">
-              <i class="fas fa-paper-plane"></i>
-            </div>
-            <div class="action-content">
-              <h4>Send Campaign</h4>
-              <p>Email your leads</p>
-            </div>
-          </a>
+          {% is_feature_enabled 'campaign_management' as campaign_management_enabled %}
+          {% if campaign_management_enabled %}
+            <a href="#" class="action-btn">
+              <div class="action-icon">
+                <i class="fas fa-paper-plane"></i>
+              </div>
+              <div class="action-content">
+                <h4>Send Campaign</h4>
+                <p>Email your leads</p>
+              </div>
+            </a>
+          {% else %}
+            {% get_disabled_tooltip 'campaign_management' as campaign_management_tooltip %}
+            <a href="#" class="action-btn disabled" disabled title="{{ campaign_management_tooltip }}">
+              <div class="action-icon">
+                <i class="fas fa-paper-plane"></i>
+              </div>
+              <div class="action-content">
+                <h4>Send Campaign</h4>
+                <p>Email your leads</p>
+              </div>
+            </a>
+          {% endif %}
           
           <a href="{% url 'chat_agent' %}" class="action-btn">
             <div class="action-icon">
@@ -531,7 +560,7 @@
   <div class="recent-properties">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold">Recent Properties</h2>
-      <a href="#" class="btn btn-secondary">View All Properties</a>
+      <a href="{% url 'properties' %}" class="btn btn-secondary">View All Properties</a>
     </div>
     
     <div class="properties-grid">
@@ -588,6 +617,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/modal.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Chart filter interactions
@@ -612,4 +642,20 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
+
+<!-- Add Property Modal -->
+<div id="add-property-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add-property-modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="add-property-modalLabel">Add New Property</h5>
+                <button type="button" class="btn-close" data-modal-close aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here via HTMX -->
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

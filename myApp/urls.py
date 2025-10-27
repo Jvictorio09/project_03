@@ -4,10 +4,15 @@ from .views import (
     home_chat, property_modal,
     listing_choice, ai_prompt_listing, manual_form_listing,
     upload_listing, processing_listing, validation_chat, book, thanks, dashboard,
-    lead_submit, health_check, ai_prompt_search, webhook_chat, init_webhook_chat,
-    get_property_titles, landing, signup, login_view, logout_view, setup_wizard, properties, chat_agent, leads, campaigns, analytics, chat, settings, password_reset_request, password_reset_confirm
+    lead_submit, health_check, readiness_check, ai_prompt_search, webhook_chat, init_webhook_chat,
+    get_property_titles, landing, signup, login_view, logout_view, setup_wizard, properties, chat_agent, leads, campaigns, analytics, chat, settings, password_reset_request, password_reset_confirm,
+    add_property_modal, sync_estimates_modal, bulk_actions_modal,
+    use_cases, pricing, case_studies, resources, property_iq, lead_robot, ai_concierge, contact
 )
+from .views_oauth import custom_google_login, custom_google_callback, oauth_success, oauth_error, direct_google_oauth
+from .views_google_oauth import google_oauth_login, google_oauth_callback, google_oauth_error
 from .views_ai_validation import init_ai_validation_chat, ai_validation_chat
+from .views_webhook import n8n_property_enrichment_callback, n8n_lead_processing_callback
 
 urlpatterns = [
     path("", landing, name="home"),
@@ -45,7 +50,9 @@ urlpatterns = [
     path("book", book, name="book"),
     path("thanks", thanks, name="thanks"),
     path("dashboard", dashboard, name="dashboard"),
+    path("dashboard/", dashboard, name="dashboard_slash"),
     path("health/", health_check, name="health_check"),
+    path("readiness/", readiness_check, name="readiness_check"),
     
     # NEW: AI Prompt Search with webhook response
     path("search/ai-prompt/", ai_prompt_search, name="ai_prompt_search"),
@@ -60,6 +67,41 @@ urlpatterns = [
     # NEW: AI Validation Chat for property listings
     path("ai-validation/init/", init_ai_validation_chat, name="init_ai_validation_chat"),
     path("ai-validation/chat/", ai_validation_chat, name="ai_validation_chat"),
+    
+    # Modal endpoints for HTMX
+    path("modal/add-property/", add_property_modal, name="add_property_modal"),
+    path("modal/sync-estimates/<str:property_id>/", sync_estimates_modal, name="sync_estimates_modal"),
+    path("modal/bulk-actions/", bulk_actions_modal, name="bulk_actions_modal"),
+    
+    # Webhook callbacks for n8n
+    path("webhook/n8n/property-enrichment/", n8n_property_enrichment_callback, name="n8n_property_enrichment"),
+    path("webhook/n8n/lead-processing/", n8n_lead_processing_callback, name="n8n_lead_processing"),
+    
+    # Public pages
+    path("use-cases/", use_cases, name="use_cases"),
+    path("pricing/", pricing, name="pricing"),
+    path("case-studies/", case_studies, name="case_studies"),
+    path("resources/", resources, name="resources"),
+    
+    # Product pages
+    path("products/property-iq/", property_iq, name="property_iq"),
+    path("products/lead-robot/", lead_robot, name="lead_robot"),
+    path("products/ai-concierge/", ai_concierge, name="ai_concierge"),
+    
+    # Contact page
+    path("contact/", contact, name="contact"),
+    
+    # Custom OAuth views
+    path("oauth/google/login/", custom_google_login, name="custom_google_login"),
+    path("oauth/google/callback/", custom_google_callback, name="custom_google_callback"),
+    path("oauth/success/", oauth_success, name="oauth_success"),
+    path("oauth/error/", oauth_error, name="oauth_error"),
+    path("oauth/google/direct/", direct_google_oauth, name="direct_google_oauth"),
+    
+    # Our own Google OAuth (no allauth bullshit)
+    path("google/login/", google_oauth_login, name="google_oauth_login"),
+    path("google/callback/", google_oauth_callback, name="google_oauth_callback"),
+    path("google/error/", google_oauth_error, name="google_oauth_error"),
 ]
 
 

@@ -124,3 +124,4 @@ stripe==12.5.1
 openai
 pydantic
 pydantic-core
+django-allauth==0.57.0

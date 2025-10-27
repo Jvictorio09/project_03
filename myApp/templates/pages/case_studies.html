@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+  <div class="max-w-6xl mx-auto px-4 py-16">
+    <div class="text-center mb-16">
+      <h1 class="text-5xl font-bold text-gray-900 mb-6">Case Studies</h1>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+        Real success stories from real estate professionals using KaTek AI to grow their business and improve client experience.
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-12">
+      <!-- Case Study 1 -->
+      <div class="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+        <div class="flex items-center mb-6">
+          <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mr-4">
+            <i class="fas fa-building text-white text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-900">Metro Realty Group</h3>
+            <p class="text-gray-600">500+ agents, 15 offices</p>
+          </div>
+        </div>
+        <p class="text-gray-700 mb-6">
+          "KaTek AI helped us increase our lead conversion rate by 340% and reduced response time from 2 hours to 2 minutes. Our agents can now focus on closing deals instead of qualifying leads."
+        </p>
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-500">
+            <strong>Results:</strong> 340% increase in conversions
+          </div>
+          <div class="text-sm text-gray-500">
+            <strong>ROI:</strong> 1,200% in 6 months
+          </div>
+        </div>
+      </div>
+
+      <!-- Case Study 2 -->
+      <div class="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+        <div class="flex items-center mb-6">
+          <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center mr-4">
+            <i class="fas fa-home text-white text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-900">Luxury Properties Inc</h3>
+            <p class="text-gray-600">High-end residential</p>
+          </div>
+        </div>
+        <p class="text-gray-700 mb-6">
+          "Property IQ gave us instant market insights that helped us price properties 15% more accurately. Our clients trust our valuations more than ever before."
+        </p>
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-500">
+            <strong>Results:</strong> 15% more accurate pricing
+          </div>
+          <div class="text-sm text-gray-500">
+            <strong>Time Saved:</strong> 8 hours per property
+          </div>
+        </div>
+      </div>
+
+      <!-- Case Study 3 -->
+      <div class="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+        <div class="flex items-center mb-6">
+          <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-4">
+            <i class="fas fa-users text-white text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-900">Family First Realty</h3>
+            <p class="text-gray-600">Boutique agency, 25 agents</p>
+          </div>
+        </div>
+        <p class="text-gray-700 mb-6">
+          "The AI Concierge handles 80% of our initial client inquiries automatically. We can now serve more clients without hiring additional staff."
+        </p>
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-500">
+            <strong>Results:</strong> 80% automated responses
+          </div>
+          <div class="text-sm text-gray-500">
+            <strong>Cost Savings:</strong> $50K annually
+          </div>
+        </div>
+      </div>
+
+      <!-- Case Study 4 -->
+      <div class="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+        <div class="flex items-center mb-6">
+          <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-4">
+            <i class="fas fa-chart-line text-white text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-900">Commercial Real Estate Co</h3>
+            <p class="text-gray-600">Commercial properties</p>
+          </div>
+        </div>
+        <p class="text-gray-700 mb-6">
+          "Lead Robot qualified 2,000+ leads in the first month, helping us identify the most promising commercial opportunities. Our sales team's efficiency increased by 200%."
+        </p>
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-500">
+            <strong>Results:</strong> 2,000+ leads qualified
+          </div>
+          <div class="text-sm text-gray-500">
+            <strong>Efficiency:</strong> 200% improvement
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-16">
+      <h2 class="text-3xl font-bold text-gray-900 mb-6">Ready to Write Your Success Story?</h2>
+      <p class="text-xl text-gray-600 mb-8">Join hundreds of real estate professionals who are already transforming their business with KaTek AI.</p>
+      <a href="{% url 'signup' %}" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 font-medium text-lg">
+        Start Your Free Trial
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
