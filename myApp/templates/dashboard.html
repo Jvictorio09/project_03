@@ -3,552 +3,176 @@
 
 {% block title %}Dashboard - KaTek AI{% endblock %}
 
-{% block extra_css %}
-<style>
-  .dashboard-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: var(--space-8) var(--space-4);
-  }
-  
-  .dashboard-header {
-    margin-bottom: var(--space-8);
-  }
-  
-  .dashboard-title {
-    font-size: 2.5rem;
-    font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-2);
-  }
-  
-  .dashboard-subtitle {
-    color: var(--text-secondary);
-    font-size: 1.125rem;
-  }
-  
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--space-6);
-    margin-bottom: var(--space-12);
-  }
-  
-  .metric-tile {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    text-align: center;
-    transition: all var(--transition-normal);
-    cursor: pointer;
-  }
-  
-  .metric-tile:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-glow);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-  
-  .metric-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto var(--space-4);
-    color: white;
-    font-size: 1.25rem;
-  }
-  
-  .metric-value {
-    font-size: 2.5rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--primary-purple);
-    margin: 0;
-    line-height: 1;
-  }
-  
-  .metric-label {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    margin-top: var(--space-2);
-    font-weight: var(--font-weight-medium);
-  }
-  
-  .metric-change {
-    font-size: 0.75rem;
-    margin-top: var(--space-1);
-    font-weight: var(--font-weight-medium);
-  }
-  
-  .metric-change.positive {
-    color: var(--success-emerald);
-  }
-  
-  .metric-change.negative {
-    color: var(--destructive-rose);
-  }
-  
-  .dashboard-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: var(--space-8);
-    margin-bottom: var(--space-12);
-  }
-  
-  .chart-container {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    box-shadow: var(--shadow-soft);
-  }
-  
-  .chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-6);
-  }
-  
-  .chart-title {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-    margin: 0;
-  }
-  
-  .chart-filters {
-    display: flex;
-    gap: var(--space-2);
-  }
-  
-  .filter-btn {
-    padding: var(--space-2) var(--space-3);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-  }
-  
-  .filter-btn.active {
-    background: var(--primary-purple);
-    border-color: var(--primary-purple);
-    color: white;
-  }
-  
-  .chart-placeholder {
-    height: 300px;
-    background: linear-gradient(135deg, var(--surface-glass) 0%, rgba(255, 255, 255, 0.05) 100%);
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 1.125rem;
-  }
-  
-  .sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-  }
-  
-  .conversations-card {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    box-shadow: var(--shadow-soft);
-  }
-  
-  .conversations-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-4);
-  }
-  
-  .conversations-title {
-    font-size: 1.125rem;
-    font-weight: var(--font-weight-bold);
-    margin: 0;
-  }
-  
-  .conversation-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    transition: background var(--transition-fast);
-    cursor: pointer;
-  }
-  
-  .conversation-item:hover {
-    background: var(--surface-glass-hover);
-  }
-  
-  .conversation-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--primary-purple);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: var(--font-weight-bold);
-    font-size: 0.875rem;
-  }
-  
-  .conversation-info {
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .conversation-name {
-    font-weight: var(--font-weight-medium);
-    color: var(--text-primary);
-    margin: 0;
-    font-size: 0.875rem;
-  }
-  
-  .conversation-preview {
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    margin: var(--space-1) 0 0 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .conversation-time {
-    color: var(--text-muted);
-    font-size: 0.625rem;
-    white-space: nowrap;
-  }
-  
-  .quick-actions {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    box-shadow: var(--shadow-soft);
-  }
-  
-  .quick-actions-title {
-    font-size: 1.125rem;
-    font-weight: var(--font-weight-bold);
-    margin: 0 0 var(--space-4) 0;
-  }
-  
-  .action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-  
-  .action-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-4);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    text-decoration: none;
-    transition: all var(--transition-normal);
-    cursor: pointer;
-  }
-  
-  .action-btn:hover {
-    background: var(--surface-glass-hover);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
-  }
-  
-  .action-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-md);
-    background: var(--primary-purple);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1rem;
-  }
-  
-  .action-content h4 {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-bold);
-  }
-  
-  .action-content p {
-    margin: var(--space-1) 0 0 0;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-  
-  .recent-properties {
-    margin-top: var(--space-8);
-  }
-  
-  .properties-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: var(--space-6);
-  }
-  
-  .property-card {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    box-shadow: var(--shadow-soft);
-    transition: all var(--transition-normal);
-    cursor: pointer;
-  }
-  
-  .property-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-glow);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-  
-  .property-image {
-    width: 100%;
-    height: 200px;
-    background: linear-gradient(135deg, var(--surface-glass) 0%, rgba(255, 255, 255, 0.05) 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 3rem;
-  }
-  
-  .property-content {
-    padding: var(--space-4);
-  }
-  
-  .property-title {
-    font-size: 1.125rem;
-    font-weight: var(--font-weight-bold);
-    margin: 0 0 var(--space-2) 0;
-    color: var(--text-primary);
-  }
-  
-  .property-location {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    margin: 0 0 var(--space-2) 0;
-  }
-  
-  .property-price {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--primary-purple);
-    margin: 0;
-  }
-  
-  .property-details {
-    display: flex;
-    gap: var(--space-4);
-    margin-top: var(--space-3);
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-  
-  @media (max-width: 768px) {
-    .dashboard-content {
-      grid-template-columns: 1fr;
-    }
-    
-    .metrics-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .properties-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
+<div class="space-y-8">
   <!-- Header -->
-  <div class="dashboard-header">
-    <h1 class="dashboard-title">Welcome back, {{ user.first_name|default:user.username }}!</h1>
-    <p class="dashboard-subtitle">Here's what's happening with your AI agent today</p>
+  <div>
+    <h1 class="text-3xl font-bold text-white mb-2">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+    <p class="text-gray-300 text-lg">Here's what's happening with your AI agent today</p>
   </div>
   
-  <!-- Metrics -->
-  <div class="metrics-grid">
-    <div class="metric-tile">
-      <div class="metric-icon">
-        <i class="fas fa-users"></i>
+  <!-- Metrics Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group">
+      <div class="w-12 h-12 bg-gradient-to-br from-violet-600 to-violet-500 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+        <i class="fas fa-users text-white text-lg"></i>
       </div>
-      <div class="metric-value">24</div>
-      <div class="metric-label">Leads Today</div>
-      <div class="metric-change positive">+12% from yesterday</div>
+      <div class="text-3xl font-bold text-violet-400 mb-1">24</div>
+      <div class="text-gray-300 text-sm font-medium mb-1">Leads Today</div>
+      <div class="text-emerald-400 text-xs font-medium">+12% from yesterday</div>
     </div>
     
-    <div class="metric-tile">
-      <div class="metric-icon">
-        <i class="fas fa-comments"></i>
+    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group">
+      <div class="w-12 h-12 bg-gradient-to-br from-violet-600 to-violet-500 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+        <i class="fas fa-comments text-white text-lg"></i>
       </div>
-      <div class="metric-value">8</div>
-      <div class="metric-label">Active Conversations</div>
-      <div class="metric-change positive">+3 this hour</div>
+      <div class="text-3xl font-bold text-violet-400 mb-1">8</div>
+      <div class="text-gray-300 text-sm font-medium mb-1">Active Conversations</div>
+      <div class="text-emerald-400 text-xs font-medium">+3 this hour</div>
     </div>
     
-    <div class="metric-tile">
-      <div class="metric-icon">
-        <i class="fas fa-home"></i>
+    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group">
+      <div class="w-12 h-12 bg-gradient-to-br from-violet-600 to-violet-500 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+        <i class="fas fa-home text-white text-lg"></i>
       </div>
-      <div class="metric-value">$2.4M</div>
-      <div class="metric-label">Inventory Value</div>
-      <div class="metric-change positive">+$180K this week</div>
+      <div class="text-3xl font-bold text-violet-400 mb-1">$2.4M</div>
+      <div class="text-gray-300 text-sm font-medium mb-1">Inventory Value</div>
+      <div class="text-emerald-400 text-xs font-medium">+$180K this week</div>
     </div>
     
-    <div class="metric-tile">
-      <div class="metric-icon">
-        <i class="fas fa-chart-line"></i>
+    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group">
+      <div class="w-12 h-12 bg-gradient-to-br from-violet-600 to-violet-500 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+        <i class="fas fa-chart-line text-white text-lg"></i>
       </div>
-      <div class="metric-value">87%</div>
-      <div class="metric-label">Conversion Rate</div>
-      <div class="metric-change positive">+5% this month</div>
+      <div class="text-3xl font-bold text-violet-400 mb-1">87%</div>
+      <div class="text-gray-300 text-sm font-medium mb-1">Conversion Rate</div>
+      <div class="text-emerald-400 text-xs font-medium">+5% this month</div>
     </div>
   </div>
   
-  <!-- Main Content -->
-  <div class="dashboard-content">
-    <!-- Chart -->
-    <div class="chart-container">
-      <div class="chart-header">
-        <h3 class="chart-title">Leads Over Time</h3>
-        <div class="chart-filters">
-          <button class="filter-btn active">7 Days</button>
-          <button class="filter-btn">30 Days</button>
-          <button class="filter-btn">90 Days</button>
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Chart Section -->
+    <div class="lg:col-span-2">
+      <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 shadow-xl">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold text-white">Leads Over Time</h3>
+          <div class="flex gap-2">
+            <button class="px-3 py-1 bg-violet-600 text-white text-xs rounded-lg font-medium">7 Days</button>
+            <button class="px-3 py-1 bg-white/10 border border-white/20 text-gray-300 text-xs rounded-lg font-medium hover:bg-white/20 transition-all duration-200">30 Days</button>
+            <button class="px-3 py-1 bg-white/10 border border-white/20 text-gray-300 text-xs rounded-lg font-medium hover:bg-white/20 transition-all duration-200">90 Days</button>
+          </div>
         </div>
-      </div>
-      <div class="chart-placeholder">
-        <i class="fas fa-chart-area"></i>
-        <span style="margin-left: var(--space-2);">Chart visualization will appear here</span>
+        <div class="h-80 bg-gradient-to-br from-white/5 to-white/10 rounded-lg flex items-center justify-center">
+          <div class="text-center text-gray-400">
+            <i class="fas fa-chart-area text-4xl mb-4"></i>
+            <p class="text-lg">Chart visualization will appear here</p>
+          </div>
+        </div>
       </div>
     </div>
     
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="space-y-6">
       <!-- Recent Conversations -->
-      <div class="conversations-card">
-        <div class="conversations-header">
-          <h3 class="conversations-title">Recent Conversations</h3>
-          <a href="#" class="text-small text-primary">View All</a>
+      <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 shadow-xl">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-bold text-white">Recent Conversations</h3>
+          <a href="#" class="text-violet-400 text-sm font-medium hover:text-violet-300 transition-colors duration-200">View All</a>
         </div>
         
-        <div class="conversation-item">
-          <div class="conversation-avatar">S</div>
-          <div class="conversation-info">
-            <p class="conversation-name">Sarah Johnson</p>
-            <p class="conversation-preview">Looking for a 3BR condo in downtown...</p>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all duration-200 cursor-pointer">
+            <div class="w-10 h-10 bg-violet-600 rounded-full flex items-center justify-center text-white font-bold text-sm">S</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-white text-sm font-medium">Sarah Johnson</p>
+              <p class="text-gray-400 text-xs truncate">Looking for a 3BR condo in downtown...</p>
+            </div>
+            <div class="text-gray-400 text-xs">2m ago</div>
           </div>
-          <div class="conversation-time">2m ago</div>
-        </div>
-        
-        <div class="conversation-item">
-          <div class="conversation-avatar">M</div>
-          <div class="conversation-info">
-            <p class="conversation-name">Mike Chen</p>
-            <p class="conversation-preview">Interested in the luxury penthouse...</p>
+          
+          <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all duration-200 cursor-pointer">
+            <div class="w-10 h-10 bg-violet-600 rounded-full flex items-center justify-center text-white font-bold text-sm">M</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-white text-sm font-medium">Mike Chen</p>
+              <p class="text-gray-400 text-xs truncate">Interested in the luxury penthouse...</p>
+            </div>
+            <div class="text-gray-400 text-xs">15m ago</div>
           </div>
-          <div class="conversation-time">15m ago</div>
-        </div>
-        
-        <div class="conversation-item">
-          <div class="conversation-avatar">A</div>
-          <div class="conversation-info">
-            <p class="conversation-name">Alex Rodriguez</p>
-            <p class="conversation-preview">Can you send me more details about...</p>
+          
+          <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all duration-200 cursor-pointer">
+            <div class="w-10 h-10 bg-violet-600 rounded-full flex items-center justify-center text-white font-bold text-sm">A</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-white text-sm font-medium">Alex Rodriguez</p>
+              <p class="text-gray-400 text-xs truncate">Can you send me more details about...</p>
+            </div>
+            <div class="text-gray-400 text-xs">1h ago</div>
           </div>
-          <div class="conversation-time">1h ago</div>
         </div>
       </div>
       
       <!-- Quick Actions -->
-      <div class="quick-actions">
-        <h3 class="quick-actions-title">Quick Actions</h3>
-        <div class="action-buttons">
+      <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 shadow-xl">
+        <h3 class="text-lg font-bold text-white mb-4">Quick Actions</h3>
+        <div class="space-y-3">
           {% load extras %}
           {% is_feature_enabled 'property_creation' as property_creation_enabled %}
           {% if property_creation_enabled %}
-            <a href="#" class="action-btn" data-modal-target="#add-property-modal" hx-get="/modal/add-property/" hx-target="#add-property-modal" hx-trigger="click">
-              <div class="action-icon">
-                <i class="fas fa-plus"></i>
+            <a href="#" class="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group" data-modal-target="#add-property-modal" hx-get="/modal/add-property/" hx-target="#add-property-modal" hx-trigger="click">
+              <div class="w-10 h-10 bg-violet-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                <i class="fas fa-plus text-white"></i>
               </div>
-              <div class="action-content">
-                <h4>Add Property</h4>
-                <p>Upload new listing</p>
+              <div>
+                <h4 class="text-white text-sm font-bold">Add Property</h4>
+                <p class="text-gray-400 text-xs">Upload new listing</p>
               </div>
             </a>
           {% else %}
             {% get_disabled_tooltip 'property_creation' as property_creation_tooltip %}
-            <a href="#" class="action-btn disabled" disabled title="{{ property_creation_tooltip }}">
-              <div class="action-icon">
-                <i class="fas fa-plus"></i>
+            <a href="#" class="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-lg opacity-50 cursor-not-allowed" disabled title="{{ property_creation_tooltip }}">
+              <div class="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
+                <i class="fas fa-plus text-white"></i>
               </div>
-              <div class="action-content">
-                <h4>Add Property</h4>
-                <p>Upload new listing</p>
+              <div>
+                <h4 class="text-gray-400 text-sm font-bold">Add Property</h4>
+                <p class="text-gray-500 text-xs">Upload new listing</p>
               </div>
             </a>
           {% endif %}
           
           {% is_feature_enabled 'campaign_management' as campaign_management_enabled %}
           {% if campaign_management_enabled %}
-            <a href="#" class="action-btn">
-              <div class="action-icon">
-                <i class="fas fa-paper-plane"></i>
+            <a href="#" class="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group">
+              <div class="w-10 h-10 bg-violet-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                <i class="fas fa-paper-plane text-white"></i>
               </div>
-              <div class="action-content">
-                <h4>Send Campaign</h4>
-                <p>Email your leads</p>
+              <div>
+                <h4 class="text-white text-sm font-bold">Send Campaign</h4>
+                <p class="text-gray-400 text-xs">Email your leads</p>
               </div>
             </a>
           {% else %}
             {% get_disabled_tooltip 'campaign_management' as campaign_management_tooltip %}
-            <a href="#" class="action-btn disabled" disabled title="{{ campaign_management_tooltip }}">
-              <div class="action-icon">
-                <i class="fas fa-paper-plane"></i>
+            <a href="#" class="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-lg opacity-50 cursor-not-allowed" disabled title="{{ campaign_management_tooltip }}">
+              <div class="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
+                <i class="fas fa-paper-plane text-white"></i>
               </div>
-              <div class="action-content">
-                <h4>Send Campaign</h4>
-                <p>Email your leads</p>
+              <div>
+                <h4 class="text-gray-400 text-sm font-bold">Send Campaign</h4>
+                <p class="text-gray-500 text-xs">Email your leads</p>
               </div>
             </a>
           {% endif %}
           
-          <a href="{% url 'chat_agent' %}" class="action-btn">
-            <div class="action-icon">
-              <i class="fas fa-robot"></i>
+          <a href="{% url 'chat_agent' %}" class="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group">
+            <div class="w-10 h-10 bg-violet-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+              <i class="fas fa-robot text-white"></i>
             </div>
-            <div class="action-content">
-              <h4>Configure AI</h4>
-              <p>Setup your agent</p>
+            <div>
+              <h4 class="text-white text-sm font-bold">Configure AI</h4>
+              <p class="text-gray-400 text-xs">Setup your agent</p>
             </div>
           </a>
         </div>
@@ -557,57 +181,57 @@
   </div>
   
   <!-- Recent Properties -->
-  <div class="recent-properties">
+  <div>
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold">Recent Properties</h2>
-      <a href="{% url 'properties' %}" class="btn btn-secondary">View All Properties</a>
+      <h2 class="text-2xl font-bold text-white">Recent Properties</h2>
+      <a href="{% url 'properties' %}" class="px-4 py-2 bg-white/10 border border-white/20 text-gray-300 rounded-lg hover:bg-white/20 hover:text-white transition-all duration-200 font-medium">View All Properties</a>
     </div>
     
-    <div class="properties-grid">
-      <div class="property-card">
-        <div class="property-image">
-          <i class="fas fa-home"></i>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group">
+        <div class="h-48 bg-gradient-to-br from-white/5 to-white/10 flex items-center justify-center">
+          <i class="fas fa-home text-gray-400 text-4xl"></i>
         </div>
-        <div class="property-content">
-          <h3 class="property-title">Modern 3BR Condo</h3>
-          <p class="property-location">Downtown District</p>
-          <p class="property-price">$485,000</p>
-          <div class="property-details">
-            <span><i class="fas fa-bed"></i> 3 beds</span>
-            <span><i class="fas fa-bath"></i> 2 baths</span>
-            <span><i class="fas fa-ruler"></i> 1,200 sqft</span>
+        <div class="p-4">
+          <h3 class="text-lg font-bold text-white mb-2">Modern 3BR Condo</h3>
+          <p class="text-gray-400 text-sm mb-2">Downtown District</p>
+          <p class="text-violet-400 text-xl font-bold mb-3">$485,000</p>
+          <div class="flex gap-4 text-gray-400 text-xs">
+            <span><i class="fas fa-bed mr-1"></i>3 beds</span>
+            <span><i class="fas fa-bath mr-1"></i>2 baths</span>
+            <span><i class="fas fa-ruler mr-1"></i>1,200 sqft</span>
           </div>
         </div>
       </div>
       
-      <div class="property-card">
-        <div class="property-image">
-          <i class="fas fa-home"></i>
+      <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group">
+        <div class="h-48 bg-gradient-to-br from-white/5 to-white/10 flex items-center justify-center">
+          <i class="fas fa-home text-gray-400 text-4xl"></i>
         </div>
-        <div class="property-content">
-          <h3 class="property-title">Luxury Penthouse</h3>
-          <p class="property-location">Uptown Heights</p>
-          <p class="property-price">$1,250,000</p>
-          <div class="property-details">
-            <span><i class="fas fa-bed"></i> 4 beds</span>
-            <span><i class="fas fa-bath"></i> 3 baths</span>
-            <span><i class="fas fa-ruler"></i> 2,800 sqft</span>
+        <div class="p-4">
+          <h3 class="text-lg font-bold text-white mb-2">Luxury Penthouse</h3>
+          <p class="text-gray-400 text-sm mb-2">Uptown Heights</p>
+          <p class="text-violet-400 text-xl font-bold mb-3">$1,250,000</p>
+          <div class="flex gap-4 text-gray-400 text-xs">
+            <span><i class="fas fa-bed mr-1"></i>4 beds</span>
+            <span><i class="fas fa-bath mr-1"></i>3 baths</span>
+            <span><i class="fas fa-ruler mr-1"></i>2,800 sqft</span>
           </div>
         </div>
       </div>
       
-      <div class="property-card">
-        <div class="property-image">
-          <i class="fas fa-home"></i>
+      <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group">
+        <div class="h-48 bg-gradient-to-br from-white/5 to-white/10 flex items-center justify-center">
+          <i class="fas fa-home text-gray-400 text-4xl"></i>
         </div>
-        <div class="property-content">
-          <h3 class="property-title">Cozy Studio</h3>
-          <p class="property-location">Arts District</p>
-          <p class="property-price">$285,000</p>
-          <div class="property-details">
-            <span><i class="fas fa-bed"></i> 1 bed</span>
-            <span><i class="fas fa-bath"></i> 1 bath</span>
-            <span><i class="fas fa-ruler"></i> 650 sqft</span>
+        <div class="p-4">
+          <h3 class="text-lg font-bold text-white mb-2">Cozy Studio</h3>
+          <p class="text-gray-400 text-sm mb-2">Arts District</p>
+          <p class="text-violet-400 text-xl font-bold mb-3">$285,000</p>
+          <div class="flex gap-4 text-gray-400 text-xs">
+            <span><i class="fas fa-bed mr-1"></i>1 bed</span>
+            <span><i class="fas fa-bath mr-1"></i>1 bath</span>
+            <span><i class="fas fa-ruler mr-1"></i>650 sqft</span>
           </div>
         </div>
       </div>
@@ -624,8 +248,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const filterBtns = document.querySelectorAll('.filter-btn');
   filterBtns.forEach(btn => {
     btn.addEventListener('click', function() {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
+      filterBtns.forEach(b => {
+        b.classList.remove('bg-violet-600', 'text-white');
+        b.classList.add('bg-white/10', 'border', 'border-white/20', 'text-gray-300');
+      });
+      this.classList.remove('bg-white/10', 'border', 'border-white/20', 'text-gray-300');
+      this.classList.add('bg-violet-600', 'text-white');
     });
   });
   

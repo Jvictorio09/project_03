@@ -6,9 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}KaTek AI - Real Estate Intelligence{% endblock %}</title>
     
-    <!-- Design System CSS -->
-    <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
-    
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -17,6 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Additional CSS -->
     {% block extra_css %}{% endblock %}
     
@@ -24,209 +24,162 @@
     <meta name="description" content="{% block meta_description %}KaTek AI - Real Estate Intelligence Platform{% endblock %}">
     <meta name="keywords" content="real estate, AI, chatbot, property management, lead generation">
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <!-- Favicon - Removed to avoid static file errors -->
 </head>
-<body>
-    <!-- Mobile-First Header -->
-    <header class="internal-header">
-        <div class="header-container">
-            <!-- Logo and Brand -->
-            <div class="header-brand">
-                <a href="{% url 'home' %}" class="brand-link">
-                    <div class="brand-icon">
-                        <i class="fas fa-home"></i>
+<body class="bg-slate-900 text-white min-h-screen">
+    <!-- Dark Theme Sidebar -->
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-slate-800 border-r border-white/10 flex flex-col">
+            <!-- Logo -->
+            <div class="p-6 border-b border-white/10">
+                <a href="{% url 'home' %}" class="flex items-center space-x-3 group">
+                    <div class="w-8 h-8 bg-gradient-to-br from-violet-600 to-violet-500 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                        <i class="fas fa-home text-white text-sm"></i>
                     </div>
-                    <div class="brand-text">
-                        <span class="brand-name">KaTek</span>
-                        <span class="brand-ai">AI</span>
-                    </div>
+                    <span class="text-xl font-bold text-white group-hover:text-violet-300 transition-all duration-200">KaTek AI</span>
                 </a>
             </div>
             
-            <!-- Mobile Menu Toggle -->
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-            </button>
-            
-            <!-- Desktop Navigation -->
-            <nav class="desktop-nav">
-                <ul class="nav-list">
-                    <li><a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a></li>
-                    <li><a href="{% url 'properties' %}" class="nav-link">Properties</a></li>
-                    <li><a href="{% url 'leads' %}" class="nav-link">Leads</a></li>
-                    <li><a href="{% url 'campaigns' %}" class="nav-link">Campaigns</a></li>
-                    <li><a href="{% url 'analytics' %}" class="nav-link">Analytics</a></li>
-                </ul>
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 group">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'properties' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 group">
+                    <i class="fas fa-home w-5"></i>
+                    <span>Properties</span>
+                </a>
+                <a href="{% url 'leads' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 group">
+                    <i class="fas fa-users w-5"></i>
+                    <span>Leads</span>
+                </a>
+                <a href="{% url 'campaigns' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 group">
+                    <i class="fas fa-paper-plane w-5"></i>
+                    <span>Campaigns</span>
+                </a>
+                <a href="{% url 'analytics' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 group">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span>Analytics</span>
+                </a>
             </nav>
             
-            <!-- User Menu -->
-            <div class="user-section">
+            <!-- User Section -->
+            <div class="p-4 border-t border-white/10">
                 {% if user.is_authenticated %}
-                    <div class="user-menu">
-                        <button class="user-button" id="user-menu-toggle">
-                            <div class="user-avatar">
-                                <i class="fas fa-user"></i>
+                    <div class="relative">
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 group" id="user-menu-toggle">
+                            <div class="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-user text-white text-sm"></i>
                             </div>
-                            <span class="user-name">{{ user.first_name|default:user.username }}</span>
-                            <i class="fas fa-chevron-down"></i>
+                            <div class="flex-1 text-left">
+                                <div class="text-sm font-medium">{{ user.first_name|default:user.username }}</div>
+                                <div class="text-xs text-gray-400">{{ user.email }}</div>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs"></i>
                         </button>
                         
                         <!-- User Dropdown -->
-                        <div class="user-dropdown" id="user-dropdown">
-                            <div class="dropdown-header">
-                                <div class="user-info">
-                                    <div class="user-avatar-large">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <div class="user-details">
-                                        <div class="user-name-large">{{ user.first_name|default:user.username }}</div>
-                                        <div class="user-email">{{ user.email }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="dropdown-menu">
-                                <a href="{% url 'chat_agent' %}" class="dropdown-item">
-                                    <i class="fas fa-robot"></i>
-                                    AI Agent
+                        <div class="absolute bottom-full left-0 right-0 mb-2 bg-slate-700 border border-white/10 rounded-lg shadow-2xl opacity-0 invisible transform translate-y-2 transition-all duration-200" id="user-dropdown">
+                            <div class="p-2">
+                                <a href="{% url 'chat_agent' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                                    <i class="fas fa-robot w-5"></i>
+                                    <span>AI Agent</span>
                                 </a>
-                                <a href="{% url 'chat' %}" class="dropdown-item">
-                                    <i class="fas fa-comments"></i>
-                                    Live Chat
+                                <a href="{% url 'chat' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                                    <i class="fas fa-comments w-5"></i>
+                                    <span>Live Chat</span>
                                 </a>
-                                <div class="dropdown-divider"></div>
-                                <a href="{% url 'settings' %}" class="dropdown-item">
-                                    <i class="fas fa-cog"></i>
-                                    Settings
+                                <div class="h-px bg-white/10 my-2"></div>
+                                <a href="{% url 'settings' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                                    <i class="fas fa-cog w-5"></i>
+                                    <span>Settings</span>
                                 </a>
-                                <a href="{% url 'logout' %}" class="dropdown-item">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                    Logout
+                                <a href="{% url 'logout' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                                    <i class="fas fa-sign-out-alt w-5"></i>
+                                    <span>Logout</span>
                                 </a>
                             </div>
                         </div>
                     </div>
                 {% else %}
-                    <div class="auth-buttons">
-                        <a href="{% url 'login' %}" class="btn btn-ghost">Log in</a>
-                        <a href="{% url 'signup' %}" class="btn btn-primary">Get Started</a>
+                    <div class="space-y-2">
+                        <a href="{% url 'login' %}" class="block w-full text-center px-3 py-2 rounded-lg border border-white/20 text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                            Log in
+                        </a>
+                        <a href="{% url 'signup' %}" class="block w-full text-center px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white transition-all duration-200">
+                            Get Started
+                        </a>
                     </div>
                 {% endif %}
             </div>
-        </div>
+        </aside>
         
-        <!-- Mobile Navigation Overlay -->
-        <div class="mobile-nav-overlay" id="mobile-nav-overlay">
-            <div class="mobile-nav-content">
-                <div class="mobile-nav-header">
-                    <div class="mobile-brand">
-                        <div class="brand-icon">
-                            <i class="fas fa-home"></i>
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            <header class="bg-slate-800 border-b border-white/10 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-2xl font-bold text-white">{% block page_title %}Dashboard{% endblock %}</h1>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200" id="mobile-menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Page Content -->
+            <div class="flex-1 overflow-auto p-6">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <!-- Mobile Navigation Overlay -->
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 opacity-0 invisible transition-all duration-200" id="mobile-nav-overlay">
+        <div class="absolute right-0 top-0 bottom-0 w-80 bg-slate-800 border-l border-white/10 transform translate-x-full transition-transform duration-200">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-violet-600 to-violet-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-home text-white text-sm"></i>
                         </div>
-                        <div class="brand-text">
-                            <span class="brand-name">KaTek</span>
-                            <span class="brand-ai">AI</span>
-                        </div>
+                        <span class="text-xl font-bold text-white">KaTek AI</span>
                     </div>
-                    <button class="mobile-nav-close" id="mobile-nav-close">
+                    <button class="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200" id="mobile-nav-close">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 
-                <nav class="mobile-nav">
-                    <ul class="mobile-nav-list">
-                        <li><a href="{% url 'dashboard' %}" class="mobile-nav-link">
-                            <i class="fas fa-tachometer-alt"></i>
-                            Dashboard
-                        </a></li>
-                        <li><a href="{% url 'properties' %}" class="mobile-nav-link">
-                            <i class="fas fa-home"></i>
-                            Properties
-                        </a></li>
-                        <li><a href="{% url 'leads' %}" class="mobile-nav-link">
-                            <i class="fas fa-users"></i>
-                            Leads
-                        </a></li>
-                        <li><a href="{% url 'campaigns' %}" class="mobile-nav-link">
-                            <i class="fas fa-paper-plane"></i>
-                            Campaigns
-                        </a></li>
-                        <li><a href="{% url 'analytics' %}" class="mobile-nav-link">
-                            <i class="fas fa-chart-bar"></i>
-                            Analytics
-                        </a></li>
-                        <li><a href="{% url 'chat_agent' %}" class="mobile-nav-link">
-                            <i class="fas fa-robot"></i>
-                            AI Agent
-                        </a></li>
-                        <li><a href="{% url 'chat' %}" class="mobile-nav-link">
-                            <i class="fas fa-comments"></i>
-                            Live Chat
-                        </a></li>
-                    </ul>
+                <nav class="space-y-2">
+                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                        <i class="fas fa-tachometer-alt w-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'properties' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                        <i class="fas fa-home w-5"></i>
+                        <span>Properties</span>
+                    </a>
+                    <a href="{% url 'leads' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                        <i class="fas fa-users w-5"></i>
+                        <span>Leads</span>
+                    </a>
+                    <a href="{% url 'campaigns' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                        <i class="fas fa-paper-plane w-5"></i>
+                        <span>Campaigns</span>
+                    </a>
+                    <a href="{% url 'analytics' %}" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                        <i class="fas fa-chart-bar w-5"></i>
+                        <span>Analytics</span>
+                    </a>
                 </nav>
-                
-                {% if user.is_authenticated %}
-                    <div class="mobile-user-section">
-                        <div class="mobile-user-info">
-                            <div class="user-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="user-details">
-                                <div class="user-name">{{ user.first_name|default:user.username }}</div>
-                                <div class="user-email">{{ user.email }}</div>
-                            </div>
-                        </div>
-                        <div class="mobile-user-actions">
-                            <a href="{% url 'settings' %}" class="mobile-user-action">
-                                <i class="fas fa-cog"></i>
-                                Settings
-                            </a>
-                            <a href="{% url 'logout' %}" class="mobile-user-action">
-                                <i class="fas fa-sign-out-alt"></i>
-                                Logout
-                            </a>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="mobile-auth-section">
-                        <a href="{% url 'login' %}" class="btn btn-ghost mobile-auth-btn">Log in</a>
-                        <a href="{% url 'signup' %}" class="btn btn-primary mobile-auth-btn">Get Started</a>
-                    </div>
-                {% endif %}
             </div>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="internal-main">
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="internal-footer">
-        <div class="footer-container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <div class="brand-icon">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <span class="brand-name">KaTek AI</span>
-                </div>
-                <div class="footer-links">
-                    <a href="#" class="footer-link">Help</a>
-                    <a href="#" class="footer-link">Privacy</a>
-                    <a href="#" class="footer-link">Terms</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    </div>
 
     <!-- JavaScript -->
-    <script src="{% static 'js/design-system.js' %}"></script>
     {% block extra_js %}{% endblock %}
     
     <script>
@@ -236,18 +189,21 @@
         const mobileNavClose = document.getElementById('mobile-nav-close');
         
         mobileMenuToggle?.addEventListener('click', () => {
-            mobileNavOverlay.classList.add('active');
+            mobileNavOverlay.classList.remove('opacity-0', 'invisible');
+            mobileNavOverlay.querySelector('.absolute').classList.remove('translate-x-full');
             document.body.style.overflow = 'hidden';
         });
         
         mobileNavClose?.addEventListener('click', () => {
-            mobileNavOverlay.classList.remove('active');
+            mobileNavOverlay.classList.add('opacity-0', 'invisible');
+            mobileNavOverlay.querySelector('.absolute').classList.add('translate-x-full');
             document.body.style.overflow = '';
         });
         
         mobileNavOverlay?.addEventListener('click', (e) => {
             if (e.target === mobileNavOverlay) {
-                mobileNavOverlay.classList.remove('active');
+                mobileNavOverlay.classList.add('opacity-0', 'invisible');
+                mobileNavOverlay.querySelector('.absolute').classList.add('translate-x-full');
                 document.body.style.overflow = '';
             }
         });
@@ -258,15 +214,13 @@
         
         userMenuToggle?.addEventListener('click', (e) => {
             e.stopPropagation();
-            console.log('User menu clicked'); // Debug log
-            userDropdown.classList.toggle('active');
-            console.log('Dropdown classes:', userDropdown.classList.toString()); // Debug log
+            userDropdown.classList.toggle('opacity-0', 'invisible', 'translate-y-2');
         });
         
         // Close user dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!userMenuToggle?.contains(e.target) && !userDropdown?.contains(e.target)) {
-                userDropdown?.classList.remove('active');
+                userDropdown?.classList.add('opacity-0', 'invisible', 'translate-y-2');
             }
         });
     </script>

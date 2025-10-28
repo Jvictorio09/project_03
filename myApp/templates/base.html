@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}KaTek AI - Real Estate Intelligence{% endblock %}</title>
     
-    <!-- Design System CSS -->
-    <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+    <!-- Design System CSS - Consolidated into individual templates -->
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,8 +31,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <!-- Favicon - Removed to avoid static file errors -->
 </head>
 <body>
     <!-- Premium Navigation Bar -->
