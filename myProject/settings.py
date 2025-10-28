@@ -322,6 +322,7 @@ SOCIALACCOUNT_PROVIDERS = {
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
+    'https://project03-production.up.railway.app',
     'https://yourdomain.com',
     'https://staging.yourdomain.com',
 ]
