@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 # Webhook URLs
 CHAT_INQUIRY_WEBHOOK = "https://katalyst-crm.fly.dev/webhook/ca05d7c5-984c-4d95-8636-1ed3d80f5545ponse"
 PROPERTY_LISTING_WEBHOOK = "https://katalyst-crm.fly.dev/webhook-test/7e36f0ef-e0b2-498d-886c-f06bef9afd80"
+GMAIL_SSO_WEBHOOK = "https://mindalgos-project.fly.dev/webhook-test/gmail-sso"
 
 
 def send_webhook(url: str, data: Dict[str, Any]) -> bool:
@@ -206,3 +207,43 @@ def send_prompt_search_webhook(search_data: Dict[str, Any]) -> bool:
     }
     
     return send_webhook(CHAT_INQUIRY_WEBHOOK, webhook_payload)
+
+
+def send_gmail_sso_webhook(sso_data: Dict[str, Any]) -> bool:
+    """
+    Send Gmail SSO data for email automation
+    
+    Args:
+        sso_data: Dictionary containing Gmail SSO information
+    
+    Returns:
+        bool: True if successful
+    """
+    webhook_payload = {
+        "type": "gmail_sso",
+        "timestamp": sso_data.get("timestamp"),
+        "user": {
+            "id": str(sso_data.get("user_id", "")),
+            "email": sso_data.get("email", ""),
+            "name": sso_data.get("name", ""),
+            "google_id": sso_data.get("google_id", ""),
+        },
+        "oauth": {
+            "access_token": sso_data.get("access_token", ""),
+            "refresh_token": sso_data.get("refresh_token", ""),
+            "expires_in": sso_data.get("expires_in"),
+            "scope": sso_data.get("scope", ""),
+        },
+        "company": {
+            "id": str(sso_data.get("company_id", "")),
+            "name": sso_data.get("company_name", ""),
+            "slug": sso_data.get("company_slug", ""),
+        },
+        "email_automation": {
+            "enabled": True,
+            "provider": "gmail",
+            "webhook_url": GMAIL_SSO_WEBHOOK
+        }
+    }
+    
+    return send_webhook(GMAIL_SSO_WEBHOOK, webhook_payload)

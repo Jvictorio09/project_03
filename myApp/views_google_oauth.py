@@ -9,6 +9,9 @@ import json
 import secrets
 import hashlib
 import base64
+import logging
+
+logger = logging.getLogger(__name__)
 
 def google_oauth_login(request):
     """Our own Google OAuth login - no allauth bullshit"""
@@ -106,6 +109,34 @@ def google_oauth_callback(request):
         
         # Log the user in with the correct backend
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        
+        # Send Gmail SSO webhook for email automation
+        try:
+            from .webhook import send_gmail_sso_webhook
+            from django.utils import timezone
+            
+            # Get company info (assuming user has a company)
+            company = getattr(user, 'company', None)
+            
+            sso_data = {
+                'timestamp': timezone.now().isoformat(),
+                'user_id': str(user.id),
+                'email': email,
+                'name': name,
+                'google_id': google_id,
+                'access_token': access_token,
+                'refresh_token': token_json.get('refresh_token', ''),
+                'expires_in': token_json.get('expires_in'),
+                'scope': 'openid email profile',
+                'company_id': str(company.id) if company else '',
+                'company_name': company.name if company else '',
+                'company_slug': company.slug if company else '',
+            }
+            
+            send_gmail_sso_webhook(sso_data)
+        except Exception as webhook_error:
+            # Don't fail login if webhook fails
+            logger.error(f"Gmail SSO webhook failed: {str(webhook_error)}")
         
         # Redirect to dashboard
         return redirect('dashboard')
