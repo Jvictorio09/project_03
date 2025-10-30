@@ -1,0 +1,422 @@
+{
+  "name": "Workflow C: Property Event Campaigns",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "property-events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Property Event Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "property-events"
+    },
+    {
+      "parameters": {
+        "functionBody": "// Verify HMAC signature and extract event data\nconst crypto = require('crypto');\nconst secret = $vars.n8nHmacSecret || 'your-shared-secret';\nconst timestamp = $input.first().json.headers['x-timestamp'] || $input.first().json.headers['X-Timestamp'];\nconst signature = $input.first().json.headers['x-signature'] || $input.first().json.headers['X-Signature'];\nconst body = JSON.stringify($input.first().json.body);\n\n// Check timestamp (5 minute window)\nconst now = Math.floor(Date.now() / 1000);\nconst requestTime = parseInt(timestamp);\nif (Math.abs(now - requestTime) > 300) {\n  return {\n    valid: false,\n    error: 'Request too old',\n    statusCode: 401\n  };\n}\n\n// Verify signature\nconst expectedSignature = 'sha256=' + crypto\n  .createHmac('sha256', secret)\n  .update(`${timestamp}.${body}`)\n  .digest('hex');\n\nif (signature !== expectedSignature) {\n  return {\n    valid: false,\n    error: 'Invalid signature',\n    statusCode: 401\n  };\n}\n\nreturn {\n  valid: true,\n  event: $input.first().json.body\n};"
+      },
+      "id": "verify-hmac",
+      "name": "Verify HMAC",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "valid-signature",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-valid",
+      "name": "Check Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.error } }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "id": "reject-invalid",
+      "name": "Reject Invalid",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.djangoBaseUrl }}/webhook/n8n/audience-for-event/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Timestamp",
+              "value": "={{ Math.floor(Date.now() / 1000) }}"
+            },
+            {
+              "name": "X-Signature",
+              "value": "={{ 'sha256=' + require('crypto').createHmac('sha256', $vars.n8nHmacSecret).update(Math.floor(Date.now() / 1000) + '.' + JSON.stringify($json.event)).digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "event_type",
+              "value": "={{ $json.event.event_type }}"
+            },
+            {
+              "name": "property_id",
+              "value": "={{ $json.event.property_id }}"
+            },
+            {
+              "name": "organization_id",
+              "value": "={{ $json.event.organization_id }}"
+            },
+            {
+              "name": "event_data",
+              "value": "={{ $json.event }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "get-audience",
+      "name": "Get Audience",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-leads",
+              "leftValue": "={{ $json.lead_ids && $json.lead_ids.length > 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-has-leads",
+      "name": "Has Leads?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "functionBody": "// Determine send timing based on event type\nconst event = $input.first().json.event;\nconst eventType = event.event_type;\nconst now = new Date();\nlet sendAt = now;\n\n// Different timing strategies for different events\nswitch (eventType) {\n  case 'new_listing':\n    // Send immediately for new listings\n    sendAt = now;\n    break;\n  case 'price_drop':\n    // Send within 1 hour for price drops\n    sendAt = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes\n    break;\n  case 'market_update':\n    // Send within 24 hours for market updates\n    sendAt = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2 hours\n    break;\n  default:\n    sendAt = now;\n}\n\nreturn {\n  event: event,\n  sendAt: sendAt.toISOString(),\n  eventType: eventType\n};"
+      },
+      "id": "determine-timing",
+      "name": "Determine Timing",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "functionBody": "// Create queue messages for each lead\nconst leadIds = $input.first().json.lead_ids || [];\nconst event = $input.first().json.event;\nconst sendAt = $input.first().json.sendAt;\nconst eventType = $input.first().json.eventType;\n\nconst messages = leadIds.map(leadId => ({\n  message_log_id: '',\n  campaign_id: event.campaign_id || 'property-alert',\n  step_id: event.step_id || '1',\n  lead_id: leadId,\n  organization_id: event.organization_id,\n  send_at: sendAt,\n  request_id: `${event.property_id}:${leadId}:${Date.now()}`,\n  created_at: new Date().toISOString()\n}));\n\nreturn messages;"
+      },
+      "id": "create-messages",
+      "name": "Create Messages",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.workflowAWebhookUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Timestamp",
+              "value": "={{ Math.floor(Date.now() / 1000) }}"
+            },
+            {
+              "name": "X-Signature",
+              "value": "={{ 'sha256=' + require('crypto').createHmac('sha256', $vars.n8nHmacSecret).update(Math.floor(Date.now() / 1000) + '.' + JSON.stringify($json)).digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_log_id",
+              "value": "={{ $json.message_log_id }}"
+            },
+            {
+              "name": "campaign_id",
+              "value": "={{ $json.campaign_id }}"
+            },
+            {
+              "name": "step_id",
+              "value": "={{ $json.step_id }}"
+            },
+            {
+              "name": "lead_id",
+              "value": "={{ $json.lead_id }}"
+            },
+            {
+              "name": "organization_id",
+              "value": "={{ $json.organization_id }}"
+            },
+            {
+              "name": "send_at",
+              "value": "={{ $json.send_at }}"
+            },
+            {
+              "name": "request_id",
+              "value": "={{ $json.request_id }}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{ $json.created_at }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "queue-to-workflow-a",
+      "name": "Queue to Workflow A",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "functionBody": "// Log property event processing results\nconst results = $input.all();\nconst successful = results.filter(r => r.json.status === 'success').length;\nconst failed = results.filter(r => r.json.status !== 'success').length;\n\nconsole.log(`Property event processed: ${successful} queued, ${failed} failed`);\n\nreturn {\n  event_processed: true,\n  queued_count: successful,\n  failed_count: failed,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "log-results",
+      "name": "Log Results",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"success\", \"result\": $json } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2220, 300]
+    },
+    {
+      "parameters": {
+        "functionBody": "// No leads found for this event\nreturn {\n  event_processed: true,\n  queued_count: 0,\n  failed_count: 0,\n  message: 'No matching leads found for this event',\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "no-leads",
+      "name": "No Leads",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"success\", \"result\": $json } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "no-leads-response",
+      "name": "No Leads Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1560, 500]
+    }
+  ],
+  "connections": {
+    "Property Event Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verify HMAC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify HMAC": {
+      "main": [
+        [
+          {
+            "node": "Check Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Valid": {
+      "main": [
+        [
+          {
+            "node": "Get Audience",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Audience": {
+      "main": [
+        [
+          {
+            "node": "Has Leads?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Leads?": {
+      "main": [
+        [
+          {
+            "node": "Determine Timing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Timing": {
+      "main": [
+        [
+          {
+            "node": "Create Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Messages": {
+      "main": [
+        [
+          {
+            "node": "Queue to Workflow A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue to Workflow A": {
+      "main": [
+        [
+          {
+            "node": "Log Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Results": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Leads": {
+      "main": [
+        [
+          {
+            "node": "No Leads Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-27T12:00:00.000Z",
+  "versionId": "1"
+}

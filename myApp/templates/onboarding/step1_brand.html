@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Onboarding - Step 1: Brand Setup{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-2xl font-bold text-white">Welcome to KaTek!</h1>
+                <span class="text-slate-400">Step 1 of 5</span>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-2">
+                <div class="bg-indigo-600 h-2 rounded-full" style="width: 20%"></div>
+            </div>
+        </div>
+
+        <!-- Brand Setup Form -->
+        <div class="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-8 ring-1 ring-slate-700">
+            <h2 class="text-xl font-semibold text-white mb-6">Let's set up your brand</h2>
+            
+            <form method="post" action="{% url 'onboarding_step1' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Organization Name -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-slate-300 mb-2">
+                        Organization Name *
+                    </label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        required
+                        class="w-full rounded-xl bg-slate-900/70 ring-1 ring-slate-700 focus:ring-indigo-500 focus:outline-none px-4 py-3 text-white placeholder:text-slate-400"
+                        placeholder="e.g., Acme Real Estate"
+                        value="{{ request.session.onboarding_data.name|default:'' }}"
+                    >
+                </div>
+
+                <!-- Logo URL -->
+                <div>
+                    <label for="logo_url" class="block text-sm font-medium text-slate-300 mb-2">
+                        Logo URL (optional)
+                    </label>
+                    <input 
+                        type="url" 
+                        id="logo_url" 
+                        name="logo_url"
+                        class="w-full rounded-xl bg-slate-900/70 ring-1 ring-slate-700 focus:ring-indigo-500 focus:outline-none px-4 py-3 text-white placeholder:text-slate-400"
+                        placeholder="https://example.com/logo.png"
+                        value="{{ request.session.onboarding_data.logo_url|default:'' }}"
+                    >
+                    <p class="text-sm text-slate-400 mt-1">Upload your logo to Cloudinary and paste the URL here</p>
+                </div>
+
+                <!-- Brand Colors -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="brand_primary" class="block text-sm font-medium text-slate-300 mb-2">
+                            Primary Color
+                        </label>
+                        <div class="flex items-center space-x-3">
+                            <input 
+                                type="color" 
+                                id="brand_primary" 
+                                name="brand_primary"
+                                class="w-12 h-12 rounded-lg border-2 border-slate-600 bg-slate-900 cursor-pointer"
+                                value="{{ request.session.onboarding_data.brand_primary|default:'#6D28D9' }}"
+                            >
+                            <input 
+                                type="text" 
+                                class="flex-1 rounded-xl bg-slate-900/70 ring-1 ring-slate-700 focus:ring-indigo-500 focus:outline-none px-4 py-3 text-white font-mono text-sm"
+                                value="{{ request.session.onboarding_data.brand_primary|default:'#6D28D9' }}"
+                                readonly
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="brand_accent" class="block text-sm font-medium text-slate-300 mb-2">
+                            Accent Color
+                        </label>
+                        <div class="flex items-center space-x-3">
+                            <input 
+                                type="color" 
+                                id="brand_accent" 
+                                name="brand_accent"
+                                class="w-12 h-12 rounded-lg border-2 border-slate-600 bg-slate-900 cursor-pointer"
+                                value="{{ request.session.onboarding_data.brand_accent|default:'#18AFAB' }}"
+                            >
+                            <input 
+                                type="text" 
+                                class="flex-1 rounded-xl bg-slate-900/70 ring-1 ring-slate-700 focus:ring-indigo-500 focus:outline-none px-4 py-3 text-white font-mono text-sm"
+                                value="{{ request.session.onboarding_data.brand_accent|default:'#18AFAB' }}"
+                                readonly
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="bg-slate-900/50 rounded-xl p-4 ring-1 ring-slate-700">
+                    <h3 class="text-sm font-medium text-slate-300 mb-3">Preview</h3>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
+                            <span class="text-slate-400 text-sm">LOGO</span>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium" id="preview-name">{{ request.session.onboarding_data.name|default:'Your Organization' }}</div>
+                            <div class="text-slate-400 text-sm">Real Estate Services</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex justify-between pt-6">
+                    <a href="{% url 'logout' %}" class="text-slate-400 hover:text-white transition">
+                        ← Back to Login
+                    </a>
+                    <button 
+                        type="submit" 
+                        class="inline-flex items-center gap-2 rounded-2xl px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98] transition font-medium"
+                    >
+                        Next: Agent Persona
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Update preview when name changes
+document.getElementById('name').addEventListener('input', function() {
+    document.getElementById('preview-name').textContent = this.value || 'Your Organization';
+});
+
+// Update color inputs when color picker changes
+document.getElementById('brand_primary').addEventListener('change', function() {
+    this.nextElementSibling.value = this.value;
+});
+
+document.getElementById('brand_accent').addEventListener('change', function() {
+    this.nextElementSibling.value = this.value;
+});
+</script>
+{% endblock %}

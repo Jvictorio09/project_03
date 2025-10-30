@@ -1,0 +1,101 @@
+<form hx-post="{% url 'edit_property_modal' property.id %}" hx-target="#add-property-modal .modal-body" hx-swap="innerHTML">
+    {% csrf_token %}
+    
+    <div class="space-y-6">
+        <!-- Title and Price Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Property Title</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.title.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.price_amount.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Price (USD)</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                    {{ form.price_amount }}
+                </div>
+                {% if form.price_amount.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.price_amount.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Description -->
+        <div>
+            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+                <p class="mt-1 text-sm text-red-400">{{ form.description.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <!-- Location Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">City</label>
+                {{ form.city }}
+                {% if form.city.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.city.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.area.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Area</label>
+                {{ form.area }}
+                {% if form.area.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.area.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.hero_image.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
+                {{ form.hero_image }}
+                {% if form.hero_image.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.hero_image.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Property Features Row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+                <label for="{{ form.beds.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Bedrooms</label>
+                {{ form.beds }}
+                {% if form.beds.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.beds.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.baths.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Bathrooms</label>
+                {{ form.baths }}
+                {% if form.baths.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.baths.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.floor_area_sqm.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">Floor Area (sqm)</label>
+                {{ form.floor_area_sqm }}
+                {% if form.floor_area_sqm.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.floor_area_sqm.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div class="flex items-end">
+                <div class="flex items-center space-x-2">
+                    {{ form.parking }}
+                    <label for="{{ form.parking.id_for_label }}" class="text-sm font-medium text-gray-300 cursor-pointer">Parking</label>
+                </div>
+                {% if form.parking.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.parking.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
+            <button type="button" class="px-4 py-2 bg-white/10 border border-white/20 text-gray-300 rounded-lg hover:bg-white/20 hover:text-white transition-all duration-200 font-medium" onclick="document.getElementById('add-property-modal').classList.add('hidden');">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-all duration-200 font-medium">Update Property</button>
+        </div>
+    </div>
+</form>
+

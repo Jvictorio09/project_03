@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chat with {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div class="max-w-3xl mx-auto p-6">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center space-x-3 mb-4">
+                {% if organization.logo_url %}
+                    <img src="{{ organization.logo_url }}" alt="{{ organization.name }}" class="w-12 h-12 rounded-xl">
+                {% else %}
+                    <div class="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center">
+                        <span class="text-slate-400 font-bold">{{ organization.name|first|upper }}</span>
+                    </div>
+                {% endif %}
+                <h1 class="text-2xl font-bold text-white">{{ organization.name }}</h1>
+            </div>
+            <p class="text-slate-400">AI-powered real estate assistant</p>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="bg-slate-800/60 backdrop-blur-sm rounded-2xl ring-1 ring-slate-700 overflow-hidden">
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="h-96 overflow-y-auto p-6 space-y-4">
+                <!-- Welcome Message -->
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <div class="bg-slate-700 text-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-lg max-w-[80%]">
+                            <p>{{ organization.chat_greeting }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="sticky bottom-0 bg-slate-900/80 backdrop-blur border-t border-slate-800 p-3 rounded-b-2xl">
+                <form id="chat-form" class="flex items-center space-x-3">
+                    <input 
+                        type="text" 
+                        id="message-input" 
+                        placeholder="Type your message..." 
+                        class="flex-1 rounded-xl bg-slate-800 ring-1 ring-slate-700 focus:ring-indigo-500 focus:outline-none px-4 py-3 text-white placeholder:text-slate-400"
+                        required
+                    >
+                    <button 
+                        type="submit" 
+                        class="inline-flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:scale-[0.98] transition"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8">
+            <p class="text-slate-400 text-sm">Powered by <span class="text-indigo-400 font-medium">KaTek AI</span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+const chatMessages = document.getElementById('chat-messages');
+const chatForm = document.getElementById('chat-form');
+const messageInput = document.getElementById('message-input');
+
+// Add message to chat
+function addMessage(content, isUser = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex items-start space-x-3';
+    
+    if (isUser) {
+        messageDiv.innerHTML = `
+            <div class="flex-1"></div>
+            <div class="flex-1 max-w-[80%]">
+                <div class="ml-auto bg-indigo-600 text-white rounded-2xl rounded-br-sm px-4 py-3 shadow-lg">
+                    <p>${content}</p>
+                </div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+            </div>
+            <div class="flex-1">
+                <div class="bg-slate-700 text-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-lg max-w-[80%]">
+                    <p>${content}</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Handle form submission
+chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const message = messageInput.value.trim();
+    if (!message) return;
+    
+    // Add user message
+    addMessage(message, true);
+    messageInput.value = '';
+    
+    // Show typing indicator
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'flex items-start space-x-3';
+    typingDiv.innerHTML = `
+        <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+        </div>
+        <div class="flex-1">
+            <div class="bg-slate-700 text-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-lg max-w-[80%]">
+                <div class="flex space-x-1">
+                    <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    chatMessages.appendChild(typingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    try {
+        // Send message to API
+        const response = await fetch('{{ api_url }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `message=${encodeURIComponent(message)}&session_id={{ session_id }}`
+        });
+        
+        const data = await response.json();
+        
+        // Remove typing indicator
+        chatMessages.removeChild(typingDiv);
+        
+        // Add AI response
+        addMessage(data.response || 'Sorry, I encountered an error. Please try again.');
+        
+    } catch (error) {
+        // Remove typing indicator
+        chatMessages.removeChild(typingDiv);
+        
+        // Add error message
+        addMessage('Sorry, I encountered an error. Please try again.');
+    }
+});
+
+// Focus input on load
+messageInput.focus();
+</script>
+{% endblock %}

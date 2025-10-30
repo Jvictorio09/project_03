@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Onboarding - Step 5: Import Listings{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-2xl font-bold text-white">Import Your Listings</h1>
+                <span class="text-slate-400">Step 5 of 5</span>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-2">
+                <div class="bg-indigo-600 h-2 rounded-full" style="width: 100%"></div>
+            </div>
+        </div>
+
+        <!-- Import Form -->
+        <div class="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-8 ring-1 ring-slate-700">
+            <h2 class="text-xl font-semibold text-white mb-6">How would you like to add your properties?</h2>
+            <p class="text-slate-400 mb-8">Choose the method that works best for you. You can always add more properties later.</p>
+            
+            <form method="post" action="{% url 'onboarding_step5' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Import Options -->
+                <div class="space-y-4">
+                    <!-- CSV Upload -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="import_type" value="csv" class="sr-only">
+                        <div class="bg-slate-900/50 rounded-xl p-6 ring-1 ring-slate-700 hover:ring-indigo-500 transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-white font-medium">CSV Upload</h3>
+                                        <p class="text-slate-400 text-sm">Upload a CSV file with your property data</p>
+                                    </div>
+                                </div>
+                                <div class="w-8 h-8 border-2 border-slate-600 rounded-full"></div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- AI Prompt -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="import_type" value="ai_prompt" class="sr-only">
+                        <div class="bg-slate-900/50 rounded-xl p-6 ring-1 ring-slate-700 hover:ring-indigo-500 transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-white font-medium">AI Prompt</h3>
+                                        <p class="text-slate-400 text-sm">Describe your properties and let AI create listings</p>
+                                    </div>
+                                </div>
+                                <div class="w-8 h-8 border-2 border-slate-600 rounded-full"></div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Manual Entry -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="import_type" value="manual" class="sr-only" checked>
+                        <div class="bg-slate-900/50 rounded-xl p-6 ring-1 ring-slate-700 hover:ring-indigo-500 transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-white font-medium">Manual Entry</h3>
+                                        <p class="text-slate-400 text-sm">Add properties one by one from the dashboard</p>
+                                    </div>
+                                </div>
+                                <div class="w-8 h-8 border-2 border-indigo-500 rounded-full bg-indigo-500"></div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Coming Soon Notice -->
+                <div class="bg-slate-900/50 rounded-xl p-4 ring-1 ring-slate-700">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium">CSV Upload & AI Prompt Coming Soon</div>
+                            <div class="text-slate-400 text-sm">For now, you can add properties manually from your dashboard</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex justify-between pt-6">
+                    <a href="{% url 'onboarding_wizard' %}?step=4" class="text-slate-400 hover:text-white transition">
+                        ← Back to Plan Selection
+                    </a>
+                    <button 
+                        type="submit" 
+                        class="inline-flex items-center gap-2 rounded-2xl px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98] transition font-medium"
+                    >
+                        Complete Setup
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Handle import type selection
+document.querySelectorAll('input[name="import_type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.querySelectorAll('label').forEach(label => {
+            const card = label.querySelector('div');
+            const circle = label.querySelector('.w-8.h-8');
+            
+            card.classList.remove('ring-indigo-500');
+            card.classList.add('ring-slate-700');
+            
+            circle.classList.remove('border-indigo-500', 'bg-indigo-500');
+            circle.classList.add('border-slate-600');
+        });
+        
+        if (this.checked) {
+            const card = this.closest('label').querySelector('div');
+            const circle = this.closest('label').querySelector('.w-8.h-8');
+            
+            card.classList.add('ring-indigo-500');
+            card.classList.remove('ring-slate-700');
+            
+            circle.classList.add('border-indigo-500', 'bg-indigo-500');
+            circle.classList.remove('border-slate-600');
+        }
+    });
+});
+
+// Set initial selection
+document.querySelector('input[name="import_type"]:checked').closest('label').querySelector('div').classList.add('ring-indigo-500');
+document.querySelector('input[name="import_type"]:checked').closest('label').querySelector('.w-8.h-8').classList.add('border-indigo-500', 'bg-indigo-500');
+</script>
+{% endblock %}

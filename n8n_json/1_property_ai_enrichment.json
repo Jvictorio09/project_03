@@ -1,0 +1,390 @@
+{
+  "name": "Property AI Enrichment – Poll → OpenAI → HMAC → Callback",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [120, 180]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.DJANGO_BASE_URL || 'https://project03-production.up.railway.app' }}/api/jobs/next/?kind=property_ai_enrichment&limit=10",
+        "options": {
+          "fullResponse": true,
+          "ignoreResponseCode": true,
+          "response": {
+            "responseFormat": "json"
+          }
+        }
+      },
+      "id": "poll-jobs",
+      "name": "Poll Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [360, 180],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "SELECT: Django – Header Token (FREE)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "options": {},
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-1",
+                    "leftValue": "={{ $json.statusCode }}",
+                    "rightValue": 200,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equal",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": false
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-2",
+                    "leftValue": "={{ $json.statusCode }}",
+                    "rightValue": 204,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equal",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": false
+            }
+          ]
+        },
+        "fallbackOutput": "default"
+      },
+      "id": "has-jobs",
+      "name": "Has Jobs?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [600, 180]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [],
+          "number": [],
+          "boolean": [],
+          "array": [],
+          "object": [
+            {
+              "name": "jobs",
+              "value": "={{ $json.body }}"
+            }
+          ]
+        }
+      },
+      "id": "extract-body",
+      "name": "Extract Body",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [840, 80]
+    },
+    {
+      "parameters": {
+        "operation": "splitOutItems",
+        "fieldToSplitOut": "jobs"
+      },
+      "id": "split-out-jobs",
+      "name": "Split Out Jobs",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 1,
+      "position": [1040, 80]
+    },
+    {
+      "parameters": {
+        "batchSize": 1
+      },
+      "id": "batches",
+      "name": "Batches (1)",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [1240, 80]
+    },
+    {
+      "parameters": {
+        "functionCode": "const j = $json; // one job\nreturn {\n  jobId: j.id,\n  kind: j.kind,\n  leaseId: j.lease_id,\n  payload: j.payload, // { upload_id, source, row_index }\n};"
+      },
+      "id": "pick-fields",
+      "name": "Pick Fields",
+      "type": "n8n-nodes-base.functionItem",
+      "typeVersion": 1,
+      "position": [1440, 80]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "system",
+              "value": "You are a precise real-estate enrichment assistant. Output STRICT JSON only. No markdown fences. Keys: enhanced_description (string), property_features (array of strings, <=10), property_type (string), nearby_amenities (array of strings), selling_points (array of strings, <=5). Keep claims plausible and generic if details are missing."
+            },
+            {
+              "name": "user",
+              "value": "Context we have:\\n- upload_id: {{$prevNode('Pick Fields').item.json.payload.upload_id}}\\n- source: {{$prevNode('Pick Fields').item.json.payload.source}}\\n- row_index: {{$prevNode('Pick Fields').item.json.payload.row_index}}\\n\\nIf details like city/price/beds are missing, infer safely and keep neutral.\\n\\nReturn JSON with:\\n{\\n  \\\"enhanced_description\\\": \\\"...\\\",\\n  \\\"property_features\\\": [\\\"...\\\"],\\n  \\\"property_type\\\": \\\"condo|house|townhouse|apartment|lot|commercial\\\",\\n  \\\"nearby_amenities\\\": [\\\"...\\\"],\\n  \\\"selling_points\\\": [\\\"...\\\"]\\n}"
+            }
+          ]
+        }
+      },
+      "id": "build-prompt",
+      "name": "Build Prompt",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [1640, 80]
+    },
+    {
+      "parameters": {
+        "mode": "assistant",
+        "model": "gpt-4o-mini",
+        "systemMessage": "={{ $json.system }}",
+        "assistantOptions": {},
+        "messages": {
+          "assignments": [
+            {
+              "role": "user",
+              "text": "={{ $json.user }}"
+            }
+          ]
+        },
+        "additionalFields": {
+          "temperature": 0.7,
+          "maxTokens": 600
+        }
+      },
+      "id": "openai-enrich",
+      "name": "OpenAI Enrich",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 5,
+      "position": [1840, 80],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "SELECT: OpenAI – Katalyst"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "let text = $json.choices?.[0]?.message?.content ?? '';\ntext = text.trim();\nif (text.startsWith('```')) {\n  text = text.replace(/^```json|^```/, '').replace(/```$/, '').trim();\n}\nlet data;\ntry { data = JSON.parse(text); }\ncatch(e){\n  data = {\n    enhanced_description: \"Bright, practical home with flexible spaces and everyday conveniences nearby.\",\n    property_features: [\"Functional layout\",\"Natural light\"],\n    property_type: \"house\",\n    nearby_amenities: [\"Shops\",\"Transit\"],\n    selling_points: [\"Move-in ready basics\",\"Good value\"]\n  };\n}\nreturn { result: data };"
+      },
+      "id": "parse-json",
+      "name": "Parse JSON",
+      "type": "n8n-nodes-base.functionItem",
+      "typeVersion": 1,
+      "position": [2040, 80]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "succeeded"
+            }
+          ],
+          "number": [
+            {
+              "name": "timestamp",
+              "value": "={{ Math.floor(Date.now()/1000) }}"
+            }
+          ],
+          "object": [
+            {
+              "name": "result",
+              "value": "={{ $json.result }}"
+            }
+          ]
+        }
+      },
+      "id": "build-callback",
+      "name": "Build Callback",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [2240, 80]
+    },
+    {
+      "parameters": {
+        "functionCode": "const leaseId = $prevNode('Pick Fields').item.json.leaseId;\nconst jobId = $prevNode('Pick Fields').item.json.jobId;\nconst body = { status: $json.status, lease_id: leaseId, result: $json.result, error: null };\nconst payloadStr = JSON.stringify(body);\nreturn { jobId, payloadStr, body };"
+      },
+      "id": "attach-ids",
+      "name": "Attach IDs & Stringify",
+      "type": "n8n-nodes-base.functionItem",
+      "typeVersion": 1,
+      "position": [2440, 80]
+    },
+    {
+      "parameters": {
+        "operation": "hmac",
+        "type": "text",
+        "algorithm": "sha256",
+        "value": "={{ $prevNode('Build Callback').item.json.timestamp + '.' + $json.payloadStr }}",
+        "secret": "={{ $env.N8N_HMAC_SECRET }}"
+      },
+      "id": "sign-hmac",
+      "name": "Sign HMAC",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [2640, 80]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "jobId",
+              "value": "={{ $prevNode('Attach IDs & Stringify').item.json.jobId }}"
+            },
+            {
+              "name": "xSig",
+              "value": "={{ 'sha256=' + $json.data }}"
+            }
+          ],
+          "number": [
+            {
+              "name": "xTs",
+              "value": "={{ $prevNode('Build Callback').item.json.timestamp }}"
+            }
+          ],
+          "object": [
+            {
+              "name": "payload",
+              "value": "={{ $prevNode('Attach IDs & Stringify').item.json.body }}"
+            }
+          ]
+        }
+      },
+      "id": "build-headers",
+      "name": "Build Headers",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [2840, 80]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DJANGO_BASE_URL || 'https://project03-production.up.railway.app' }}/api/jobs/{{ $json.jobId }}/callback/",
+        "options": {
+          "response": {
+            "responseFormat": "json"
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Signature",
+              "value": "={{ $json.xSig }}"
+            },
+            {
+              "name": "X-Timestamp",
+              "value": "={{ $json.xTs }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "jsonBody": "={{ $json.payload }}"
+      },
+      "id": "callback-django",
+      "name": "Callback → Django",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [3040, 80],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "SELECT: Django – Header Token (FREE)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": { "main": [ [ { "node": "Poll Jobs", "type": "main", "index": 0 } ] ] },
+    "Poll Jobs": { "main": [ [ { "node": "Has Jobs?", "type": "main", "index": 0 } ] ] },
+    "Has Jobs?": {
+      "main": [
+        [ { "node": "Extract Body", "type": "main", "index": 0 } ],
+        [ { "node": "Extract Body", "type": "main", "index": 0 } ],
+        []
+      ]
+    },
+    "Extract Body": { "main": [ [ { "node": "Split Out Jobs", "type": "main", "index": 0 } ] ] },
+    "Split Out Jobs": { "main": [ [ { "node": "Batches (1)", "type": "main", "index": 0 } ] ] },
+    "Batches (1)": {
+      "main": [
+        [ { "node": "Pick Fields", "type": "main", "index": 0 } ],
+        []
+      ]
+    },
+    "Pick Fields": { "main": [ [ { "node": "Build Prompt", "type": "main", "index": 0 } ] ] },
+    "Build Prompt": { "main": [ [ { "node": "OpenAI Enrich", "type": "main", "index": 0 } ] ] },
+    "OpenAI Enrich": { "main": [ [ { "node": "Parse JSON", "type": "main", "index": 0 } ] ] },
+    "Parse JSON": { "main": [ [ { "node": "Build Callback", "type": "main", "index": 0 } ] ] },
+    "Build Callback": { "main": [ [ { "node": "Attach IDs & Stringify", "type": "main", "index": 0 } ] ] },
+    "Attach IDs & Stringify": { "main": [ [ { "node": "Sign HMAC", "type": "main", "index": 0 } ] ] },
+    "Sign HMAC": { "main": [ [ { "node": "Build Headers", "type": "main", "index": 0 } ] ] },
+    "Build Headers": { "main": [ [ { "node": "Callback → Django", "type": "main", "index": 0 } ] ] },
+    "Callback → Django": { "main": [ [ { "node": "Batches (1)", "type": "main", "index": 1 } ] ] }
+  },
+  "pinData": {},
+  "settings": {},
+  "staticData": {},
+  "meta": {
+    "templateCreds": [
+      "httpHeaderAuth: SELECT: Django – Header Token (FREE)",
+      "openAiApi: SELECT: OpenAI – Katalyst"
+    ]
+  }
+}
+

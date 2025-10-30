@@ -1,0 +1,97 @@
+{% extends 'base_internal.html' %}
+{% load static %}
+
+{% block title %}Add Campaign Step - KaTek AI{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-4xl px-4 py-10 min-h-[calc(100vh-80px)]">
+  <!-- Header -->
+  <header class="mb-8">
+    <div class="flex items-center gap-3 mb-4">
+      <a href="{% url 'edit_campaign' campaign.id %}" class="text-white/60 hover:text-white transition">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+      <h1 class="text-2xl font-bold text-white/90">Add Email Step</h1>
+    </div>
+    <p class="text-sm text-white/60">Add a new email step to "{{ campaign.name }}" campaign.</p>
+  </header>
+
+  <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <!-- Step Name -->
+      <div>
+        <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-white/80 mb-2">Step Name</label>
+        {{ form.name }}
+        {% if form.name.errors %}
+          <p class="mt-1 text-sm text-red-400">{{ form.name.errors.0 }}</p>
+        {% endif %}
+        <p class="mt-1 text-xs text-white/50">Internal name for this step (e.g., "Welcome Email", "Follow-up #1")</p>
+      </div>
+      
+      <!-- Subject Line -->
+      <div>
+        <label for="{{ form.subject.id_for_label }}" class="block text-sm font-medium text-white/80 mb-2">Subject Line</label>
+        {{ form.subject }}
+        {% if form.subject.errors %}
+          <p class="mt-1 text-sm text-red-400">{{ form.subject.errors.0 }}</p>
+        {% endif %}
+        <p class="mt-1 text-xs text-white/50">Use {{ lead.name }}, {{ organization.name }} for personalization</p>
+      </div>
+      
+      <!-- Email Body -->
+      <div>
+        <label for="{{ form.body_template.id_for_label }}" class="block text-sm font-medium text-white/80 mb-2">Email Body</label>
+        {{ form.body_template }}
+        {% if form.body_template.errors %}
+          <p class="mt-1 text-sm text-red-400">{{ form.body_template.errors.0 }}</p>
+        {% endif %}
+        <div class="mt-2 text-xs text-white/50">
+          <p><strong>Available variables:</strong></p>
+          <ul class="list-disc list-inside space-y-1 mt-1">
+            <li><code>{{ lead.name }}</code> - Lead's name</li>
+            <li><code>{{ lead.email }}</code> - Lead's email</li>
+            <li><code>{{ lead.phone }}</code> - Lead's phone</li>
+            <li><code>{{ lead.city }}</code> - Lead's city</li>
+            <li><code>{{ organization.name }}</code> - Your organization name</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Delay Hours -->
+      <div>
+        <label for="{{ form.delay_hours.id_for_label }}" class="block text-sm font-medium text-white/80 mb-2">Delay (Hours)</label>
+        {{ form.delay_hours }}
+        {% if form.delay_hours.errors %}
+          <p class="mt-1 text-sm text-red-400">{{ form.delay_hours.errors.0 }}</p>
+        {% endif %}
+        <p class="mt-1 text-xs text-white/50">
+          How many hours to wait after the previous step before sending this email. 
+          Set to 0 for immediate sending (first step only).
+        </p>
+      </div>
+      
+      <!-- Preview -->
+      <div class="rounded-lg border border-white/10 bg-white/5 p-4">
+        <h4 class="text-sm font-medium text-white/80 mb-2">Preview</h4>
+        <div class="text-xs text-white/60 space-y-1">
+          <p><strong>Subject:</strong> {{ form.subject.value|default:"Your subject line here" }}</p>
+          <p><strong>Delay:</strong> {{ form.delay_hours.value|default:"0" }} hours after previous step</p>
+          <p><strong>Body:</strong> {{ form.body_template.value|default:"Your email content here"|truncatewords:20 }}</p>
+        </div>
+      </div>
+      
+      <!-- Actions -->
+      <div class="flex justify-end gap-3 pt-6 border-t border-white/10">
+        <a href="{% url 'edit_campaign' campaign.id %}" class="px-4 py-2 bg-white/10 border border-white/20 text-gray-300 rounded-lg hover:bg-white/20 hover:text-white transition-all duration-200 font-medium">
+          Cancel
+        </a>
+        <button type="submit" class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-all duration-200 font-medium">
+          Add Step
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

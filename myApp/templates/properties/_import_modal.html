@@ -1,0 +1,73 @@
+{# Tabbed Import Modal Content #}
+<div class="tabs-container">
+  <div class="flex border-b border-white/10 mb-6">
+    <button 
+      class="tab-btn px-6 py-3 font-medium text-sm transition-colors border-b-2 border-violet-500 text-white focus:outline-none"
+      data-tab="manual">
+      <i class="fas fa-edit mr-2"></i> Manual Form
+    </button>
+    <button 
+      class="tab-btn px-6 py-3 font-medium text-sm transition-colors border-b-2 border-transparent text-white/60 hover:text-white focus:outline-none"
+      data-tab="ai">
+      <i class="fas fa-magic mr-2"></i> AI Text Import
+    </button>
+    <button 
+      class="tab-btn px-6 py-3 font-medium text-sm transition-colors border-b-2 border-transparent text-white/60 hover:text-white focus:outline-none"
+      data-tab="csv">
+      <i class="fas fa-file-csv mr-2"></i> CSV Upload
+    </button>
+  </div>
+
+  <div id="tab-content-manual" class="tab-content">
+    {% include 'properties/_import_manual_form.html' %}
+  </div>
+
+  <div id="tab-content-ai" class="tab-content hidden">
+    {% include 'properties/_import_ai_form.html' %}
+  </div>
+
+  <div id="tab-content-csv" class="tab-content hidden">
+    {% include 'properties/_import_csv_form.html' %}
+  </div>
+</div>
+
+<script>
+// Tab switching using document-level event delegation (works with HTMX content swaps)
+(function() {
+  // Attach listener to document body (persists through HTMX swaps)
+  document.body.addEventListener('click', function(e) {
+    const tab = e.target.closest('.tab-btn');
+    if (!tab) return;
+    
+    const container = tab.closest('.tabs-container');
+    if (!container) return;
+    
+    if (tab.classList.contains('opacity-50') || tab.classList.contains('cursor-not-allowed')) {
+      return; // Don't switch if disabled
+    }
+    
+    e.preventDefault();
+    const targetTab = tab.getAttribute('data-tab');
+    
+    // Get all tabs and contents within this container
+    const allTabs = container.querySelectorAll('.tab-btn');
+    const allContents = container.querySelectorAll('.tab-content');
+    
+    // Update active tab
+    allTabs.forEach(t => {
+      t.classList.remove('border-violet-500', 'text-white');
+      t.classList.add('border-transparent', 'text-white/60');
+    });
+    tab.classList.add('border-violet-500', 'text-white');
+    tab.classList.remove('border-transparent', 'text-white/60');
+    
+    // Show/hide content
+    allContents.forEach(c => c.classList.add('hidden'));
+    const targetContent = document.getElementById(`tab-content-${targetTab}`);
+    if (targetContent) {
+      targetContent.classList.remove('hidden');
+    }
+  });
+})();
+</script>
+

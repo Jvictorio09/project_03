@@ -17,6 +17,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
     <!-- Additional CSS -->
     {% block extra_css %}{% endblock %}
     
@@ -214,7 +217,17 @@
         
         userMenuToggle?.addEventListener('click', (e) => {
             e.stopPropagation();
-            userDropdown.classList.toggle('opacity-0', 'invisible', 'translate-y-2');
+            if (!userDropdown) return;
+            const isHidden = userDropdown.classList.contains('invisible');
+            if (isHidden) {
+                userDropdown.classList.remove('opacity-0');
+                userDropdown.classList.remove('invisible');
+                userDropdown.classList.remove('translate-y-2');
+            } else {
+                userDropdown.classList.add('opacity-0');
+                userDropdown.classList.add('invisible');
+                userDropdown.classList.add('translate-y-2');
+            }
         });
         
         // Close user dropdown when clicking outside

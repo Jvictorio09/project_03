@@ -1,0 +1,56 @@
+{# Simple CSV Import Result #}
+<div class="space-y-4">
+  {% if success %}
+    <div class="bg-emerald-500/20 border border-emerald-500/50 rounded-lg p-6">
+      <div class="flex items-start gap-4">
+        <i class="fas fa-check-circle text-3xl text-emerald-400 flex-shrink-0 mt-1"></i>
+        <div class="flex-1">
+          <h3 class="text-xl font-bold text-emerald-400 mb-2">Import Successful!</h3>
+          <p class="text-emerald-300 mb-4">
+            Successfully imported <strong>{{ created }}</strong> out of <strong>{{ total_rows }}</strong> properties.
+          </p>
+          
+          {% if errors %}
+            <div class="mt-4 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+              <p class="text-yellow-400 font-semibold mb-2">Some properties couldn't be imported:</p>
+              <ul class="text-yellow-300 text-sm space-y-1 max-h-40 overflow-y-auto">
+                {% for error in errors %}
+                  <li>• {{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          
+          <div class="mt-6 flex gap-3">
+            <button 
+              onclick="window.location.reload();"
+              class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-semibold">
+              <i class="fas fa-eye mr-2"></i> View Properties
+            </button>
+            <button 
+              onclick="document.getElementById('add-property-modal').classList.add('hidden');"
+              class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors font-semibold">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="bg-red-500/20 border border-red-500/50 rounded-lg p-6">
+      <div class="flex items-start gap-4">
+        <i class="fas fa-exclamation-triangle text-3xl text-red-400 flex-shrink-0 mt-1"></i>
+        <div class="flex-1">
+          <h3 class="text-xl font-bold text-red-400 mb-2">Import Failed</h3>
+          <p class="text-red-300 mb-4">{{ error|default:"An error occurred while processing your file." }}</p>
+          <button 
+            onclick="document.getElementById('add-property-modal').classList.add('hidden');"
+            class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+

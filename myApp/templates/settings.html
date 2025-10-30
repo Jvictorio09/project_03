@@ -3,530 +3,377 @@
 
 {% block title %}Settings - KaTek AI{% endblock %}
 
-{% block extra_css %}
-<style>
-  .settings-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--space-8) var(--space-4);
-    background: var(--deep-navy);
-    min-height: calc(100vh - 80px);
-  }
-  
-  .settings-header {
-    margin-bottom: var(--space-8);
-  }
-  
-  .settings-title {
-    font-size: 2rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    margin: 0 0 var(--space-2) 0;
-  }
-  
-  .settings-subtitle {
-    color: var(--text-secondary);
-    font-size: 1rem;
-    margin: 0;
-  }
-  
-  .settings-grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: var(--space-8);
-  }
-  
-  .settings-sidebar {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    height: fit-content;
-  }
-  
-  .settings-nav {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .settings-nav-item {
-    margin-bottom: var(--space-2);
-  }
-  
-  .settings-nav-link {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
-    color: var(--text-secondary);
-    text-decoration: none;
-    border-radius: var(--radius-lg);
-    transition: all var(--transition-fast);
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-medium);
-  }
-  
-  .settings-nav-link:hover,
-  .settings-nav-link.active {
-    color: var(--text-primary);
-    background: var(--surface-glass-hover);
-    color: var(--primary-purple);
-  }
-  
-  .settings-content {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    padding: var(--space-8);
-  }
-  
-  .settings-section {
-    margin-bottom: var(--space-8);
-  }
-  
-  .settings-section:last-child {
-    margin-bottom: 0;
-  }
-  
-  .section-title {
-    font-size: 1.5rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    margin: 0 0 var(--space-4) 0;
-  }
-  
-  .section-description {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    margin: 0 0 var(--space-6) 0;
-  }
-  
-  .form-group {
-    margin-bottom: var(--space-6);
-  }
-  
-  .form-label {
-    display: block;
-    margin-bottom: var(--space-2);
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-medium);
-    color: var(--text-primary);
-  }
-  
-  .form-input {
-    width: 100%;
-    padding: var(--space-3);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    backdrop-filter: blur(10px);
-  }
-  
-  .form-input:focus {
-    outline: none;
-    border-color: var(--primary-purple);
-    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
-  }
-  
-  .form-textarea {
-    min-height: 120px;
-    resize: vertical;
-  }
-  
-  .form-select {
-    width: 100%;
-    padding: var(--space-3);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    backdrop-filter: blur(10px);
-  }
-  
-  .form-select:focus {
-    outline: none;
-    border-color: var(--primary-purple);
-    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
-  }
-  
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-  }
-  
-  .form-checkbox {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    margin-bottom: var(--space-4);
-  }
-  
-  .form-checkbox input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--primary-purple);
-  }
-  
-  .form-checkbox label {
-    font-size: 0.875rem;
-    color: var(--text-primary);
-    cursor: pointer;
-  }
-  
-  .btn-save {
-    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
-    border: none;
-    border-radius: var(--radius-md);
-    color: white;
-    padding: var(--space-3) var(--space-6);
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-bold);
-    cursor: pointer;
-    transition: all var(--transition-normal);
-  }
-  
-  .btn-save:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 25px rgba(109, 40, 217, 0.4);
-  }
-  
-  .danger-zone {
-    background: linear-gradient(180deg, rgba(255,82,82,.14), rgba(255,82,82,.08));
-    border: 1px solid rgba(255,82,82,.35);
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
-    margin-top: var(--space-8);
-  }
-  
-  .danger-title {
-    color: #ff9c9c;
-    font-size: 1.125rem;
-    font-weight: var(--font-weight-bold);
-    margin: 0 0 var(--space-2) 0;
-  }
-  
-  .danger-description {
-    color: #ff9c9c;
-    font-size: 0.875rem;
-    margin: 0 0 var(--space-4) 0;
-  }
-  
-  .btn-danger {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    border: none;
-    border-radius: var(--radius-md);
-    color: white;
-    padding: var(--space-3) var(--space-6);
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-bold);
-    cursor: pointer;
-    transition: all var(--transition-normal);
-  }
-  
-  .btn-danger:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
-  }
-  
-  @media (max-width: 768px) {
-    .settings-grid {
-      grid-template-columns: 1fr;
-      gap: var(--space-6);
-    }
-    
-    .form-row {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-{% endblock %}
+{# No extra_css — everything is Tailwind utilities #}
+{% block extra_css %}{% endblock %}
 
 {% block content %}
-<div class="settings-container">
-  <div class="settings-header">
-    <h1 class="settings-title">Settings</h1>
-    <p class="settings-subtitle">Manage your account preferences and security settings.</p>
-  </div>
-  
-  <div class="settings-grid">
-    <!-- Settings Sidebar -->
-    <div class="settings-sidebar">
-      <nav class="settings-nav">
-        <ul>
-          <li class="settings-nav-item">
-            <a href="#profile" class="settings-nav-link active">
-              <i class="fas fa-user"></i>
-              Profile
-            </a>
-          </li>
-          <li class="settings-nav-item">
-            <a href="#security" class="settings-nav-link">
-              <i class="fas fa-shield-alt"></i>
-              Security
-            </a>
-          </li>
-          <li class="settings-nav-item">
-            <a href="#notifications" class="settings-nav-link">
-              <i class="fas fa-bell"></i>
-              Notifications
-            </a>
-          </li>
-          <li class="settings-nav-item">
-            <a href="#billing" class="settings-nav-link">
-              <i class="fas fa-credit-card"></i>
-              Billing
-            </a>
-          </li>
-          <li class="settings-nav-item">
-            <a href="#api" class="settings-nav-link">
-              <i class="fas fa-key"></i>
-              API Keys
-            </a>
-          </li>
-        </ul>
+<div class="mx-auto max-w-[1200px] px-4 py-10 min-h-[calc(100vh-80px)]">
+  <!-- Header -->
+  <header class="mb-10">
+    <h1 class="text-2xl font-bold text-white/90">Settings</h1>
+    <p class="text-sm text-white/60">Manage your account, security, notifications, and API keys.</p>
+  </header>
+
+  <div class="grid gap-8 lg:grid-cols-[320px_1fr]">
+    <!-- Sidebar -->
+    <aside class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 h-fit">
+      <nav class="space-y-1" aria-label="Settings navigation">
+        <a href="#profile" data-link class="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition">
+          <i class="fas fa-user text-white/50 group-hover:text-white"></i>
+          <span>Profile</span>
+        </a>
+        <a href="#security" data-link class="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition">
+          <i class="fas fa-shield-alt text-white/50 group-hover:text-white"></i>
+          <span>Security</span>
+        </a>
+        <a href="#notifications" data-link class="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition">
+          <i class="fas fa-bell text-white/50 group-hover:text-white"></i>
+          <span>Notifications</span>
+        </a>
+        <a href="#billing" data-link class="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition">
+          <i class="fas fa-credit-card text-white/50 group-hover:text-white"></i>
+          <span>Billing</span>
+        </a>
+        <a href="#email" data-link class="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition">
+          <i class="fas fa-envelope text-white/50 group-hover:text-white"></i>
+          <span>Email Accounts</span>
+        </a>
+        <a href="#api" data-link class="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition">
+          <i class="fas fa-key text-white/50 group-hover:text-white"></i>
+          <span>API Keys</span>
+        </a>
       </nav>
-    </div>
-    
-    <!-- Settings Content -->
-    <div class="settings-content">
-      <!-- Profile Section -->
-      <div class="settings-section" id="profile">
-        <h2 class="section-title">Profile Information</h2>
-        <p class="section-description">Update your personal information and preferences.</p>
-        
-        <form method="post">
-          {% csrf_token %}
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="first_name">First Name</label>
-              <input type="text" id="first_name" name="first_name" class="form-input" value="{{ user.first_name }}" placeholder="Enter your first name">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="last_name">Last Name</label>
-              <input type="text" id="last_name" name="last_name" class="form-input" value="{{ user.last_name }}" placeholder="Enter your last name">
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label" for="email">Email Address</label>
-            <input type="email" id="email" name="email" class="form-input" value="{{ user.email }}" placeholder="Enter your email address">
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label" for="company">Company Name</label>
-            <input type="text" id="company" name="company" class="form-input" value="{{ user.profile.company|default:'' }}" placeholder="Enter your company name">
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label" for="phone">Phone Number</label>
-            <input type="tel" id="phone" name="phone" class="form-input" value="{{ user.profile.phone|default:'' }}" placeholder="Enter your phone number">
-          </div>
-          
-          <button type="submit" class="btn-save">
-            <i class="fas fa-save"></i>
-            Save Changes
-          </button>
-        </form>
-      </div>
-      
-      <!-- Security Section -->
-      <div class="settings-section" id="security">
-        <h2 class="section-title">Security Settings</h2>
-        <p class="section-description">Manage your password and security preferences.</p>
-        
-        <form method="post">
-          {% csrf_token %}
-          <div class="form-group">
-            <label class="form-label" for="current_password">Current Password</label>
-            <input type="password" id="current_password" name="current_password" class="form-input" placeholder="Enter your current password">
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="new_password">New Password</label>
-              <input type="password" id="new_password" name="new_password" class="form-input" placeholder="Enter new password">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="confirm_password">Confirm Password</label>
-              <input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="Confirm new password">
-            </div>
-          </div>
-          
-          <div class="form-checkbox">
-            <input type="checkbox" id="two_factor" name="two_factor">
-            <label for="two_factor">Enable Two-Factor Authentication</label>
-          </div>
-          
-          <button type="submit" class="btn-save">
-            <i class="fas fa-shield-alt"></i>
-            Update Security
-          </button>
-        </form>
-      </div>
-      
-      <!-- Notifications Section -->
-      <div class="settings-section" id="notifications">
-        <h2 class="section-title">Notification Preferences</h2>
-        <p class="section-description">Choose how you want to be notified about important updates.</p>
-        
-        <form method="post">
-          {% csrf_token %}
-          <div class="form-checkbox">
-            <input type="checkbox" id="email_notifications" name="email_notifications" checked>
-            <label for="email_notifications">Email Notifications</label>
-          </div>
-          
-          <div class="form-checkbox">
-            <input type="checkbox" id="lead_notifications" name="lead_notifications" checked>
-            <label for="lead_notifications">New Lead Alerts</label>
-          </div>
-          
-          <div class="form-checkbox">
-            <input type="checkbox" id="property_notifications" name="property_notifications">
-            <label for="property_notifications">Property Updates</label>
-          </div>
-          
-          <div class="form-checkbox">
-            <input type="checkbox" id="marketing_notifications" name="marketing_notifications">
-            <label for="marketing_notifications">Marketing Emails</label>
-          </div>
-          
-          <button type="submit" class="btn-save">
-            <i class="fas fa-bell"></i>
-            Save Preferences
-          </button>
-        </form>
-      </div>
-      
-      <!-- API Keys Section -->
-      <div class="settings-section" id="api">
-        <h2 class="section-title">API Keys</h2>
-        <p class="section-description">Manage your API keys for integrations and automation.</p>
-        
-        <div class="form-group">
-          <label class="form-label" for="api_key">Your API Key</label>
-          <input type="text" id="api_key" name="api_key" class="form-input" value="katek_sk_1234567890abcdef" readonly>
-          <button type="button" class="btn-save" onclick="copyApiKey()">
-            <i class="fas fa-copy"></i>
-            Copy Key
-          </button>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label" for="webhook_url">Webhook URL</label>
-          <input type="url" id="webhook_url" name="webhook_url" class="form-input" value="https://api.katek.ai/webhooks/your-webhook" readonly>
-        </div>
-        
-        <button type="button" class="btn-save">
-          <i class="fas fa-sync"></i>
-          Regenerate Keys
-        </button>
-      </div>
-      
-      <!-- Danger Zone -->
-      <div class="danger-zone">
-        <h3 class="danger-title">Danger Zone</h3>
-        <p class="danger-description">These actions are irreversible. Please proceed with caution.</p>
-        
-        <button type="button" class="btn-danger" onclick="confirmDeleteAccount()">
+
+      <div class="mt-8 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4">
+        <h4 class="text-sm font-semibold text-rose-200">Danger Zone</h4>
+        <p class="mt-1 text-xs text-rose-200/80">These actions are irreversible. Proceed carefully.</p>
+        <button type="button" id="delete-account" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-rose-600 to-rose-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-900/30 hover:translate-y-[-1px] transition">
           <i class="fas fa-trash"></i>
           Delete Account
         </button>
       </div>
-    </div>
+    </aside>
+
+    <!-- Content -->
+    <main class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8">
+      <!-- Profile -->
+      <section id="profile" data-section class="space-y-6">
+        <header>
+          <h2 class="text-xl font-bold text-white/90">Profile Information</h2>
+          <p class="text-sm text-white/60">Update your personal details and preferences.</p>
+        </header>
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+          <div class="grid gap-4 md:grid-cols-2">
+            <div>
+              <label for="first_name" class="mb-1 block text-sm font-medium text-white/80">First Name</label>
+              <input id="first_name" name="first_name" type="text" value="{{ user.first_name }}" placeholder="Enter your first name" class="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none ring-0 focus:border-violet-500/60 focus:shadow-[0_0_0_3px] focus:shadow-violet-500/20" />
+            </div>
+            <div>
+              <label for="last_name" class="mb-1 block text-sm font-medium text-white/80">Last Name</label>
+              <input id="last_name" name="last_name" type="text" value="{{ user.last_name }}" placeholder="Enter your last name" class="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:border-violet-500/60 focus:shadow-[0_0_0_3px] focus:shadow-violet-500/20" />
+            </div>
+          </div>
+          <div>
+            <label for="email" class="mb-1 block text-sm font-medium text-white/80">Email Address</label>
+            <input id="email" name="email" type="email" value="{{ user.email }}" placeholder="Enter your email" class="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:border-violet-500/60 focus:shadow-[0_0_0_3px] focus:shadow-violet-500/20" />
+          </div>
+          <div>
+            <label for="company" class="mb-1 block text-sm font-medium text-white/80">Company Name</label>
+            <input id="company" name="company" type="text" value="{{ user.profile.company|default:'' }}" placeholder="Enter your company name" class="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:border-violet-500/60 focus:shadow-[0_0_0_3px] focus:shadow-violet-500/20" />
+          </div>
+          <div>
+            <label for="phone" class="mb-1 block text-sm font-medium text-white/80">Phone Number</label>
+            <input id="phone" name="phone" type="tel" value="{{ user.profile.phone|default:'' }}" placeholder="Enter your phone number" class="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:border-violet-500/60 focus:shadow-[0_0_0_3px] focus:shadow-violet-500/20" />
+          </div>
+          <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/30 hover:translate-y-[-1px] transition">
+            <i class="fas fa-save"></i>
+            Save Changes
+          </button>
+        </form>
+      </section>
+
+      <!-- Security -->
+      <section id="security" data-section class="hidden space-y-6">
+        <header>
+          <h2 class="text-xl font-bold text-white/90">Security Settings</h2>
+          <p class="text-sm text-white/60">Manage your password and two‑factor authentication.</p>
+        </header>
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+          <div>
+            <label for="current_password" class="mb-1 block text-sm font-medium text-white/80">Current Password</label>
+            <input id="current_password" name="current_password" type="password" placeholder="Enter your current password" class="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:border-violet-500/60 focus:shadow-[0_0_0_3px] focus:shadow-violet-500/20" />
+          </div>
+          <div class="grid gap-4 md:grid-cols-2">
+            <div>
+              <label for="new_password" class="mb-1 block text-sm font-medium text-white/80">New Password</label>
+              <input id="new_password" name="new_password" type="password" placeholder="Enter new password" class="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:border-violet-500/60 focus:shadow-[0_0_0_3px] focus:shadow-violet-500/20" />
+            </div>
+            <div>
+              <label for="confirm_password" class="mb-1 block text-sm font-medium text-white/80">Confirm Password</label>
+              <input id="confirm_password" name="confirm_password" type="password" placeholder="Confirm new password" class="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:border-violet-500/60 focus:shadow-[0_0_0_3px] focus:shadow-violet-500/20" />
+            </div>
+          </div>
+          <label class="inline-flex items-center gap-3">
+            <input id="two_factor" name="two_factor" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-transparent text-violet-500 focus:ring-violet-400/40" />
+            <span class="text-sm text-white/80">Enable Two‑Factor Authentication</span>
+          </label>
+          <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/30 hover:translate-y-[-1px] transition">
+            <i class="fas fa-shield-alt"></i>
+            Update Security
+          </button>
+        </form>
+      </section>
+
+      <!-- Notifications -->
+      <section id="notifications" data-section class="hidden space-y-6">
+        <header>
+          <h2 class="text-xl font-bold text-white/90">Notification Preferences</h2>
+          <p class="text-sm text-white/60">Choose how you want to be notified.</p>
+        </header>
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+          <label class="flex items-center gap-3">
+            <input id="email_notifications" name="email_notifications" type="checkbox" checked class="h-4 w-4 rounded border-white/20 bg-transparent text-violet-500 focus:ring-violet-400/40" />
+            <span class="text-sm text-white/80">Email Notifications</span>
+          </label>
+          <label class="flex items-center gap-3">
+            <input id="lead_notifications" name="lead_notifications" type="checkbox" checked class="h-4 w-4 rounded border-white/20 bg-transparent text-violet-500 focus:ring-violet-400/40" />
+            <span class="text-sm text-white/80">New Lead Alerts</span>
+          </label>
+          <label class="flex items-center gap-3">
+            <input id="property_notifications" name="property_notifications" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-transparent text-violet-500 focus:ring-violet-400/40" />
+            <span class="text-sm text-white/80">Property Updates</span>
+          </label>
+          <label class="flex items-center gap-3">
+            <input id="marketing_notifications" name="marketing_notifications" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-transparent text-violet-500 focus:ring-violet-400/40" />
+            <span class="text-sm text-white/80">Marketing Emails</span>
+          </label>
+          <button type="submit" class="mt-2 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/30 hover:translate-y-[-1px] transition">
+            <i class="fas fa-bell"></i>
+            Save Preferences
+          </button>
+        </form>
+      </section>
+
+      <!-- Billing (placeholder to keep anchors sane) -->
+      <section id="billing" data-section class="hidden space-y-6">
+        <header>
+          <h2 class="text-xl font-bold text-white/90">Billing</h2>
+          <p class="text-sm text-white/60">Manage your plan and invoices. (Hook up to your billing provider.)</p>
+        </header>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
+          Coming soon.
+        </div>
+      </section>
+
+      <!-- Email Accounts -->
+      <section id="email" data-section class="hidden space-y-6">
+        <header>
+          <h2 class="text-xl font-bold text-white/90">Email Accounts</h2>
+          <p class="text-sm text-white/60">Connect Gmail accounts for sending email campaigns.</p>
+        </header>
+        
+        <div class="space-y-6">
+          <!-- Connect Gmail Button -->
+          <div class="rounded-xl border border-white/10 bg-white/5 p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-white/90">Connect Gmail</h3>
+                <p class="text-sm text-white/60">Connect your Gmail account to send email campaigns on behalf of your organization.</p>
+              </div>
+              <a href="{% url 'connect_gmail' %}" class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-violet-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-900/30 hover:translate-y-[-1px] transition">
+                <i class="fas fa-plus"></i>
+                Connect Gmail
+              </a>
+            </div>
+          </div>
+          
+          <!-- Connected Email Accounts -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-white/90">Connected Accounts</h3>
+            
+            {% if email_accounts %}
+              {% for account in email_accounts %}
+              <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/20">
+                      <i class="fas fa-envelope text-violet-400"></i>
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-white/90">{{ account.display_name }}</span>
+                        {% if account.is_primary %}
+                        <span class="rounded-full bg-emerald-500/20 px-2 py-1 text-xs font-medium text-emerald-400">Primary</span>
+                        {% endif %}
+                        {% if account.is_verified %}
+                        <span class="rounded-full bg-emerald-500/20 px-2 py-1 text-xs font-medium text-emerald-400">Verified</span>
+                        {% endif %}
+                      </div>
+                      <p class="text-sm text-white/60">{{ account.email_address }}</p>
+                      <p class="text-xs text-white/50">
+                        Connected {{ account.created_at|timesince }} ago
+                        {% if account.last_used_at %}
+                        • Last used {{ account.last_used_at|timesince }} ago
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center gap-2">
+                    {% if not account.is_primary %}
+                    <a href="{% url 'set_primary_email' account.id %}" class="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 transition">
+                      Set Primary
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'disconnect_gmail' account.id %}" class="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm font-medium text-rose-400 hover:bg-rose-500/20 transition">
+                      Disconnect
+                    </a>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="rounded-xl border border-white/10 bg-white/5 p-6 text-center">
+                <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/5">
+                  <i class="fas fa-envelope text-white/40"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-white/70">No Email Accounts Connected</h3>
+                <p class="text-sm text-white/50">Connect a Gmail account to start sending email campaigns.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <!-- API Keys -->
+      <section id="api" data-section class="hidden space-y-6">
+        <header>
+          <h2 class="text-xl font-bold text-white/90">API Keys</h2>
+          <p class="text-sm text-white/60">Securely manage credentials for integrations.</p>
+        </header>
+        <div class="space-y-6">
+          <div>
+            <label for="api_key" class="mb-1 block text-sm font-medium text-white/80">Your API Key</label>
+            <div class="flex items-center gap-3">
+              <input id="api_key" type="text" readonly value="katek_sk_1234567890abcdef" class="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 outline-none" />
+              <button type="button" id="copy-key" class="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 transition">
+                <i class="fas fa-copy"></i>
+                Copy
+              </button>
+            </div>
+          </div>
+          <div>
+            <label for="webhook_url" class="mb-1 block text-sm font-medium text-white/80">Webhook URL</label>
+            <input id="webhook_url" type="url" readonly value="https://api.katek.ai/webhooks/your-webhook" class="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 outline-none" />
+          </div>
+          <button type="button" id="regen-key" class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/30 hover:translate-y-[-1px] transition">
+            <i class="fas fa-sync"></i>
+            Regenerate Keys
+          </button>
+        </div>
+      </section>
+    </main>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  // Settings navigation
-  document.querySelectorAll('.settings-nav-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      
-      // Remove active class from all links
-      document.querySelectorAll('.settings-nav-link').forEach(l => l.classList.remove('active'));
-      
-      // Add active class to clicked link
-      link.classList.add('active');
-      
-      // Show corresponding section
-      const targetId = link.getAttribute('href').substring(1);
-      const targetSection = document.getElementById(targetId);
-      
-      if (targetSection) {
-        // Hide all sections
-        document.querySelectorAll('.settings-section').forEach(section => {
-          section.style.display = 'none';
-        });
-        
-        // Show target section
-        targetSection.style.display = 'block';
+(function() {
+  // Simple hash-based section router
+  const links = document.querySelectorAll('[data-link]');
+  const sections = document.querySelectorAll('[data-section]');
+
+  function activate(targetId) {
+    sections.forEach(s => s.classList.toggle('hidden', s.id !== targetId));
+    links.forEach(l => {
+      const active = l.getAttribute('href') === '#' + targetId;
+      l.classList.toggle('bg-white/10', active);
+      l.classList.toggle('text-white', active);
+      l.classList.toggle('text-white/70', !active);
+    });
+  }
+
+  function initFromHash() {
+    const id = (location.hash || '#profile').replace('#','');
+    const exists = document.getElementById(id);
+    activate(exists ? id : 'profile');
+  }
+
+  window.addEventListener('hashchange', initFromHash);
+  initFromHash();
+
+  // Clipboard copy using modern API
+  const copyBtn = document.getElementById('copy-key');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const val = document.getElementById('api_key').value;
+      try {
+        await navigator.clipboard.writeText(val);
+        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied';
+        copyBtn.classList.add('bg-emerald-600/80');
+        setTimeout(() => {
+          copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+          copyBtn.classList.remove('bg-emerald-600/80');
+        }, 1800);
+      } catch (e) {
+        alert('Copy failed. Please copy manually.');
       }
     });
-  });
-  
-  // Copy API key
-  function copyApiKey() {
-    const apiKeyInput = document.getElementById('api_key');
-    apiKeyInput.select();
-    document.execCommand('copy');
-    
-    // Show success message
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
-    button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-    
-    setTimeout(() => {
-      button.innerHTML = originalText;
-      button.style.background = '';
-    }, 2000);
   }
-  
-  // Confirm delete account
-  function confirmDeleteAccount() {
-    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      if (confirm('This will permanently delete all your data. Type "DELETE" to confirm.')) {
-        // Here you would implement the actual deletion
+
+  // Regenerate keys (wire to backend later)
+  const regen = document.getElementById('regen-key');
+  if (regen) {
+    regen.addEventListener('click', async () => {
+      // TODO: POST to your endpoint then update #api_key value
+      console.log('Regenerate requested');
+      regen.disabled = true;
+      regen.classList.add('opacity-70');
+      setTimeout(() => { // demo only
+        document.getElementById('api_key').value = 'katek_sk_' + Math.random().toString(36).slice(2, 10) + Date.now().toString().slice(-4);
+        regen.disabled = false;
+        regen.classList.remove('opacity-70');
+      }, 800);
+    });
+  }
+
+  // Delete account confirmations
+  const del = document.getElementById('delete-account');
+  if (del) {
+    del.addEventListener('click', () => {
+      const sure = confirm('Are you sure you want to delete your account? This action cannot be undone.');
+      if (!sure) return;
+      const again = prompt('Type DELETE to confirm.');
+      if (again === 'DELETE') {
+        // TODO: Call your deletion endpoint
         alert('Account deletion would be processed here.');
       }
-    }
+    });
   }
-  
-  // Form validation
+
+  // Basic form required validation feedback (client-side only)
   document.querySelectorAll('form').forEach(form => {
     form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      // Basic validation
-      const requiredFields = form.querySelectorAll('input[required]');
-      let isValid = true;
-      
-      requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-          field.style.borderColor = '#ef4444';
-          isValid = false;
+      const required = form.querySelectorAll('[required]');
+      let ok = true;
+      required.forEach(f => {
+        if (!f.value.trim()) {
+          f.classList.add('border-rose-500/70', 'shadow-[0_0_0_3px]', 'shadow-rose-500/20');
+          ok = false;
         } else {
-          field.style.borderColor = '';
+          f.classList.remove('border-rose-500/70', 'shadow-[0_0_0_3px]', 'shadow-rose-500/20');
         }
       });
-      
-      if (isValid) {
-        // Here you would submit the form
-        alert('Settings saved successfully!');
-      } else {
+      if (!ok) {
+        e.preventDefault();
         alert('Please fill in all required fields.');
       }
     });
   });
+})();
 </script>
 {% endblock %}

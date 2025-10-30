@@ -1,0 +1,181 @@
+{% extends 'base_internal.html' %}
+{% load static %}
+
+{% block title %}Edit Campaign - KaTek AI{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-6xl px-4 py-10 min-h-[calc(100vh-80px)]">
+  <!-- Header -->
+  <header class="mb-8">
+    <div class="flex items-center gap-3 mb-4">
+      <a href="{% url 'campaigns' %}" class="text-white/60 hover:text-white transition">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+      <h1 class="text-2xl font-bold text-white/90">Edit Campaign: {{ campaign.name }}</h1>
+    </div>
+    <p class="text-sm text-white/60">Manage your campaign settings and email steps.</p>
+  </header>
+
+  <div class="grid gap-8 lg:grid-cols-[1fr,400px]">
+    <!-- Main Content -->
+    <div class="space-y-6">
+      <!-- Campaign Settings -->
+      <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+        <h3 class="text-lg font-semibold text-white/90 mb-4">Campaign Settings</h3>
+        
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+          
+          <!-- Campaign Name -->
+          <div>
+            <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-white/80 mb-2">Campaign Name</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <p class="mt-1 text-sm text-red-400">{{ form.name.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Campaign Type -->
+          <div>
+            <label for="{{ form.type.id_for_label }}" class="block text-sm font-medium text-white/80 mb-2">Campaign Type</label>
+            {{ form.type }}
+            {% if form.type.errors %}
+              <p class="mt-1 text-sm text-red-400">{{ form.type.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Campaign Status -->
+          <div>
+            <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-white/80 mb-2">Status</label>
+            {{ form.status }}
+            {% if form.status.errors %}
+              <p class="mt-1 text-sm text-red-400">{{ form.status.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Save Button -->
+          <div class="flex justify-end pt-4">
+            <button type="submit" class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-all duration-200 font-medium">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Campaign Steps -->
+      <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-white/90">Email Steps</h3>
+          <a href="{% url 'add_campaign_step' campaign.id %}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-3 py-2 text-sm font-medium text-white transition">
+            <i class="fas fa-plus"></i>
+            Add Step
+          </a>
+        </div>
+        
+        {% if campaign_steps %}
+          <div class="space-y-4">
+            {% for step in campaign_steps %}
+            <div class="rounded-lg border border-white/10 bg-white/5 p-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
+                    {{ step.order }}
+                  </div>
+                  <div>
+                    <h4 class="font-medium text-white/90">{{ step.name }}</h4>
+                    <p class="text-sm text-white/60">{{ step.subject }}</p>
+                    {% if step.delay_hours > 0 %}
+                    <p class="text-xs text-white/50">Sends {{ step.delay_hours }} hours after previous step</p>
+                    {% else %}
+                    <p class="text-xs text-white/50">Sends immediately</p>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="rounded-md bg-white/5 hover:bg-white/10 border border-white/15 px-2.5 py-2 text-xs text-white/80" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="rounded-md bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 px-2.5 py-2 text-xs text-red-400" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-8">
+            <div class="mx-auto mb-4 w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+              <i class="fas fa-envelope text-white/40"></i>
+            </div>
+            <h4 class="text-white/70 font-medium mb-2">No Email Steps</h4>
+            <p class="text-sm text-white/50 mb-4">Add email steps to define what gets sent to your leads.</p>
+            <a href="{% url 'add_campaign_step' campaign.id %}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-3 py-2 text-sm font-medium text-white transition">
+              <i class="fas fa-plus"></i>
+              Add First Step
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="space-y-6">
+      <!-- Campaign Actions -->
+      <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+        <h3 class="text-lg font-semibold text-white/90 mb-4">Actions</h3>
+        
+        <div class="space-y-3">
+          {% if campaign.status == 'draft' and campaign_steps %}
+          <a href="{% url 'send_campaign' campaign.id %}" 
+             class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-4 py-3 text-sm font-medium text-white transition"
+             onclick="return confirm('Are you sure you want to send this campaign to all leads?')">
+            <i class="fas fa-paper-plane"></i>
+            Send Campaign
+          </a>
+          {% elif campaign.status == 'draft' %}
+          <div class="w-full rounded-lg bg-amber-500/20 border border-amber-500/30 px-4 py-3 text-sm text-amber-300 text-center">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            Add email steps first
+          </div>
+          {% else %}
+          <div class="w-full rounded-lg bg-gray-500/20 border border-gray-500/30 px-4 py-3 text-sm text-gray-400 text-center">
+            <i class="fas fa-check mr-2"></i>
+            Campaign {{ campaign.status|title }}
+          </div>
+          {% endif %}
+          
+          <a href="{% url 'campaigns' %}" class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-3 text-sm font-medium text-white transition">
+            <i class="fas fa-arrow-left"></i>
+            Back to Campaigns
+          </a>
+        </div>
+      </div>
+      
+      <!-- Campaign Stats -->
+      <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+        <h3 class="text-lg font-semibold text-white/90 mb-4">Campaign Stats</h3>
+        
+        <div class="space-y-3">
+          <div class="flex justify-between">
+            <span class="text-sm text-white/60">Status</span>
+            <span class="text-sm font-medium text-white/90">{{ campaign.status|title }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-sm text-white/60">Type</span>
+            <span class="text-sm font-medium text-white/90">{{ campaign.type|title }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-sm text-white/60">Created</span>
+            <span class="text-sm font-medium text-white/90">{{ campaign.created_at|date:"M d, Y" }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-sm text-white/60">Steps</span>
+            <span class="text-sm font-medium text-white/90">{{ campaign_steps|length }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

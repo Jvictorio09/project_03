@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Onboarding - Step 3: Channel Connections{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-2xl font-bold text-white">Channel Connections</h1>
+                <span class="text-slate-400">Step 3 of 5</span>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-2">
+                <div class="bg-indigo-600 h-2 rounded-full" style="width: 60%"></div>
+            </div>
+        </div>
+
+        <!-- Channels Form -->
+        <div class="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-8 ring-1 ring-slate-700">
+            <h2 class="text-xl font-semibold text-white mb-6">Connect your channels</h2>
+            <p class="text-slate-400 mb-8">Connect your social media and website to expand your reach. You can always add more later.</p>
+            
+            <form method="post" action="{% url 'onboarding_step3' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Chat URL -->
+                <div class="bg-slate-900/50 rounded-xl p-6 ring-1 ring-slate-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-white font-medium">Chat URL</h3>
+                            <p class="text-slate-400 text-sm">Your public chat interface</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800 rounded-lg p-3 font-mono text-sm text-slate-300">
+                        https://katek.ai/chat/{{ request.session.onboarding_data.name|slugify|default:'your-org' }}
+                    </div>
+                    <p class="text-slate-400 text-xs mt-2">Share this URL to let customers chat with your AI agent</p>
+                </div>
+
+                <!-- Facebook -->
+                <div class="bg-slate-900/50 rounded-xl p-6 ring-1 ring-slate-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-medium">Facebook</h3>
+                                <p class="text-slate-400 text-sm">Connect your Facebook page</p>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center">
+                            <span class="text-slate-400 text-sm">Soon</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-xs">Facebook integration coming soon</p>
+                </div>
+
+                <!-- Instagram -->
+                <div class="bg-slate-900/50 rounded-xl p-6 ring-1 ring-slate-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-medium">Instagram</h3>
+                                <p class="text-slate-400 text-sm">Connect your Instagram account</p>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center">
+                            <span class="text-slate-400 text-sm">Soon</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-xs">Instagram integration coming soon</p>
+                </div>
+
+                <!-- Website -->
+                <div class="bg-slate-900/50 rounded-xl p-6 ring-1 ring-slate-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-slate-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-medium">Website</h3>
+                                <p class="text-slate-400 text-sm">Add chat widget to your website</p>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center">
+                            <span class="text-slate-400 text-sm">Soon</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-xs">Website widget integration coming soon</p>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex justify-between pt-6">
+                    <a href="{% url 'onboarding_wizard' %}?step=2" class="text-slate-400 hover:text-white transition">
+                        ← Back to Persona
+                    </a>
+                    <button 
+                        type="submit" 
+                        class="inline-flex items-center gap-2 rounded-2xl px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98] transition font-medium"
+                    >
+                        Next: Plan Selection
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

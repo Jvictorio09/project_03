@@ -120,8 +120,26 @@ zope.interface==7.2
 pip-tools==7.4.1 
 pyproject-hooks==1.2.0
 
+# Billing and Payments
 stripe==12.5.1
-openai
-pydantic
-pydantic-core
+
+# AI and Vector Search
+openai==1.51.0
+pydantic==2.9.2
+pydantic-core==2.23.4
+
+# Authentication
 django-allauth==0.57.0
+
+# Email Services
+postmark==0.0.1
+boto3==1.35.0  # For AWS SES
+
+# Vector Database (PostgreSQL with pgvector)
+psycopg2-binary==2.9.7
+dj-database-url==2.3.0
+
+# Additional utilities
+jinja2==3.1.4  # For email templates
+celery==5.5.0  # For background tasks
+redis==5.2.1  # For Celery broker

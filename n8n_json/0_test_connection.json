@@ -1,0 +1,103 @@
+{
+  "name": "Test Django API Connection",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [120, 180]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.DJANGO_BASE_URL || 'https://project03-production.up.railway.app' }}/api/jobs/next/?kind=property_ai_enrichment&limit=1",
+        "options": {
+          "fullResponse": true,
+          "response": {
+            "responseFormat": "json"
+          }
+        }
+      },
+      "id": "test-poll",
+      "name": "Test Poll Endpoint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [360, 180],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "SELECT: Django – Header Token (FREE)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.DJANGO_BASE_URL || 'https://project03-production.up.railway.app' }}/health/",
+        "options": {
+          "response": {
+            "responseFormat": "json"
+          }
+        }
+      },
+      "id": "test-health",
+      "name": "Test Health Endpoint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [360, 340]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "poll_status",
+              "value": "={{ $json.statusCode }}"
+            },
+            {
+              "name": "poll_message",
+              "value": "={{ $json.statusCode === 200 || $json.statusCode === 204 ? 'OK' : 'ERROR' }}"
+            },
+            {
+              "name": "health_status",
+              "value": "={{ $('Test Health Endpoint').item.json.status || 'unknown' }}"
+            },
+            {
+              "name": "summary",
+              "value": "={{ 'Poll: ' + $json.statusCode + ', Health: ' + ($('Test Health Endpoint').item.json.status || 'unknown') }}"
+            }
+          ]
+        }
+      },
+      "id": "summary",
+      "name": "Test Summary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [600, 180]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          { "node": "Test Poll Endpoint", "type": "main", "index": 0 },
+          { "node": "Test Health Endpoint", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Test Poll Endpoint": { "main": [ [ { "node": "Test Summary", "type": "main", "index": 0 } ] ] },
+    "Test Health Endpoint": { "main": [ [ { "node": "Test Summary", "type": "main", "index": 0 } ] ] }
+  },
+  "pinData": {},
+  "settings": {},
+  "staticData": {},
+  "meta": {
+    "templateCreds": [
+      "httpHeaderAuth: SELECT: Django – Header Token (FREE)"
+    ]
+  }
+}
+

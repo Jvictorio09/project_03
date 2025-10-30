@@ -1,0 +1,98 @@
+{# CSV/Excel Import Form - SIMPLE VERSION #}
+<form 
+  hx-post="{% url 'import_csv_simple' %}"
+  hx-target="#add-property-modal .modal-body"
+  hx-swap="innerHTML"
+  hx-indicator="#csv-import-indicator"
+  enctype="multipart/form-data"
+  class="space-y-6">
+  {% csrf_token %}
+  
+  {% if error %}
+    <div class="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-4">
+      <p class="text-red-400">{{ error }}</p>
+    </div>
+  {% endif %}
+  
+  <div>
+    <label for="csv_file" class="block text-sm font-medium text-gray-300 mb-2">
+      Upload CSV or Excel File *
+    </label>
+    <input 
+      type="file" 
+      name="csv_file" 
+      id="csv_file"
+      required
+      accept=".csv,.xlsx,.xls"
+      class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-violet-600 file:text-white hover:file:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500">
+    <p class="text-xs text-gray-400 mt-1">Supported formats: CSV, Excel (.xlsx, .xls). Max 500 properties per import. Properties are created immediately - no background processing required!</p>
+    <div class="mt-2">
+      <a 
+        href="{% url 'import_csv_template' %}"
+        download
+        class="text-xs text-violet-400 hover:text-violet-300 underline">
+        <i class="fas fa-download mr-1"></i> Download CSV Template
+      </a>
+    </div>
+  </div>
+  
+  <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+    <h4 class="text-sm font-semibold text-white mb-3">Expected Columns:</h4>
+    <div class="grid grid-cols-2 gap-2 text-xs text-gray-400">
+      <div><span class="text-white">• Title</span> (or Property Title, Name)</div>
+      <div><span class="text-white">• Price</span> (or Rent, Rental, Amount)</div>
+      <div><span class="text-white">• City</span> (or Location)</div>
+      <div><span class="text-white">• Area</span> (or Neighborhood, District)</div>
+      <div><span class="text-white">• Beds</span> (or Bedrooms, BR)</div>
+      <div><span class="text-white">• Baths</span> (or Bathrooms, BA)</div>
+      <div><span class="text-white">• Description</span> (optional)</div>
+      <div><span class="text-white">• Image URL</span> (optional)</div>
+    </div>
+    <p class="text-xs text-gray-500 mt-3">
+      <i class="fas fa-info-circle mr-1"></i>
+      Column names are case-insensitive. AI will automatically enrich missing details.
+    </p>
+  </div>
+  
+  <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
+    <button 
+      type="button"
+      onclick="document.getElementById('add-property-modal').classList.add('hidden');"
+      class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors font-semibold">
+      Cancel
+    </button>
+    <button 
+      type="submit"
+      id="csv-import-submit"
+      class="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+      <span id="csv-import-text">
+        <i class="fas fa-upload mr-2"></i> Import Properties
+      </span>
+      <span id="csv-import-loading" class="hidden">
+        <i class="fas fa-spinner fa-spin mr-2"></i> Processing...
+      </span>
+    </button>
+  </div>
+  
+  <div id="csv-import-indicator" class="htmx-indicator text-center py-4">
+    <i class="fas fa-spinner fa-spin text-2xl text-violet-500"></i>
+    <p class="text-gray-400 mt-2">Processing your file...</p>
+  </div>
+</form>
+
+<script>
+// Handle form submission loading state
+document.body.addEventListener('htmx:beforeRequest', function(event) {
+  if (event.detail.elt.closest('form') && event.detail.elt.closest('form').querySelector('#csv_file')) {
+    const submitBtn = event.detail.elt.closest('form').querySelector('#csv-import-submit');
+    const loadingText = event.detail.elt.closest('form').querySelector('#csv-import-loading');
+    const normalText = event.detail.elt.closest('form').querySelector('#csv-import-text');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      if (normalText) normalText.classList.add('hidden');
+      if (loadingText) loadingText.classList.remove('hidden');
+    }
+  }
+});
+</script>
+

@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.db import connection
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -24,7 +25,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
 
-from .models import Property, Lead, PropertyUpload, Company
+from .models import Property, Lead, PropertyUpload, Company, HiddenProperty, EmailAccount, Campaign, CampaignStep, MessageLog
 from .forms import LeadForm, PropertyUploadForm, LoginForm, PropertyForm
 from django.forms import ModelForm
 from .webhook import send_chat_inquiry_webhook, send_property_listing_webhook, send_property_chat_webhook, send_prompt_search_webhook
@@ -196,31 +197,190 @@ def thanks(request: HttpRequest) -> HttpResponse:
     return render(request, "thanks.html", {"lead": lead})
 
 
-@wizard_required
+@login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
-    """Main Dashboard with real metrics and company-scoped data"""
-    from .services import CompanyService, EventLogger
+    """Main Dashboard with real metrics and organization-scoped data"""
+    from .services_analytics import analytics_service
+    from .models import Organization, Property, Lead, LeadMessage, ChannelConnection, Company, Membership
+    from django.db.models import Sum, Count, Q
+    from django.utils import timezone
+    from datetime import timedelta
+    import pytz
     
-    company = request.company
+    # Get organization (use request.organization if available, otherwise fallback)
+    organization = getattr(request, 'organization', None)
     
-    # Get company-scoped data
-    recent_properties = Property.objects.filter(company=company)[:6]
-    recent_leads = Lead.objects.filter(company=company)[:5]
+    # If organization is None, try to get from membership
+    if not organization and hasattr(request, 'user') and request.user.is_authenticated:
+        membership = Membership.objects.filter(user=request.user, is_active=True).first()
+        if membership:
+            organization = membership.organization
     
-    # Calculate real metrics
-    total_properties = Property.objects.filter(company=company).count()
-    total_leads = Lead.objects.filter(company=company).count()
+    # If still no organization, check if we have a Company (legacy)
+    company = None
+    if not organization:
+        company = getattr(request, 'company', None)
+        # If company is a string, try to get Company instance
+        if isinstance(company, str):
+            try:
+                company = Company.objects.get(slug=company)
+            except Company.DoesNotExist:
+                company = None
     
-    # Get recent activity
-    recent_events = EventLogger.get_recent_events(company, limit=5)
+    # If we have a company but no organization, try to find or create organization
+    if company and not organization:
+        # Try to find organization with same name/slug
+        try:
+            organization = Organization.objects.get(slug=company.slug)
+        except Organization.DoesNotExist:
+            # Could create organization from company, but for now redirect to onboarding
+            pass
+    
+    if not organization:
+        return redirect('onboarding_wizard')
+    
+    # Ensure organization is an Organization instance, not a string
+    if isinstance(organization, str):
+        try:
+            organization = Organization.objects.get(slug=organization)
+        except Organization.DoesNotExist:
+            return redirect('onboarding_wizard')
+    
+    # Check feature flag
+    use_real_data = getattr(settings, 'FEATURE_DASHBOARD_REAL_DATA', True)
+    
+    if not use_real_data:
+        # Fallback to simplified view
+        recent_properties = Property.objects.filter(
+            Q(organization=organization) | (Q(company=company) if company else Q())
+        )[:6]
+        context = {
+            'recent_properties': recent_properties,
+            'leads_today': 0,
+            'active_conversations': 0,
+            'inventory_value': 0,
+            'conversion_rate': 0,
+            'organization': organization,
+        }
+        return render(request, "dashboard.html", context)
+    
+    # Get connected channels
+    connected_channels = ChannelConnection.objects.filter(
+        organization=organization,
+        status='connected'
+    ).values_list('channel', flat=True)
+    
+    # Ensure chat is always considered connected
+    if 'chat' not in connected_channels:
+        connected_channels = list(connected_channels) + ['chat']
+    
+    # Timezone for date calculations
+    tz = pytz.timezone(organization.timezone if hasattr(organization, 'timezone') else 'Asia/Manila')
+    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = tz.localize(today_start.replace(tzinfo=None)) if not timezone.is_aware(today_start) else today_start
+    yesterday_start = today_start - timedelta(days=1)
+    
+    # Leads Today (org-scoped, only connected channels)
+    leads_today = Lead.objects.filter(
+        organization=organization,
+        created_at__gte=today_start
+    ).count()
+    
+    leads_yesterday = Lead.objects.filter(
+        organization=organization,
+        created_at__gte=yesterday_start,
+        created_at__lt=today_start
+    ).count()
+    
+    leads_delta = ((leads_today - leads_yesterday) / leads_yesterday * 100) if leads_yesterday > 0 else 0
+    
+    # Active Conversations (distinct external_thread_id last 60 min, connected channels)
+    sixty_min_ago = timezone.now() - timedelta(minutes=60)
+    active_conversations = LeadMessage.objects.filter(
+        organization=organization,
+        channel__in=connected_channels,
+        created_at__gte=sixty_min_ago
+    ).values('external_thread_id').distinct().count()
+    
+    # Inventory Value (sum of active Property.list_price for org)
+    # Note: Property model uses price_amount, not list_price
+    inventory_query = Property.objects.filter(
+        organization=organization
+    )
+    if company:
+        # Also include legacy company-based properties
+        inventory_query = Property.objects.filter(
+            Q(organization=organization) | Q(company=company)
+        )
+    
+    inventory_value = inventory_query.aggregate(total=Sum('price_amount'))['total'] or 0
+    
+    # Conversion Rate (converted_in_window / leads_created_in_window)
+    # Using 30-day window for now
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    leads_in_window = Lead.objects.filter(
+        organization=organization,
+        created_at__gte=thirty_days_ago
+    ).count()
+    
+    # Lead.status was removed; if/when a new conversion signal exists, update this.
+    converted_in_window = 0
+    
+    conversion_rate = (converted_in_window / leads_in_window * 100) if leads_in_window > 0 else 0
+    
+    # Recent Conversations (last 60 min, connected channels)
+    recent_conversations = LeadMessage.objects.filter(
+        organization=organization,
+        channel__in=connected_channels,
+        created_at__gte=sixty_min_ago,
+        sender_type='human'
+    ).order_by('-created_at').select_related('lead')[:10]
+    
+    recent_conversations_list = []
+    for msg in recent_conversations:
+        minutes_ago = int((timezone.now() - msg.created_at).total_seconds() / 60)
+        name = msg.lead.name if msg.lead else 'Unknown'
+        recent_conversations_list.append({
+            'name': name,
+            'last_message_snippet': msg.text[:50] + '...' if len(msg.text) > 50 else msg.text,
+            'minutes_ago': minutes_ago,
+            'channel': msg.get_channel_display()
+        })
+    
+    # Recent Properties (latest active 6)
+    recent_properties_query = Property.objects.filter(
+        organization=organization
+    )
+    if company:
+        recent_properties_query = Property.objects.filter(
+            Q(organization=organization) | Q(company=company)
+        )
+    
+    recent_properties = recent_properties_query.order_by('-created_at')[:6]
+    
+    # Timeseries data (for chart)
+    range_days = int(request.GET.get('range', '7'))
+    if range_days not in [7, 30, 90]:
+        range_days = 7
+    
+    timeseries_data = analytics_service.get_leads_timeseries(organization, range_days, connected_channels)
+    
+    # Convert timeseries_data to JSON for template
+    import json
+    timeseries_json = json.dumps(timeseries_data)
     
     context = {
+        'leads_today': leads_today,
+        'leads_delta': leads_delta,
+        'active_conversations': active_conversations,
+        'inventory_value': inventory_value,
+        'conversion_rate': conversion_rate,
+        'recent_conversations': recent_conversations_list,
         'recent_properties': recent_properties,
-        'recent_leads': recent_leads,
-        'total_properties': total_properties,
-        'total_leads': total_leads,
-        'recent_events': recent_events,
-        'company': company,
+        'timeseries_data': timeseries_data,
+        'timeseries_json': timeseries_json,
+        'channel_connections': ChannelConnection.objects.filter(organization=organization),
+        'organization': organization,
     }
     
     return render(request, "dashboard.html", context)
@@ -1179,6 +1339,26 @@ def create_property_from_upload(upload: PropertyUpload):
     except Exception as e:
         # Log but don't fail the request
         print(f"Webhook error: {e}")
+    
+    # Trigger property enrichment via n8n
+    try:
+        from .webhook import send_property_enrichment_webhook
+        enrichment_data = {
+            "property_id": str(property_obj.id),
+            "company_id": str(property_obj.company.id) if property_obj.company else "",
+            "title": property_obj.title,
+            "city": property_obj.city,
+            "area": property_obj.area,
+            "price_amount": property_obj.price_amount,
+            "beds": property_obj.beds,
+            "baths": property_obj.baths,
+            "floor_area_sqm": property_obj.floor_area_sqm,
+            "timestamp": timezone.now().isoformat()
+        }
+        send_property_enrichment_webhook(enrichment_data)
+    except Exception as e:
+        # Log but don't fail the request
+        print(f"Property enrichment trigger error: {e}")
     
     return property_obj
 
@@ -2574,14 +2754,21 @@ def signup(request: HttpRequest) -> HttpResponse:
 def login_view(request: HttpRequest) -> HttpResponse:
     """User login"""
     if request.method == 'POST':
-        form = LoginForm(request, data=request.POST)
+        form = LoginForm(data=request.POST)
         if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, 'Welcome back!')
-            return redirect('dashboard')
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=email, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, 'Welcome back!')
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'Invalid email or password.')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
-        form = LoginForm(request)
+        form = LoginForm()
     
     return render(request, "login.html", {'form': form})
 
@@ -2843,7 +3030,7 @@ def handle_crm_connection(request):
 
 @wizard_required
 def properties(request: HttpRequest) -> HttpResponse:
-    """Properties management page with company-scoped data"""
+    """Properties management page - shows all organization properties except hidden ones"""
     # Query params for filtering
     q = request.GET.get("q", "").strip()
     city = request.GET.get("city", "").strip()
@@ -2855,8 +3042,29 @@ def properties(request: HttpRequest) -> HttpResponse:
     page = int(request.GET.get("page", 1))
     per = min(int(request.GET.get("per", 12)), 48)
     
-    # Company-scoped queryset
-    properties = Property.objects.filter(company=request.company)
+    # Get organization
+    organization = getattr(request, 'organization', None)
+    if not organization and hasattr(request, 'user') and request.user.is_authenticated:
+        from .models import Membership
+        membership = Membership.objects.filter(user=request.user, is_active=True).first()
+        if membership:
+            organization = membership.organization
+    
+    # Get all organization properties (shared across all users)
+    if organization:
+        properties = Property.objects.filter(organization=organization)
+    else:
+        # Fallback to company if no organization
+        company = getattr(request, 'company', None)
+        if company:
+            properties = Property.objects.filter(company=company)
+        else:
+            properties = Property.objects.none()
+    
+    # Exclude properties hidden by current user
+    if request.user.is_authenticated:
+        hidden_property_ids = HiddenProperty.objects.filter(user=request.user).values_list('property_id', flat=True)
+        properties = properties.exclude(id__in=hidden_property_ids)
     
     # Search filter
     if q:
@@ -2909,11 +3117,15 @@ def properties(request: HttpRequest) -> HttpResponse:
     paginator = Paginator(properties, per)
     page_obj = paginator.get_page(page)
     
-    # Get distinct cities for filter dropdown
-    cities = Property.objects.values_list("city", flat=True).distinct().order_by("city")
+    # Get distinct cities for filter dropdown (from organization properties)
+    if organization:
+        cities = Property.objects.filter(organization=organization).values_list("city", flat=True).distinct().order_by("city")
+    else:
+        cities = Property.objects.none()
     
     context = {
-        "properties": page_obj,
+        "properties": page_obj,  # For backward compatibility
+        "page_obj": page_obj,     # For pagination template
         "cities": cities,
         "total_count": paginator.count,
         "current_filters": {
@@ -2929,6 +3141,44 @@ def properties(request: HttpRequest) -> HttpResponse:
     }
     
     return render(request, "properties.html", context)
+
+
+@csrf_exempt
+@login_required
+@require_POST
+def hide_property(request: HttpRequest, property_id) -> HttpResponse:
+    """Hide a property from current user's view (shared property)"""
+    try:
+        # property_id comes from URL as UUID (Django converts it)
+        property_obj = get_object_or_404(Property, id=property_id)
+        
+        # Create hidden property record
+        HiddenProperty.objects.get_or_create(
+            user=request.user,
+            property=property_obj
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Property hidden from your view'})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@login_required
+@require_POST
+def unhide_property(request: HttpRequest, property_id: str) -> HttpResponse:
+    """Unhide a property (restore to view)"""
+    property_obj = get_object_or_404(Property, id=property_id)
+    
+    # Remove hidden property record
+    HiddenProperty.objects.filter(
+        user=request.user,
+        property=property_obj
+    ).delete()
+    
+    return JsonResponse({'success': True, 'message': 'Property restored to your view'})
 
 
 @login_required
@@ -3067,48 +3317,72 @@ def leads(request: HttpRequest) -> HttpResponse:
 @login_required
 def campaigns(request: HttpRequest) -> HttpResponse:
     """Campaigns management page with creation and analytics"""
-    # Mock campaign data for demonstration
-    campaigns_data = [
-        {
-            'id': 1,
-            'name': 'New Listings Alert',
-            'description': 'Weekly update about new properties in downtown area',
-            'type': 'email',
-            'status': 'sent',
-            'audience_size': 245,
-            'scheduled_at': timezone.now(),
-            'open_rate': 28.5,
-            'click_rate': 4.2
-        },
-        {
-            'id': 2,
-            'name': 'Luxury Properties Showcase',
-            'description': 'Featured high-end properties for qualified leads',
-            'type': 'email',
-            'status': 'scheduled',
-            'audience_size': 89,
-            'scheduled_at': timezone.now() + timezone.timedelta(days=1),
-            'open_rate': 0,
-            'click_rate': 0
-        },
-        {
-            'id': 3,
-            'name': 'Follow-up Sequence',
-            'description': '3-step follow-up for new leads',
-            'type': 'sequence',
-            'status': 'draft',
-            'audience_size': 156,
-            'scheduled_at': None,
-            'open_rate': 0,
-            'click_rate': 0
+    try:
+        # Get company
+        company = getattr(request, 'company', None)
+        if not company:
+            # Fallback: get from user's company
+            company = Company.objects.filter(users=request.user).first()
+        
+        if not company:
+            messages.error(request, 'No company found. Please contact support.')
+            return redirect('dashboard')
+        
+        # Get real campaigns for the company
+        campaigns_qs = Campaign.objects.filter(company=company).order_by('-created_at')
+        
+        # Get campaign statistics
+        campaigns_with_stats = []
+        for campaign in campaigns_qs:
+            # Get message logs for this campaign
+            message_logs = MessageLog.objects.filter(campaign=campaign)
+            
+            # Calculate stats
+            total_sent = message_logs.filter(status='sent').count()
+            total_delivered = message_logs.filter(status='delivered').count()
+            total_opened = message_logs.filter(status='opened').count()
+            total_clicked = message_logs.filter(status='clicked').count()
+            
+            # Calculate rates
+            open_rate = (total_opened / total_delivered * 100) if total_delivered > 0 else 0
+            click_rate = (total_clicked / total_delivered * 100) if total_delivered > 0 else 0
+            
+            # Get audience size (leads count)
+            audience_size = Lead.objects.filter(company=company).count()
+            
+            campaigns_with_stats.append({
+                'id': campaign.id,
+                'name': campaign.name,
+                'description': f"{campaign.type.title()} campaign",
+                'type': campaign.type,
+                'status': campaign.status,
+                'audience_size': audience_size,
+                'scheduled_at': campaign.created_at,
+                'open_rate': round(open_rate, 1),
+                'click_rate': round(click_rate, 1),
+                'total_sent': total_sent,
+                'total_delivered': total_delivered,
+                'campaign_obj': campaign
+            })
+        
+        # Get email accounts for campaign creation
+        email_accounts = EmailAccount.objects.filter(
+            company=company,
+            is_active=True
+        ).order_by('-is_primary', '-created_at')
+        
+        context = {
+            'campaigns': campaigns_with_stats,
+            'email_accounts': email_accounts,
+            'has_email_accounts': email_accounts.exists()
         }
-    ]
-    
-    context = {
-        'campaigns': campaigns_data
-    }
-    
-    return render(request, "campaigns.html", context)
+        
+        return render(request, "campaigns.html", context)
+        
+    except Exception as e:
+        logger.error(f"Error in campaigns view: {e}", exc_info=True)
+        messages.error(request, 'Failed to load campaigns. Please try again.')
+        return redirect('dashboard')
 
 
 @login_required
@@ -3221,34 +3495,55 @@ def settings(request: HttpRequest) -> HttpResponse:
             messages.success(request, 'Notification preferences saved!')
             return redirect('settings')
     
+    # Get user's email accounts
+    try:
+        # Try to get company from request
+        company = getattr(request, 'company', None)
+        if not company:
+            # Fallback: get from user's company
+            company = Company.objects.filter(users=request.user).first()
+        
+        if company:
+            email_accounts = EmailAccount.objects.filter(
+                company=company,
+                is_active=True
+            ).order_by('-is_primary', '-created_at')
+        else:
+            email_accounts = EmailAccount.objects.none()
+    except Exception as e:
+        # If there's any error, just show empty list
+        email_accounts = EmailAccount.objects.none()
+    
     context = {
-        'user': request.user
+        'user': request.user,
+        'email_accounts': email_accounts
     }
     
     return render(request, "settings.html", context)
 
 
 # Modal Views for HTMX Integration
-@wizard_required
+@login_required
 def add_property_modal(request: HttpRequest) -> HttpResponse:
     """Modal content for adding a new property"""
+    # Get organization
+    organization = getattr(request, 'organization', None)
+    if not organization and hasattr(request, 'user') and request.user.is_authenticated:
+        from .models import Membership
+        membership = Membership.objects.filter(user=request.user, is_active=True).first()
+        if membership:
+            organization = membership.organization
+    
+    if not organization:
+        return JsonResponse({'error': 'No organization found'}, status=400)
+    
     if request.method == 'POST':
         form = PropertyForm(request.POST)
         if form.is_valid():
             property = form.save(commit=False)
-            property.company = request.company
+            property.organization = organization
             property.slug = property.title.lower().replace(' ', '-').replace('&', 'and')
             property.save()
-            
-            # Log the event
-            from .services import EventLogger
-            EventLogger.log_event(
-                company=request.company,
-                user=request.user,
-                event_type='property.created',
-                description=f'New property added: {property.title}',
-                metadata={'property_id': str(property.id)}
-            )
             
             # Return success response for HTMX
             return render(request, 'partials/property_success.html', {

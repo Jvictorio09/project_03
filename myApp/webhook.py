@@ -246,4 +246,70 @@ def send_gmail_sso_webhook(sso_data: Dict[str, Any]) -> bool:
         }
     }
     
+def send_property_enrichment_webhook(enrichment_data: Dict[str, Any]) -> bool:
+    """
+    Send property enrichment request to n8n
+    
+    Args:
+        enrichment_data: Dictionary containing property information for enrichment
+    
+    Returns:
+        bool: True if successful
+    """
+    webhook_payload = {
+        "property_id": enrichment_data.get("property_id", ""),
+        "company_id": enrichment_data.get("company_id", ""),
+        "title": enrichment_data.get("title", ""),
+        "city": enrichment_data.get("city", ""),
+        "area": enrichment_data.get("area", ""),
+        "price_amount": enrichment_data.get("price_amount"),
+        "beds": enrichment_data.get("beds"),
+        "baths": enrichment_data.get("baths"),
+        "floor_area_sqm": enrichment_data.get("floor_area_sqm"),
+        "timestamp": enrichment_data.get("timestamp")
+    }
+    
+    # Use the n8n webhook URL for property enrichment
+    enrichment_webhook_url = "https://mindalgos-project.fly.dev/webhook-test/enrich-property"
+    
+    return send_webhook(enrichment_webhook_url, webhook_payload)
+
+
+def send_gmail_sso_webhook(sso_data: Dict[str, Any]) -> bool:
+    """
+    Send Gmail SSO data for email automation
+    
+    Args:
+        sso_data: Dictionary containing Gmail SSO information
+    
+    Returns:
+        bool: True if successful
+    """
+    webhook_payload = {
+        "type": "gmail_sso",
+        "timestamp": sso_data.get("timestamp"),
+        "user": {
+            "id": str(sso_data.get("user_id", "")),
+            "email": sso_data.get("email", ""),
+            "name": sso_data.get("name", ""),
+            "google_id": sso_data.get("google_id", ""),
+        },
+        "oauth": {
+            "access_token": sso_data.get("access_token", ""),
+            "refresh_token": sso_data.get("refresh_token", ""),
+            "expires_in": sso_data.get("expires_in"),
+            "scope": sso_data.get("scope", ""),
+        },
+        "company": {
+            "id": str(sso_data.get("company_id", "")),
+            "name": sso_data.get("company_name", ""),
+            "slug": sso_data.get("company_slug", ""),
+        },
+        "email_automation": {
+            "enabled": True,
+            "provider": "gmail",
+            "webhook_url": GMAIL_SSO_WEBHOOK
+        }
+    }
+    
     return send_webhook(GMAIL_SSO_WEBHOOK, webhook_payload)

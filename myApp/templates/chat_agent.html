@@ -3,837 +3,252 @@
 
 {% block title %}Chat Agent - KaTek AI{% endblock %}
 
-{% block extra_css %}
-<style>
-  .chat-agent-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: var(--space-8) var(--space-4);
-  }
-  
-  .chat-agent-header {
-    margin-bottom: var(--space-8);
-  }
-  
-  .chat-agent-title {
-    font-size: 2.5rem;
-    font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-2);
-  }
-  
-  .chat-agent-subtitle {
-    color: var(--text-secondary);
-    font-size: 1.125rem;
-  }
-  
-  .chat-agent-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-8);
-    margin-bottom: var(--space-12);
-  }
-  
-  .chat-simulation {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    box-shadow: var(--shadow-soft);
-    height: fit-content;
-  }
-  
-  .simulation-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-6);
-    padding-bottom: var(--space-4);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .simulation-title {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-    margin: 0;
-  }
-  
-  .device-toggle {
-    display: flex;
-    gap: var(--space-2);
-  }
-  
-  .device-btn {
-    padding: var(--space-2) var(--space-3);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    font-size: 0.75rem;
-  }
-  
-  .device-btn.active {
-    background: var(--primary-purple);
-    border-color: var(--primary-purple);
-    color: white;
-  }
-  
-  .chat-window {
-    background: var(--deep-navy);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-soft);
-    height: 500px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .chat-header {
-    background: var(--surface-glass);
-    padding: var(--space-4);
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .chat-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: var(--font-weight-bold);
-  }
-  
-  .chat-info h4 {
-    margin: 0;
-    font-size: 1rem;
-    color: var(--text-primary);
-  }
-  
-  .chat-info p {
-    margin: 0;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-  
-  .chat-messages {
-    flex: 1;
-    padding: var(--space-4);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-  
-  .message {
-    display: flex;
-    gap: var(--space-3);
-    opacity: 0;
-    transform: translateY(20px);
-    animation: messageSlideIn 0.6s ease-out forwards;
-  }
-  
-  .message.user {
-    flex-direction: row-reverse;
-  }
-  
-  .message-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: var(--font-weight-bold);
-    flex-shrink: 0;
-  }
-  
-  .message.user .message-avatar {
-    background: var(--primary-purple);
-    color: white;
-  }
-  
-  .message.ai .message-avatar {
-    background: var(--surface-glass);
-    color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  
-  .message-content {
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg);
-    padding: var(--space-3) var(--space-4);
-    max-width: 80%;
-    position: relative;
-  }
-  
-  .message.user .message-content {
-    background: var(--primary-purple);
-    border-color: var(--primary-purple);
-    color: white;
-  }
-  
-  .message-text {
-    margin: 0;
-    font-size: 0.875rem;
-    line-height: 1.5;
-  }
-  
-  .message-time {
-    font-size: 0.625rem;
-    color: var(--text-muted);
-    margin-top: var(--space-1);
-  }
-  
-  .message.user .message-time {
-    color: rgba(255, 255, 255, 0.7);
-  }
-  
-  .chat-input {
-    padding: var(--space-4);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-  
-  .chat-input input {
-    flex: 1;
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-md);
-    padding: var(--space-3);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-  }
-  
-  .chat-input input::placeholder {
-    color: var(--text-muted);
-  }
-  
-  .chat-send {
-    background: var(--primary-purple);
-    border: none;
-    border-radius: var(--radius-md);
-    padding: var(--space-3);
-    color: white;
-    cursor: pointer;
-    transition: all var(--transition-normal);
-  }
-  
-  .chat-send:hover {
-    background: var(--primary-purple-hover);
-    transform: translateY(-1px);
-  }
-  
-  .agent-config {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    box-shadow: var(--shadow-soft);
-  }
-  
-  .config-section {
-    margin-bottom: var(--space-8);
-  }
-  
-  .config-section:last-child {
-    margin-bottom: 0;
-  }
-  
-  .section-title {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-4);
-    color: var(--text-primary);
-  }
-  
-  .persona-presets {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-4);
-    margin-bottom: var(--space-6);
-  }
-  
-  .persona-card {
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
-    cursor: pointer;
-    transition: all var(--transition-normal);
-  }
-  
-  .persona-card:hover {
-    border-color: var(--primary-purple);
-    background: rgba(109, 40, 217, 0.1);
-  }
-  
-  .persona-card.selected {
-    border-color: var(--primary-purple);
-    background: rgba(109, 40, 217, 0.2);
-  }
-  
-  .persona-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-md);
-    background: var(--primary-purple);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    margin-bottom: var(--space-3);
-  }
-  
-  .persona-title {
-    font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-2);
-    color: var(--text-primary);
-  }
-  
-  .persona-description {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
-  
-  .tone-sliders {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-  }
-  
-  .slider-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-  
-  .slider-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: var(--font-weight-medium);
-    color: var(--text-primary);
-  }
-  
-  .slider-value {
-    color: var(--primary-purple);
-    font-weight: var(--font-weight-bold);
-  }
-  
-  .slider {
-    width: 100%;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--surface-glass);
-    outline: none;
-    -webkit-appearance: none;
-  }
-  
-  .slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--primary-purple);
-    cursor: pointer;
-    box-shadow: var(--shadow-soft);
-  }
-  
-  .slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--primary-purple);
-    cursor: pointer;
-    border: none;
-    box-shadow: var(--shadow-soft);
-  }
-  
-  .greeting-section {
-    margin-bottom: var(--space-6);
-  }
-  
-  .greeting-textarea {
-    width: 100%;
-    min-height: 100px;
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-md);
-    padding: var(--space-3);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    resize: vertical;
-  }
-  
-  .greeting-textarea:focus {
-    outline: none;
-    border-color: var(--primary-purple);
-    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
-  }
-  
-  .knowledge-section {
-    margin-bottom: var(--space-6);
-  }
-  
-  .knowledge-options {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-  
-  .knowledge-option {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-  }
-  
-  .knowledge-option:hover {
-    border-color: var(--primary-purple);
-    background: rgba(109, 40, 217, 0.1);
-  }
-  
-  .knowledge-option.selected {
-    border-color: var(--primary-purple);
-    background: rgba(109, 40, 217, 0.2);
-  }
-  
-  .knowledge-radio {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .knowledge-option.selected .knowledge-radio {
-    border-color: var(--primary-purple);
-    background: var(--primary-purple);
-  }
-  
-  .knowledge-option.selected .knowledge-radio::after {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: white;
-  }
-  
-  .knowledge-info h4 {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-  }
-  
-  .knowledge-info p {
-    margin: var(--space-1) 0 0 0;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-  }
-  
-  .output-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-  }
-  
-  .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-  
-  .control-select {
-    padding: var(--space-3);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-  }
-  
-  .control-select:focus {
-    outline: none;
-    border-color: var(--primary-purple);
-  }
-  
-  .integrations-section {
-    margin-top: var(--space-8);
-    padding-top: var(--space-6);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .integration-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-4);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--space-4);
-  }
-  
-  .integration-info h4 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-  }
-  
-  .integration-info p {
-    margin: var(--space-1) 0 0 0;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-  }
-  
-  .integration-url {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-  
-  .url-input {
-    padding: var(--space-2) var(--space-3);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-size: 0.75rem;
-    min-width: 200px;
-  }
-  
-  .copy-btn {
-    padding: var(--space-2) var(--space-3);
-    background: var(--primary-purple);
-    border: none;
-    border-radius: var(--radius-sm);
-    color: white;
-    cursor: pointer;
-    font-size: 0.75rem;
-    transition: all var(--transition-fast);
-  }
-  
-  .copy-btn:hover {
-    background: var(--primary-purple-hover);
-    transform: translateY(-1px);
-  }
-  
-  .config-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: var(--space-8);
-    padding-top: var(--space-6);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .save-draft {
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.875rem;
-  }
-  
-  .save-draft:hover {
-    color: var(--text-primary);
-  }
-  
-  @keyframes messageSlideIn {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .message:nth-child(1) { animation-delay: 0.5s; }
-  .message:nth-child(2) { animation-delay: 1.5s; }
-  .message:nth-child(3) { animation-delay: 2.5s; }
-  .message:nth-child(4) { animation-delay: 3.5s; }
-  
-  @media (max-width: 768px) {
-    .chat-agent-content {
-      grid-template-columns: 1fr;
-    }
-    
-    .persona-presets {
-      grid-template-columns: 1fr;
-    }
-    
-    .output-controls {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-{% endblock %}
+{# No extra_css block — fully Tailwind-driven #}
 
 {% block content %}
-<div class="chat-agent-container">
-  <!-- Header -->
-  <div class="chat-agent-header">
-    <h1 class="chat-agent-title">Chat Agent</h1>
-    <p class="chat-agent-subtitle">Configure your AI agent's personality and behavior</p>
-  </div>
-  
-  <!-- Main Content -->
-  <div class="chat-agent-content">
-    <!-- Live Simulation -->
-    <div class="chat-simulation">
-      <div class="simulation-header">
-        <h3 class="simulation-title">Live Preview</h3>
-        <div class="device-toggle">
-          <button class="device-btn active" data-device="desktop">
-            <i class="fas fa-desktop"></i>
-            Desktop
-          </button>
-          <button class="device-btn" data-device="mobile">
-            <i class="fas fa-mobile-alt"></i>
-            Mobile
-          </button>
-        </div>
-      </div>
-      
-      <div class="chat-window">
-        <div class="chat-header">
-          <div class="chat-avatar">A</div>
-          <div class="chat-info">
-            <h4>Ava from KaTek Realty</h4>
-            <p>Online now</p>
-          </div>
-        </div>
-        
-        <div class="chat-messages">
-          <div class="message ai">
-            <div class="message-avatar">A</div>
-            <div class="message-content">
-              <p class="message-text">Hi! I'm Ava from KaTek Realty. How can I help you find your perfect home today?</p>
-              <p class="message-time">2:34 PM</p>
-            </div>
-          </div>
-          
-          <div class="message user">
-            <div class="message-avatar">U</div>
-            <div class="message-content">
-              <p class="message-text">I'm looking for a 3BR condo under $500k in downtown</p>
-              <p class="message-time">2:35 PM</p>
-            </div>
-          </div>
-          
-          <div class="message ai">
-            <div class="message-avatar">A</div>
-            <div class="message-content">
-              <p class="message-text">Perfect! I found 3 great options in your budget. The newest is a modern 3BR with city views at $485k. Would you like to see the details?</p>
-              <p class="message-time">2:35 PM</p>
-            </div>
-          </div>
-          
-          <div class="message user">
-            <div class="message-avatar">U</div>
-            <div class="message-content">
-              <p class="message-text">Yes, that sounds amazing!</p>
-              <p class="message-time">2:36 PM</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="chat-input">
-          <input type="text" placeholder="Type your message..." readonly>
-          <button class="chat-send">
-            <i class="fas fa-paper-plane"></i>
-          </button>
-        </div>
-      </div>
+<div class="relative">
+  <!-- Top gradient glow -->
+  <div class="pointer-events-none absolute inset-x-0 -top-24 h-48 bg-gradient-to-r from-indigo-500/20 via-fuchsia-500/20 to-cyan-400/20 blur-3xl"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+    <!-- Header -->
+    <div class="mb-10 lg:mb-12">
+      <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-white">Chat Agent</h1>
+      <p class="mt-2 text-sm sm:text-base text-white/60">Configure your AI agent's personality and behavior</p>
     </div>
-    
-    <!-- Agent Configuration -->
-    <div class="agent-config">
-      <form method="post">
-        {% csrf_token %}
-        
-        <!-- Persona Selection -->
-        <div class="config-section">
-          <h3 class="section-title">Agent Persona</h3>
-          <div class="persona-presets">
-            <div class="persona-card selected" data-persona="friendly">
-              <div class="persona-icon">
-                <i class="fas fa-heart"></i>
-              </div>
-              <h4 class="persona-title">Friendly Consultant</h4>
-              <p class="persona-description">Warm, approachable, and helpful. Perfect for first-time buyers.</p>
-            </div>
-            
-            <div class="persona-card" data-persona="luxury">
-              <div class="persona-icon">
-                <i class="fas fa-crown"></i>
-              </div>
-              <h4 class="persona-title">Luxury Expert</h4>
-              <p class="persona-description">Sophisticated and knowledgeable. Ideal for high-end properties.</p>
-            </div>
-            
-            <div class="persona-card" data-persona="investor">
-              <div class="persona-icon">
-                <i class="fas fa-chart-line"></i>
-              </div>
-              <h4 class="persona-title">Investor Advisor</h4>
-              <p class="persona-description">Data-driven and analytical. Great for investment properties.</p>
-            </div>
-          </div>
-          <input type="hidden" name="persona" id="selected-persona" value="friendly">
-        </div>
-        
-        <!-- Tone Sliders -->
-        <div class="config-section">
-          <h3 class="section-title">Tone Adjustment</h3>
-          <div class="tone-sliders">
-            <div class="slider-group">
-              <div class="slider-label">
-                <span>Formality</span>
-                <span class="slider-value" id="formality-value">50</span>
-              </div>
-              <input type="range" class="slider" name="formality" min="0" max="100" value="50" id="formality-slider">
-            </div>
-            
-            <div class="slider-group">
-              <div class="slider-label">
-                <span>Warmth</span>
-                <span class="slider-value" id="warmth-value">70</span>
-              </div>
-              <input type="range" class="slider" name="warmth" min="0" max="100" value="70" id="warmth-slider">
-            </div>
-            
-            <div class="slider-group">
-              <div class="slider-label">
-                <span>Assertiveness</span>
-                <span class="slider-value" id="assertiveness-value">60</span>
-              </div>
-              <input type="range" class="slider" name="assertiveness" min="0" max="100" value="60" id="assertiveness-slider">
-            </div>
+
+    <!-- Main Content -->
+    <div class="grid gap-8 lg:grid-cols-2">
+      <!-- Live Simulation -->
+      <section class="bg-white/5 border border-white/10 rounded-2xl shadow-2xl shadow-black/20 backdrop-blur-xl p-5 sm:p-6 h-fit">
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+          <h3 class="text-lg font-semibold text-white">Live Preview</h3>
+          <div class="inline-flex items-center gap-2">
+            <button type="button" class="device-btn data-[active=false]:bg-white/5 data-[active=false]:border-white/20 data-[active=false]:text-white/70 data-[active=true]:bg-indigo-600 data-[active=true]:border-indigo-600 data-[active=true]:text-white px-3 py-1.5 rounded-md border text-xs font-medium transition" data-active="true" data-device="desktop">
+              <i class="fas fa-desktop mr-1"></i> Desktop
+            </button>
+            <button type="button" class="device-btn data-[active=false]:bg-white/5 data-[active=false]:border-white/20 data-[active=false]:text-white/70 data-[active=true]:bg-indigo-600 data-[active=true]:border-indigo-600 data-[active=true]:text-white px-3 py-1.5 rounded-md border text-xs font-medium transition" data-active="false" data-device="mobile">
+              <i class="fas fa-mobile-alt mr-1"></i> Mobile
+            </button>
           </div>
         </div>
-        
-        <!-- Greeting Text -->
-        <div class="config-section">
-          <h3 class="section-title">Greeting Message</h3>
-          <div class="greeting-section">
-            <textarea name="greeting" class="greeting-textarea" placeholder="Hi, I'm Ava from KaTek Realty—how can I help today?">Hi, I'm Ava from KaTek Realty—how can I help today?</textarea>
+
+        <div class="chat-window bg-[#0B0E14] rounded-xl overflow-hidden border border-white/10 shadow-lg flex flex-col h-[520px]">
+          <!-- Chat header -->
+          <div class="bg-white/5 backdrop-blur-lg border-b border-white/10 px-4 py-3 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 grid place-items-center text-white font-semibold">A</div>
+            <div>
+              <h4 class="text-sm font-medium text-white">Ava from KaTek Realty</h4>
+              <p class="text-[11px] text-white/60">Online now</p>
+            </div>
+          </div>
+
+          <!-- Messages -->
+          <div class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
+            <!-- AI msg -->
+            <div class="message ai flex items-start gap-3 opacity-0 translate-y-5">
+              <div class="w-8 h-8 shrink-0 rounded-full bg-white/10 border border-white/20 grid place-items-center text-[11px] text-white">A</div>
+              <div class="max-w-[80%] bg-white/5 border border-white/10 rounded-lg px-4 py-3">
+                <p class="text-sm leading-relaxed text-white">Hi! I'm Ava from KaTek Realty. How can I help you find your perfect home today?</p>
+                <p class="mt-1 text-[10px] text-white/50">2:34 PM</p>
+              </div>
+            </div>
+            <!-- User msg -->
+            <div class="message user flex items-start gap-3 justify-end opacity-0 translate-y-5">
+              <div class="max-w-[80%] bg-indigo-600 border border-indigo-600 text-white rounded-lg px-4 py-3">
+                <p class="text-sm leading-relaxed">I'm looking for a 3BR condo under $500k in downtown</p>
+                <p class="mt-1 text-[10px] text-white/80">2:35 PM</p>
+              </div>
+              <div class="w-8 h-8 shrink-0 rounded-full bg-indigo-600 grid place-items-center text-[11px] text-white">U</div>
+            </div>
+            <!-- AI msg -->
+            <div class="message ai flex items-start gap-3 opacity-0 translate-y-5">
+              <div class="w-8 h-8 shrink-0 rounded-full bg-white/10 border border-white/20 grid place-items-center text-[11px] text-white">A</div>
+              <div class="max-w-[80%] bg-white/5 border border-white/10 rounded-lg px-4 py-3">
+                <p class="text-sm leading-relaxed text-white">Perfect! I found 3 great options in your budget. The newest is a modern 3BR with city views at $485k. Would you like to see the details?</p>
+                <p class="mt-1 text-[10px] text-white/50">2:35 PM</p>
+              </div>
+            </div>
+            <!-- User msg -->
+            <div class="message user flex items-start gap-3 justify-end opacity-0 translate-y-5">
+              <div class="max-w-[80%] bg-indigo-600 border border-indigo-600 text-white rounded-lg px-4 py-3">
+                <p class="text-sm leading-relaxed">Yes, that sounds amazing!</p>
+                <p class="mt-1 text-[10px] text-white/80">2:36 PM</p>
+              </div>
+              <div class="w-8 h-8 shrink-0 rounded-full bg-indigo-600 grid place-items-center text-[11px] text-white">U</div>
+            </div>
+          </div>
+
+          <!-- Input -->
+          <div class="px-3 sm:px-4 py-3 border-t border-white/10 flex items-center gap-2">
+            <input type="text" placeholder="Type your message..." readonly class="flex-1 bg-white/5 border border-white/20 rounded-md px-3 py-2 text-sm text-white placeholder-white/50 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+            <button class="chat-send inline-flex items-center justify-center rounded-md bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 px-3 py-2 text-white text-sm transition">
+              <i class="fas fa-paper-plane"></i>
+            </button>
           </div>
         </div>
-        
-        <!-- Knowledge Source -->
-        <div class="config-section">
-          <h3 class="section-title">Knowledge Source</h3>
-          <div class="knowledge-section">
-            <div class="knowledge-options">
-              <div class="knowledge-option selected" data-source="all">
-                <div class="knowledge-radio"></div>
-                <div class="knowledge-info">
-                  <h4>All Properties</h4>
-                  <p>AI can answer questions about any property in your inventory</p>
+      </section>
+
+      <!-- Agent Configuration -->
+      <section class="bg-white/5 border border-white/10 rounded-2xl shadow-2xl shadow-black/20 backdrop-blur-xl p-5 sm:p-6">
+        <form method="post" class="space-y-8">
+          {% csrf_token %}
+
+          <!-- Persona Selection -->
+          <div>
+            <h3 class="text-lg font-semibold text-white mb-4">Agent Persona</h3>
+            <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-2" id="persona-grid">
+              <button type="button" data-persona="friendly" class="persona-card group rounded-xl border border-white/10 bg-white/5 p-4 text-left transition hover:border-indigo-500/60 hover:bg-indigo-500/10 focus:outline-none ring-0 data-[selected=true]:border-indigo-500 data-[selected=true]:bg-indigo-500/20" data-selected="true">
+                <div class="w-10 h-10 rounded-lg bg-indigo-600 grid place-items-center text-white mb-3"><i class="fas fa-heart"></i></div>
+                <h4 class="text-white font-medium">Friendly Consultant</h4>
+                <p class="text-white/60 text-sm mt-1">Warm, approachable, and helpful. Perfect for first-time buyers.</p>
+              </button>
+
+              <button type="button" data-persona="luxury" class="persona-card group rounded-xl border border-white/10 bg-white/5 p-4 text-left transition hover:border-indigo-500/60 hover:bg-indigo-500/10 focus:outline-none ring-0 data-[selected=true]:border-indigo-500 data-[selected=true]:bg-indigo-500/20" data-selected="false">
+                <div class="w-10 h-10 rounded-lg bg-indigo-600 grid place-items-center text-white mb-3"><i class="fas fa-crown"></i></div>
+                <h4 class="text-white font-medium">Luxury Expert</h4>
+                <p class="text-white/60 text-sm mt-1">Sophisticated and knowledgeable. Ideal for high-end properties.</p>
+              </button>
+
+              <button type="button" data-persona="investor" class="persona-card group rounded-xl border border-white/10 bg-white/5 p-4 text-left transition hover:border-indigo-500/60 hover:bg-indigo-500/10 focus:outline-none ring-0 data-[selected=true]:border-indigo-500 data-[selected=true]:bg-indigo-500/20" data-selected="false">
+                <div class="w-10 h-10 rounded-lg bg-indigo-600 grid place-items-center text-white mb-3"><i class="fas fa-chart-line"></i></div>
+                <h4 class="text-white font-medium">Investor Advisor</h4>
+                <p class="text-white/60 text-sm mt-1">Data-driven and analytical. Great for investment properties.</p>
+              </button>
+            </div>
+            <input type="hidden" name="persona" id="selected-persona" value="friendly">
+          </div>
+
+          <!-- Tone Sliders -->
+          <div>
+            <h3 class="text-lg font-semibold text-white mb-4">Tone Adjustment</h3>
+            <div class="space-y-6">
+              <!-- Slider item -->
+              <label class="block">
+                <div class="flex items-center justify-between text-white mb-2">
+                  <span>Formality</span>
+                  <span id="formality-value" class="text-indigo-400 font-semibold">50</span>
                 </div>
-              </div>
-              
-              <div class="knowledge-option" data-source="active">
-                <div class="knowledge-radio"></div>
-                <div class="knowledge-info">
-                  <h4>Only Active Listings</h4>
-                  <p>AI only knows about currently available properties</p>
+                <input id="formality-slider" name="formality" type="range" min="0" max="100" value="50" class="w-full accent-indigo-600">
+              </label>
+
+              <label class="block">
+                <div class="flex items-center justify-between text-white mb-2">
+                  <span>Warmth</span>
+                  <span id="warmth-value" class="text-indigo-400 font-semibold">70</span>
                 </div>
-              </div>
-              
-              <div class="knowledge-option" data-source="rentals">
-                <div class="knowledge-radio"></div>
-                <div class="knowledge-info">
-                  <h4>Only Rentals</h4>
-                  <p>AI focuses on rental properties only</p>
+                <input id="warmth-slider" name="warmth" type="range" min="0" max="100" value="70" class="w-full accent-indigo-600">
+              </label>
+
+              <label class="block">
+                <div class="flex items-center justify-between text-white mb-2">
+                  <span>Assertiveness</span>
+                  <span id="assertiveness-value" class="text-indigo-400 font-semibold">60</span>
                 </div>
-              </div>
+                <input id="assertiveness-slider" name="assertiveness" type="range" min="0" max="100" value="60" class="w-full accent-indigo-600">
+              </label>
+            </div>
+          </div>
+
+          <!-- Greeting Text -->
+          <div>
+            <h3 class="text-lg font-semibold text-white mb-3">Greeting Message</h3>
+            <textarea name="greeting" class="w-full min-h-[110px] bg-white/5 border border-white/20 rounded-md px-3 py-2 text-sm text-white placeholder-white/50 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" placeholder="Hi, I'm Ava from KaTek Realty—how can I help today?">Hi, I'm Ava from KaTek Realty—how can I help today?</textarea>
+          </div>
+
+          <!-- Knowledge Source -->
+          <div>
+            <h3 class="text-lg font-semibold text-white mb-4">Knowledge Source</h3>
+            <div class="space-y-3" id="knowledge-list">
+              <button type="button" data-source="all" class="knowledge-option w-full flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:border-indigo-500/60 hover:bg-indigo-500/10 data-[selected=true]:border-indigo-500 data-[selected=true]:bg-indigo-500/20" data-selected="true">
+                <span class="mt-1 inline-block w-5 h-5 rounded-full border-2 border-white/30 grid place-items-center data-[selected=true]:bg-indigo-600 data-[selected=true]:border-indigo-600">
+                  <span class="inner-dot hidden w-2 h-2 rounded-full bg-white" data-selected-dot></span>
+                </span>
+                <span>
+                  <h4 class="text-sm font-semibold text-white">All Properties</h4>
+                  <p class="text-xs text-white/60 mt-1">AI can answer questions about any property in your inventory</p>
+                </span>
+              </button>
+
+              <button type="button" data-source="active" class="knowledge-option w-full flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:border-indigo-500/60 hover:bg-indigo-500/10" data-selected="false">
+                <span class="mt-1 inline-block w-5 h-5 rounded-full border-2 border-white/30 grid place-items-center">
+                  <span class="inner-dot hidden w-2 h-2 rounded-full bg-white" data-selected-dot></span>
+                </span>
+                <span>
+                  <h4 class="text-sm font-semibold text-white">Only Active Listings</h4>
+                  <p class="text-xs text-white/60 mt-1">AI only knows about currently available properties</p>
+                </span>
+              </button>
+
+              <button type="button" data-source="rentals" class="knowledge-option w-full flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:border-indigo-500/60 hover:bg-indigo-500/10" data-selected="false">
+                <span class="mt-1 inline-block w-5 h-5 rounded-full border-2 border-white/30 grid place-items-center">
+                  <span class="inner-dot hidden w-2 h-2 rounded-full bg-white" data-selected-dot></span>
+                </span>
+                <span>
+                  <h4 class="text-sm font-semibold text-white">Only Rentals</h4>
+                  <p class="text-xs text-white/60 mt-1">AI focuses on rental properties only</p>
+                </span>
+              </button>
             </div>
             <input type="hidden" name="knowledge_source" id="selected-knowledge" value="all">
           </div>
-        </div>
-        
-        <!-- Output Controls -->
-        <div class="config-section">
-          <h3 class="section-title">Output Settings</h3>
-          <div class="output-controls">
-            <div class="control-group">
-              <label class="form-label">Currency</label>
-              <select name="currency" class="control-select">
-                <option value="USD">USD ($)</option>
-                <option value="CAD">CAD (C$)</option>
-                <option value="EUR">EUR (€)</option>
-              </select>
-            </div>
-            
-            <div class="control-group">
-              <label class="form-label">Units</label>
-              <select name="units" class="control-select">
-                <option value="imperial">Imperial (sq ft)</option>
-                <option value="metric">Metric (sq m)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Integrations -->
-        <div class="integrations-section">
-          <h3 class="section-title">Integrations</h3>
-          
-          <div class="integration-item">
-            <div class="integration-info">
-              <h4>Chat URL</h4>
-              <p>Direct link to your AI agent</p>
-            </div>
-            <div class="integration-url">
-              <input type="text" class="url-input" value="chat.katek.ai/yourcompany" readonly>
-              <button type="button" class="copy-btn" onclick="copyToClipboard(this.previousElementSibling)">Copy</button>
+
+          <!-- Output Controls -->
+          <div>
+            <h3 class="text-lg font-semibold text-white mb-4">Output Settings</h3>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <label class="block">
+                <span class="block text-sm text-white/80 mb-1">Currency</span>
+                <select name="currency" class="w-full bg-white/5 border border-white/20 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-indigo-500">
+                  <option value="USD">USD ($)</option>
+                  <option value="CAD">CAD (C$)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="block text-sm text-white/80 mb-1">Units</span>
+                <select name="units" class="w-full bg-white/5 border border-white/20 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-indigo-500">
+                  <option value="imperial">Imperial (sq ft)</option>
+                  <option value="metric">Metric (sq m)</option>
+                </select>
+              </label>
             </div>
           </div>
-          
-          <div class="integration-item">
-            <div class="integration-info">
-              <h4>Embed Code</h4>
-              <p>Add to your website</p>
+
+          <!-- Integrations -->
+          <div class="pt-6 border-t border-white/10">
+            <h3 class="text-lg font-semibold text-white mb-4">Integrations</h3>
+
+            <div class="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/5 p-4 mb-3">
+              <div>
+                <h4 class="text-sm font-semibold text-white">Chat URL</h4>
+                <p class="text-xs text-white/60 mt-1">Direct link to your AI agent</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="text" class="url-input bg-white/5 border border-white/20 rounded-md px-3 py-2 text-xs text-white min-w-[220px] outline-none" value="chat.katek.ai/yourcompany" readonly>
+                <button type="button" class="copy-btn inline-flex items-center rounded-md bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 px-3 py-2 text-xs text-white transition">Copy</button>
+              </div>
             </div>
-            <div class="integration-url">
-              <input type="text" class="url-input" value='<script src="chat.katek.ai/embed.js"></script>' readonly>
-              <button type="button" class="copy-btn" onclick="copyToClipboard(this.previousElementSibling)">Copy</button>
+
+            <div class="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/5 p-4">
+              <div>
+                <h4 class="text-sm font-semibold text-white">Embed Code</h4>
+                <p class="text-xs text-white/60 mt-1">Add to your website</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="text" class="url-input bg-white/5 border border-white/20 rounded-md px-3 py-2 text-xs text-white min-w-[220px] outline-none" value='<script src="chat.katek.ai/embed.js"></script>' readonly>
+                <button type="button" class="copy-btn inline-flex items-center rounded-md bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 px-3 py-2 text-xs text-white transition">Copy</button>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <!-- Actions -->
-        <div class="config-actions">
-          <a href="#" class="save-draft">Save as Draft</a>
-          <button type="submit" class="btn btn-primary btn-lg">Save Configuration</button>
-        </div>
-      </form>
+
+          <!-- Actions -->
+          <div class="flex items-center justify-between pt-6 border-t border-white/10">
+            <a href="#" class="text-sm text-white/60 hover:text-white transition">Save as Draft</a>
+            <button type="submit" class="inline-flex items-center rounded-lg bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-900/30 transition">Save Configuration</button>
+          </div>
+        </form>
+      </section>
     </div>
   </div>
 </div>
@@ -841,85 +256,88 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Persona selection
-  const personaCards = document.querySelectorAll('.persona-card');
-  const selectedPersona = document.getElementById('selected-persona');
-  
-  personaCards.forEach(card => {
-    card.addEventListener('click', function() {
-      personaCards.forEach(c => c.classList.remove('selected'));
-      this.classList.add('selected');
-      selectedPersona.value = this.dataset.persona;
+  document.addEventListener('DOMContentLoaded', function() {
+    // Persona selection
+    const personaCards = document.querySelectorAll('.persona-card');
+    const personaHidden = document.getElementById('selected-persona');
+    personaCards.forEach(card => {
+      card.addEventListener('click', () => {
+        personaCards.forEach(c => c.setAttribute('data-selected', 'false'));
+        card.setAttribute('data-selected', 'true');
+        personaHidden.value = card.dataset.persona;
+      });
     });
-  });
-  
-  // Knowledge source selection
-  const knowledgeOptions = document.querySelectorAll('.knowledge-option');
-  const selectedKnowledge = document.getElementById('selected-knowledge');
-  
-  knowledgeOptions.forEach(option => {
-    option.addEventListener('click', function() {
-      knowledgeOptions.forEach(o => o.classList.remove('selected'));
-      this.classList.add('selected');
-      selectedKnowledge.value = this.dataset.source;
-    });
-  });
-  
-  // Tone sliders
-  const sliders = document.querySelectorAll('.slider');
-  sliders.forEach(slider => {
-    slider.addEventListener('input', function() {
-      const valueElement = document.getElementById(this.name + '-value');
-      if (valueElement) {
-        valueElement.textContent = this.value;
-      }
-    });
-  });
-  
-  // Device toggle
-  const deviceBtns = document.querySelectorAll('.device-btn');
-  deviceBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-      deviceBtns.forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      
-      const chatWindow = document.querySelector('.chat-window');
-      if (this.dataset.device === 'mobile') {
-        chatWindow.style.maxWidth = '375px';
-        chatWindow.style.margin = '0 auto';
-      } else {
-        chatWindow.style.maxWidth = 'none';
-        chatWindow.style.margin = '0';
-      }
-    });
-  });
-  
-  // Auto-advance messages
-  const messages = document.querySelectorAll('.message');
-  messages.forEach((message, index) => {
-    setTimeout(() => {
-      message.style.opacity = '1';
-      message.style.transform = 'translateY(0)';
-    }, index * 1000 + 500);
-  });
-});
 
-function copyToClipboard(element) {
-  element.select();
-  element.setSelectionRange(0, 99999);
-  document.execCommand('copy');
-  
-  // Show feedback
-  const btn = element.nextElementSibling;
-  const originalText = btn.textContent;
-  btn.textContent = 'Copied!';
-  btn.style.background = 'var(--success-emerald)';
-  
-  setTimeout(() => {
-    btn.textContent = originalText;
-    btn.style.background = 'var(--primary-purple)';
-  }, 2000);
-}
+    // Knowledge source selection
+    const knowledgeOptions = document.querySelectorAll('.knowledge-option');
+    const selectedKnowledge = document.getElementById('selected-knowledge');
+    knowledgeOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        knowledgeOptions.forEach(o => {
+          o.setAttribute('data-selected', 'false');
+          const dot = o.querySelector('[data-selected-dot]');
+          if (dot) dot.classList.add('hidden');
+        });
+        option.setAttribute('data-selected', 'true');
+        const dot = option.querySelector('[data-selected-dot]');
+        if (dot) dot.classList.remove('hidden');
+        selectedKnowledge.value = option.dataset.source;
+      });
+    });
+
+    // Tone sliders
+    const sliders = document.querySelectorAll('input[type="range"]');
+    sliders.forEach(slider => {
+      slider.addEventListener('input', () => {
+        const valueEl = document.getElementById(slider.name + '-value');
+        if (valueEl) valueEl.textContent = slider.value;
+      });
+    });
+
+    // Device toggle
+    const deviceBtns = document.querySelectorAll('.device-btn');
+    const chatWindow = document.querySelector('.chat-window');
+    deviceBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        deviceBtns.forEach(b => b.setAttribute('data-active', 'false'));
+        btn.setAttribute('data-active', 'true');
+        if (btn.dataset.device === 'mobile') {
+          chatWindow.style.maxWidth = '380px';
+          chatWindow.style.margin = '0 auto';
+        } else {
+          chatWindow.style.maxWidth = 'none';
+          chatWindow.style.margin = '0';
+        }
+      });
+    });
+
+    // Auto-advance messages (hero animation)
+    const messages = document.querySelectorAll('.message');
+    messages.forEach((m, idx) => {
+      setTimeout(() => {
+        m.classList.remove('opacity-0');
+        m.classList.remove('translate-y-5');
+      }, idx * 900 + 400);
+    });
+
+    // Copy buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = btn.previousElementSibling;
+        input.select();
+        input.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.remove('bg-indigo-600');
+        btn.classList.add('bg-emerald-600');
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.classList.remove('bg-emerald-600');
+          btn.classList.add('bg-indigo-600');
+        }, 1500);
+      });
+    });
+  });
 </script>
 {% endblock %}

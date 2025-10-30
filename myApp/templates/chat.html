@@ -1,707 +1,186 @@
+{# templates/public/chat.html #}
 {% extends 'base.html' %}
 {% load static %}
+{% load tz %}
 
 {% block title %}Chat with {{ agent_name|default:"Ava" }} - KaTek Realty{% endblock %}
 
-{% block extra_css %}
-<style>
-  .chat-container {
-    min-height: 100vh;
-    background: var(--deep-navy);
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .chat-header {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: var(--space-4) var(--space-6);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .agent-info {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-  
-  .agent-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: var(--font-weight-bold);
-    font-size: 1.125rem;
-  }
-  
-  .agent-details h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-  }
-  
-  .agent-details p {
-    margin: 0;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-  
-  .status-indicator {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    font-size: 0.75rem;
-    color: var(--success-emerald);
-  }
-  
-  .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--success-emerald);
-    animation: pulse 2s infinite;
-  }
-  
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-  
-  .chat-messages {
-    flex: 1;
-    padding: var(--space-6);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    max-width: 800px;
-    margin: 0 auto;
-    width: 100%;
-  }
-  
-  .message {
-    display: flex;
-    gap: var(--space-3);
-    opacity: 0;
-    transform: translateY(20px);
-    animation: messageSlideIn 0.6s ease-out forwards;
-  }
-  
-  .message.user {
-    flex-direction: row-reverse;
-  }
-  
-  .message-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-bold);
-    flex-shrink: 0;
-  }
-  
-  .message.user .message-avatar {
-    background: var(--primary-purple);
-    color: white;
-  }
-  
-  .message.ai .message-avatar {
-    background: var(--surface-glass);
-    color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  
-  .message-content {
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
-    max-width: 70%;
-    position: relative;
-    backdrop-filter: blur(10px);
-  }
-  
-  .message.user .message-content {
-    background: var(--primary-purple);
-    border-color: var(--primary-purple);
-    color: white;
-  }
-  
-  .message-text {
-    margin: 0;
-    font-size: 0.875rem;
-    line-height: 1.5;
-  }
-  
-  .message-time {
-    font-size: 0.625rem;
-    color: var(--text-muted);
-    margin-top: var(--space-2);
-  }
-  
-  .message.user .message-time {
-    color: rgba(255, 255, 255, 0.7);
-  }
-  
-  .property-card {
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
-    margin-top: var(--space-3);
-    backdrop-filter: blur(10px);
-  }
-  
-  .property-image {
-    width: 100%;
-    height: 120px;
-    background: linear-gradient(135deg, var(--surface-glass) 0%, rgba(255, 255, 255, 0.05) 100%);
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 2rem;
-    margin-bottom: var(--space-3);
-  }
-  
-  .property-title {
-    font-size: 1rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    margin: 0 0 var(--space-1) 0;
-  }
-  
-  .property-location {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: 0 0 var(--space-2) 0;
-  }
-  
-  .property-price {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--primary-purple);
-    margin: 0 0 var(--space-2) 0;
-  }
-  
-  .property-details {
-    display: flex;
-    gap: var(--space-4);
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-bottom: var(--space-3);
-  }
-  
-  .property-actions {
-    display: flex;
-    gap: var(--space-2);
-  }
-  
-  .property-btn {
-    flex: 1;
-    padding: var(--space-2) var(--space-3);
-    background: var(--primary-purple);
-    border: none;
-    border-radius: var(--radius-sm);
-    color: white;
-    font-size: 0.75rem;
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-  }
-  
-  .property-btn:hover {
-    background: var(--primary-purple-hover);
-    transform: translateY(-1px);
-  }
-  
-  .property-btn.secondary {
-    background: var(--surface-glass);
-    color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  
-  .property-btn.secondary:hover {
-    background: var(--surface-glass-hover);
-    border-color: rgba(255, 255, 255, 0.3);
-  }
-  
-  .smart-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-top: var(--space-4);
-  }
-  
-  .smart-chip {
-    padding: var(--space-2) var(--space-3);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-full);
-    color: var(--text-primary);
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    backdrop-filter: blur(10px);
-  }
-  
-  .smart-chip:hover {
-    background: var(--primary-purple);
-    border-color: var(--primary-purple);
-    color: white;
-    transform: translateY(-1px);
-  }
-  
-  .chat-input-container {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding: var(--space-4) var(--space-6);
-  }
-  
-  .chat-input-wrapper {
-    max-width: 800px;
-    margin: 0 auto;
-    display: flex;
-    gap: var(--space-3);
-    align-items: flex-end;
-  }
-  
-  .chat-input {
-    flex: 1;
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-lg);
-    padding: var(--space-3) var(--space-4);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    resize: none;
-    min-height: 44px;
-    max-height: 120px;
-    backdrop-filter: blur(10px);
-  }
-  
-  .chat-input:focus {
-    outline: none;
-    border-color: var(--primary-purple);
-    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
-  }
-  
-  .chat-input::placeholder {
-    color: var(--text-muted);
-  }
-  
-  .send-button {
-    width: 44px;
-    height: 44px;
-    background: var(--primary-purple);
-    border: none;
-    border-radius: var(--radius-lg);
-    color: white;
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-  }
-  
-  .send-button:hover {
-    background: var(--primary-purple-hover);
-    transform: translateY(-1px);
-  }
-  
-  .send-button:disabled {
-    background: var(--text-muted);
-    cursor: not-allowed;
-    transform: none;
-  }
-  
-  .typing-indicator {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-4);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg);
-    margin-left: 48px;
-    backdrop-filter: blur(10px);
-  }
-  
-  .typing-dots {
-    display: flex;
-    gap: var(--space-1);
-  }
-  
-  .typing-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--text-muted);
-    animation: typingDot 1.4s infinite ease-in-out;
-  }
-  
-  .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-  .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-  .typing-dot:nth-child(3) { animation-delay: 0s; }
-  
-  @keyframes typingDot {
-    0%, 80%, 100% { transform: scale(0); }
-    40% { transform: scale(1); }
-  }
-  
-  .typing-text {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-  
-  .lead-capture {
-    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
-    margin-top: var(--space-4);
-    color: white;
-  }
-  
-  .lead-capture h4 {
-    margin: 0 0 var(--space-2) 0;
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-bold);
-  }
-  
-  .lead-capture p {
-    margin: 0 0 var(--space-3) 0;
-    font-size: 0.75rem;
-    opacity: 0.9;
-  }
-  
-  .lead-form {
-    display: flex;
-    gap: var(--space-2);
-  }
-  
-  .lead-input {
-    flex: 1;
-    padding: var(--space-2) var(--space-3);
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: var(--radius-sm);
-    color: white;
-    font-size: 0.75rem;
-  }
-  
-  .lead-input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-  }
-  
-  .lead-submit {
-    padding: var(--space-2) var(--space-3);
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: var(--radius-sm);
-    color: white;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-  }
-  
-  .lead-submit:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
-  
-  @keyframes messageSlideIn {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .message:nth-child(1) { animation-delay: 0.1s; }
-  .message:nth-child(2) { animation-delay: 0.3s; }
-  .message:nth-child(3) { animation-delay: 0.5s; }
-  .message:nth-child(4) { animation-delay: 0.7s; }
-  .message:nth-child(5) { animation-delay: 0.9s; }
-  
-  @media (max-width: 768px) {
-    .chat-header {
-      padding: var(--space-3) var(--space-4);
-    }
-    
-    .chat-messages {
-      padding: var(--space-4);
-    }
-    
-    .chat-input-container {
-      padding: var(--space-3) var(--space-4);
-    }
-    
-    .message-content {
-      max-width: 85%;
-    }
-    
-    .property-card {
-      padding: var(--space-3);
-    }
-    
-    .property-actions {
-      flex-direction: column;
-    }
-  }
-</style>
-{% endblock %}
+{% block extra_css %}{% endblock %}
 
 {% block content %}
-<div class="chat-container">
-  <!-- Chat Header -->
-  <div class="chat-header">
-    <div class="agent-info">
-      <div class="agent-avatar">A</div>
-      <div class="agent-details">
-        <h3>{{ agent_name|default:"Ava" }} from {{ company_name|default:"KaTek Realty" }}</h3>
-        <p>Your AI real estate assistant</p>
+<div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col" data-agent="{{ agent_slug|default:'default' }}">
+  <!-- Header -->
+  <header class="sticky top-0 z-10 bg-slate-900/60 backdrop-blur border-b border-white/10 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 grid place-items-center text-white font-bold text-lg select-none">
+        {{ agent_name|default:"Ava"|slice:":1"|upper }}
+      </div>
+      <div>
+        <h3 id="agent-title" class="m-0 text-sm font-semibold text-white">
+          {{ agent_name|default:"Ava" }} from {{ company_name|default:"KaTek Realty" }}
+        </h3>
+        <p class="m-0 text-xs text-slate-400">Your AI real estate assistant</p>
       </div>
     </div>
-    <div class="status-indicator">
-      <div class="status-dot"></div>
+    <div class="flex items-center gap-2 text-emerald-400 text-xs" aria-live="polite">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
       <span>Online now</span>
     </div>
-  </div>
-  
-  <!-- Chat Messages -->
-  <div class="chat-messages" id="chat-messages">
-    <div class="message ai">
-      <div class="message-avatar">A</div>
-      <div class="message-content">
-        <p class="message-text">{{ greeting|default:"Hi! I'm Ava from KaTek Realty. How can I help you find your perfect home today?" }}</p>
-        <p class="message-time">{{ current_time|date:"g:i A" }}</p>
+  </header>
+
+  <!-- Messages -->
+  <main id="chat-messages" class="flex-1 px-6 py-6 overflow-y-auto max-w-3xl w-full mx-auto space-y-4" aria-live="polite" aria-relevant="additions text">
+    <!-- Initial AI message -->
+    <div class="flex items-start gap-3">
+      <div class="w-9 h-9 rounded-full bg-slate-800 grid place-items-center text-slate-200 text-sm font-semibold select-none">
+        {{ agent_name|default:"Ava"|slice:":1"|upper }}
+      </div>
+      <div class="bg-slate-900/60 border border-white/10 rounded-2xl px-4 py-3 backdrop-blur">
+        <p class="text-sm leading-relaxed">{{ greeting|default:"Hi! I'm Ava from KaTek Realty. How can I help you find your perfect home today?" }}</p>
+        <p class="text-[10px] text-slate-400 mt-1">{% now "g:i A" %}</p>
+        <!-- Smart chips -->
+        <div class="flex flex-wrap gap-2 mt-3" aria-label="Suggested prompts">
+          {% if chips %}
+            {% for chip in chips %}
+              <button data-chip class="px-3 py-1 rounded-full bg-slate-800 border border-white/10 text-xs hover:bg-violet-600 hover:text-white transition">{{ chip }}</button>
+            {% endfor %}
+          {% else %}
+            <button data-chip class="px-3 py-1 rounded-full bg-slate-800 border border-white/10 text-xs hover:bg-violet-600 hover:text-white transition">Homes under $500k</button>
+            <button data-chip class="px-3 py-1 rounded-full bg-slate-800 border border-white/10 text-xs hover:bg-violet-600 hover:text-white transition">3 bedroom condos</button>
+            <button data-chip class="px-3 py-1 rounded-full bg-slate-800 border border-white/10 text-xs hover:bg-violet-600 hover:text-white transition">Near good schools</button>
+            <button data-chip class="px-3 py-1 rounded-full bg-slate-800 border border-white/10 text-xs hover:bg-violet-600 hover:text-white transition">Investment properties</button>
+            <button data-chip class="px-3 py-1 rounded-full bg-slate-800 border border-white/10 text-xs hover:bg-violet-600 hover:text-white transition">Book a tour</button>
+          {% endif %}
+        </div>
       </div>
     </div>
-    
-    <!-- Smart Chips -->
-    <div class="smart-chips">
-      <button class="smart-chip" onclick="sendQuickMessage('Homes under $500k')">Homes under $500k</button>
-      <button class="smart-chip" onclick="sendQuickMessage('3 bedroom condos')">3 bedroom condos</button>
-      <button class="smart-chip" onclick="sendQuickMessage('Near good schools')">Near good schools</button>
-      <button class="smart-chip" onclick="sendQuickMessage('Investment properties')">Investment properties</button>
-      <button class="smart-chip" onclick="sendQuickMessage('Book a tour')">Book a tour</button>
-    </div>
-  </div>
-  
-  <!-- Chat Input -->
-  <div class="chat-input-container">
-    <div class="chat-input-wrapper">
-      <textarea 
-        id="chat-input" 
-        class="chat-input" 
-        placeholder="Type your message..." 
-        rows="1"
-        onkeypress="handleKeyPress(event)"
-        oninput="autoResize(this)"
-      ></textarea>
-      <button id="send-button" class="send-button" onclick="sendMessage()">
-        <i class="fas fa-paper-plane"></i>
+  </main>
+
+  <!-- Input -->
+  <div class="bg-slate-900/60 backdrop-blur border-t border-white/10 px-6 py-4">
+    <div class="max-w-3xl w-full mx-auto flex items-end gap-3">
+      <textarea id="chat-input" rows="1" placeholder="Type your message…" aria-label="Your message"
+        class="flex-1 bg-slate-900/60 border border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-600/40 resize-none min-h-[44px] max-h-[140px]"></textarea>
+      <button id="send-button" aria-label="Send message"
+        class="w-11 h-11 rounded-xl grid place-items-center bg-violet-600 text-white hover:bg-violet-500 transition disabled:bg-slate-600 disabled:cursor-not-allowed">
+        <i class="fas fa-paper-plane text-sm" aria-hidden="true"></i>
       </button>
     </div>
   </div>
 </div>
+
+<!-- CSRF token for JS -->
+<input type="hidden" id="csrf-token" value="{{ csrf_token }}">
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Auto-advance messages
-  const messages = document.querySelectorAll('.message');
-  messages.forEach((message, index) => {
-    setTimeout(() => {
-      message.style.opacity = '1';
-      message.style.transform = 'translateY(0)';
-    }, index * 200 + 500);
-  });
-  
-  // Focus on input
-  document.getElementById('chat-input').focus();
-});
+(()=>{
+  const $ = (s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const messages = $('#chat-messages');
+  const input = $('#chat-input');
+  const sendBtn = $('#send-button');
+  const csrf = $('#csrf-token')?.value || '';
+  const agent = document.querySelector('[data-agent]')?.dataset.agent || 'default';
 
-function handleKeyPress(event) {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault();
-    sendMessage();
+  // Auto-resize
+  const autoResize = el=>{ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,140)+'px'; };
+  input.addEventListener('input', ()=>autoResize(input));
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }});
+  sendBtn.addEventListener('click', send);
+  messages.addEventListener('click', (e)=>{ const b=e.target.closest('[data-chip]'); if(b){ input.value=b.textContent.trim(); send(); }});
+
+  function bubble({role,text,html}){
+    const row = document.createElement('div');
+    row.className = `flex items-start gap-3 ${role==='user' ? 'flex-row-reverse' : ''}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `w-9 h-9 rounded-full grid place-items-center text-sm font-semibold select-none ${role==='user' ? 'bg-violet-600 text-white' : 'bg-slate-800 text-slate-200'}`;
+    avatar.textContent = role==='user' ? 'U' : ('{{ agent_name|default:"Ava"|slice:":1"|upper }}');
+
+    const card = document.createElement('div');
+    card.className = `rounded-2xl px-4 py-3 border backdrop-blur max-w-[70%] ${role==='user' ? 'bg-violet-600 text-white border-violet-600' : 'bg-slate-900/60 text-slate-100 border-white/10'}`;
+    const p=document.createElement('p'); p.className='text-sm leading-relaxed';
+
+    if(html){ card.insertAdjacentHTML('beforeend', html); }
+    else{ p.textContent = text; card.appendChild(p); }
+
+    const t=document.createElement('p'); t.className='text-[10px] mt-1 text-slate-400';
+    t.textContent = new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+    card.appendChild(t);
+
+    row.appendChild(avatar); row.appendChild(card); messages.appendChild(row);
+    messages.scrollTop = messages.scrollHeight;
   }
-}
 
-function autoResize(textarea) {
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-}
-
-function sendMessage() {
-  const input = document.getElementById('chat-input');
-  const message = input.value.trim();
-  
-  if (!message) return;
-  
-  // Add user message
-  addUserMessage(message);
-  
-  // Clear input
-  input.value = '';
-  input.style.height = 'auto';
-  
-  // Show typing indicator
-  showTypingIndicator();
-  
-  // Simulate AI response
-  setTimeout(() => {
-    hideTypingIndicator();
-    addAIMessage(getAIResponse(message));
-  }, 1500);
-}
-
-function sendQuickMessage(message) {
-  document.getElementById('chat-input').value = message;
-  sendMessage();
-}
-
-function addUserMessage(message) {
-  const messagesContainer = document.getElementById('chat-messages');
-  const messageDiv = document.createElement('div');
-  messageDiv.className = 'message user';
-  messageDiv.innerHTML = `
-    <div class="message-avatar">U</div>
-    <div class="message-content">
-      <p class="message-text">${message}</p>
-      <p class="message-time">${new Date().toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})}</p>
-    </div>
-  `;
-  messagesContainer.appendChild(messageDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function addAIMessage(message) {
-  const messagesContainer = document.getElementById('chat-messages');
-  const messageDiv = document.createElement('div');
-  messageDiv.className = 'message ai';
-  messageDiv.innerHTML = `
-    <div class="message-avatar">A</div>
-    <div class="message-content">
-      <p class="message-text">${message}</p>
-      <p class="message-time">${new Date().toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})}</p>
-    </div>
-  `;
-  messagesContainer.appendChild(messageDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function showTypingIndicator() {
-  const messagesContainer = document.getElementById('chat-messages');
-  const typingDiv = document.createElement('div');
-  typingDiv.id = 'typing-indicator';
-  typingDiv.className = 'typing-indicator';
-  typingDiv.innerHTML = `
-    <div class="typing-dots">
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-    </div>
-    <span class="typing-text">Ava is typing...</span>
-  `;
-  messagesContainer.appendChild(typingDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function hideTypingIndicator() {
-  const typingIndicator = document.getElementById('typing-indicator');
-  if (typingIndicator) {
-    typingIndicator.remove();
-  }
-}
-
-function getAIResponse(userMessage) {
-  const message = userMessage.toLowerCase();
-  
-  if (message.includes('price') || message.includes('budget') || message.includes('$')) {
-    return "I'd be happy to help you find properties within your budget! What's your price range? I can show you some great options.";
-  } else if (message.includes('bedroom') || message.includes('bed')) {
-    return "I can help you find properties with the right number of bedrooms. How many bedrooms are you looking for?";
-  } else if (message.includes('school') || message.includes('education')) {
-    return "Great question! I can help you find properties near excellent schools. What area are you most interested in?";
-  } else if (message.includes('tour') || message.includes('visit') || message.includes('see')) {
-    return "I'd love to help you schedule a tour! I have some beautiful properties that might interest you. What type of home are you looking for?";
-  } else if (message.includes('investment') || message.includes('rental')) {
-    return "Excellent! I specialize in investment properties. I can show you some great opportunities with strong rental potential. What's your investment budget?";
-  } else {
-    return "That's a great question! I'm here to help you find the perfect property. Can you tell me more about what you're looking for?";
-  }
-}
-
-// Simulate lead capture after a few exchanges
-let messageCount = 0;
-const originalAddAIMessage = addAIMessage;
-addAIMessage = function(message) {
-  messageCount++;
-  originalAddAIMessage(message);
-  
-  // Show lead capture form after 3 AI responses
-  if (messageCount === 3) {
-    setTimeout(() => {
-      showLeadCapture();
-    }, 1000);
-  }
-};
-
-function showLeadCapture() {
-  const messagesContainer = document.getElementById('chat-messages');
-  const leadDiv = document.createElement('div');
-  leadDiv.className = 'message ai';
-  leadDiv.innerHTML = `
-    <div class="message-avatar">A</div>
-    <div class="message-content">
-      <div class="lead-capture">
-        <h4>Get personalized recommendations</h4>
-        <p>Share your contact info and I'll send you the best matches directly to your inbox.</p>
-        <form class="lead-form" onsubmit="captureLead(event)">
-          <input type="text" class="lead-input" placeholder="Your name" required>
-          <input type="email" class="lead-input" placeholder="Email address" required>
-          <button type="submit" class="lead-submit">Get Updates</button>
-        </form>
+  let typingEl=null;
+  function showTyping(){
+    typingEl = document.createElement('div');
+    typingEl.className = 'flex items-center gap-2 ml-12 bg-slate-900/60 border border-white/10 rounded-2xl px-3 py-2 w-max';
+    typingEl.innerHTML = `
+      <div class='flex gap-1'>
+        <span class='w-1.5 h-1.5 rounded-full bg-slate-400 animate-[ping_1.4s_infinite]'></span>
+        <span class='w-1.5 h-1.5 rounded-full bg-slate-400 animate-[ping_1.4s_infinite_.2s]'></span>
+        <span class='w-1.5 h-1.5 rounded-full bg-slate-400 animate-[ping_1.4s_infinite_.4s]'></span>
       </div>
-    </div>
-  `;
-  messagesContainer.appendChild(leadDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
+      <span class='text-xs text-slate-400'>{{ agent_name|default:'Ava' }} is typing…</span>`;
+    messages.appendChild(typingEl); messages.scrollTop = messages.scrollHeight;
+  }
+  function hideTyping(){ if(typingEl){ typingEl.remove(); typingEl=null; } }
 
-function captureLead(event) {
-  event.preventDefault();
-  const formData = new FormData(event.target);
-  const name = formData.get('name') || event.target.querySelector('input[type="text"]').value;
-  const email = formData.get('email') || event.target.querySelector('input[type="email"]').value;
-  
-  // Simulate lead capture
-  console.log('Lead captured:', { name, email });
-  
-  // Show success message
-  addAIMessage(`Thanks ${name}! I'll send you personalized property recommendations to ${email}. You should receive them within the next hour.`);
-  
-  // Remove lead capture form
-  event.target.closest('.message').remove();
-}
+  async function send(){
+    const text = (input.value||'').trim(); if(!text) return;
+    sendBtn.disabled=true; bubble({role:'user', text}); input.value=''; autoResize(input); showTyping();
+    try{
+      const resp = await fetch('/chat/send/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken': csrf}, body: JSON.stringify({agent, message:text})});
+      const data = await resp.json(); hideTyping();
+      let html = '';
+      if(Array.isArray(data.cards)) html += data.cards.join('');
+      if(data.reply_html) html += data.reply_html;
+      bubble({role:'ai', text: data.reply_text || '', html: html||null});
+      if(data.lead_prompt) leadCapture(data.lead_prompt);
+    }catch(e){ hideTyping(); bubble({role:'ai', text:"Sorry—I'm having trouble right now. Please try again."}); console.error(e);
+    } finally { sendBtn.disabled=false; }
+  }
+
+  function leadCapture(headline){
+    const row = document.createElement('div');
+    row.className = 'flex items-start gap-3';
+    row.innerHTML = `
+      <div class='w-9 h-9 rounded-full bg-slate-800 grid place-items-center text-slate-200 text-sm font-semibold select-none'>{{ agent_name|default:'A'|slice:':1'|upper }}</div>
+      <div class='rounded-2xl px-4 py-3 border backdrop-blur max-w-[70%] bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white border-violet-500/40'>
+        <h4 class='text-sm font-semibold m-0 mb-1'>${headline||'Get personalized recommendations'}</h4>
+        <p class='text-xs/5 opacity-90 m-0 mb-3'>Share your contact info and we'll send the best matches.</p>
+        <form id='lead-form' class='flex flex-wrap items-center gap-2'>
+          <label class='sr-only' for='lead-name'>Name</label>
+          <input id='lead-name' name='name' required placeholder='Your name'
+            class='min-w-[180px] flex-1 px-3 py-2 rounded-md border border-white/30 bg-white/10 placeholder-white/70 text-white text-xs focus:outline-none focus:ring-2 focus:ring-white/30'>
+          <label class='sr-only' for='lead-email'>Email</label>
+          <input id='lead-email' name='email' type='email' required placeholder='Email address'
+            class='min-w-[200px] flex-1 px-3 py-2 rounded-md border border-white/30 bg-white/10 placeholder-white/70 text-white text-xs focus:outline-none focus:ring-2 focus:ring-white/30'>
+          <input type='text' name='website' class='hidden' tabindex='-1' autocomplete='off'>
+          <label class='flex items-center gap-2 text-xs'>
+            <input type='checkbox' name='consent' required class='accent-violet-600'> I agree to be contacted
+          </label>
+          <button class='px-3 py-2 rounded-md border border-white/30 bg-white/10 text-xs hover:bg-white/20 transition' type='submit'>Get Updates</button>
+        </form>
+      </div>`;
+    messages.appendChild(row); messages.scrollTop = messages.scrollHeight;
+    $('#lead-form', row)?.addEventListener('submit', submitLead);
+  }
+
+  async function submitLead(e){
+    e.preventDefault(); const fd = new FormData(e.target); if(fd.get('website')) return; // honeypot
+    try{
+      const resp = await fetch('/api/leads/create/', { method:'POST', headers:{'X-CSRFToken': csrf}, body: fd });
+      if(!resp.ok) throw new Error('Lead create failed');
+      const { name, email } = Object.fromEntries(fd.entries());
+      bubble({role:'ai', text:`Thanks ${name}! I'll send recommendations to ${email}.`});
+      e.target.closest('.flex.items-start')?.remove();
+    }catch(err){ bubble({role:'ai', text:'Sorry, lead capture failed. You can also email us at hello@katek.ai.'}); console.error(err); }
+  }
+})();
 </script>
 {% endblock %}
+
+

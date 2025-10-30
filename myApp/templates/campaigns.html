@@ -3,704 +3,262 @@
 
 {% block title %}Campaigns - KaTek AI{% endblock %}
 
-{% block extra_css %}
-<style>
-  .campaigns-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: var(--space-8) var(--space-4);
-  }
-  
-  .campaigns-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-8);
-  }
-  
-  .campaigns-title {
-    font-size: 2.5rem;
-    font-weight: var(--font-weight-bold);
-    margin: 0;
-  }
-  
-  .campaigns-actions {
-    display: flex;
-    gap: var(--space-4);
-    align-items: center;
-  }
-  
-  .search-box {
-    position: relative;
-    min-width: 300px;
-  }
-  
-  .search-input {
-    width: 100%;
-    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    backdrop-filter: blur(10px);
-  }
-  
-  .search-input:focus {
-    outline: none;
-    border-color: var(--primary-purple);
-    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
-  }
-  
-  .search-icon {
-    position: absolute;
-    left: var(--space-3);
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: 0.875rem;
-  }
-  
-  .campaigns-content {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: var(--space-8);
-  }
-  
-  .campaigns-list {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    box-shadow: var(--shadow-soft);
-  }
-  
-  .list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-6);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .list-title {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-    margin: 0;
-  }
-  
-  .list-actions {
-    display: flex;
-    gap: var(--space-3);
-    align-items: center;
-  }
-  
-  .campaign-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    padding: var(--space-6);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    transition: background var(--transition-fast);
-    cursor: pointer;
-  }
-  
-  .campaign-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-  }
-  
-  .campaign-item:last-child {
-    border-bottom: none;
-  }
-  
-  .campaign-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-lg);
-    background: var(--primary-purple);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.25rem;
-    flex-shrink: 0;
-  }
-  
-  .campaign-info {
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .campaign-name {
-    font-size: 1rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    margin: 0 0 var(--space-1) 0;
-  }
-  
-  .campaign-description {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: 0 0 var(--space-2) 0;
-  }
-  
-  .campaign-meta {
-    display: flex;
-    gap: var(--space-4);
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-  
-  .campaign-stats {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--space-1);
-  }
-  
-  .stat-value {
-    font-size: 1.125rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--primary-purple);
-  }
-  
-  .stat-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-  
-  .campaign-status {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-top: var(--space-2);
-  }
-  
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
-    font-size: 0.625rem;
-    font-weight: var(--font-weight-medium);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  
-  .status-draft {
-    background: rgba(107, 114, 128, 0.2);
-    color: var(--text-muted);
-    border: 1px solid rgba(107, 114, 128, 0.3);
-  }
-  
-  .status-scheduled {
-    background: rgba(245, 158, 11, 0.2);
-    color: var(--warning-amber);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-  }
-  
-  .status-sent {
-    background: rgba(16, 185, 129, 0.2);
-    color: var(--success-emerald);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-  }
-  
-  .status-paused {
-    background: rgba(239, 68, 68, 0.2);
-    color: var(--destructive-rose);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-  }
-  
-  .campaign-actions {
-    display: flex;
-    gap: var(--space-2);
-  }
-  
-  .action-btn {
-    padding: var(--space-2);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    font-size: 0.75rem;
-  }
-  
-  .action-btn:hover {
-    background: var(--surface-glass-hover);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: var(--text-primary);
-  }
-  
-  .action-btn.primary {
-    background: var(--primary-purple);
-    border-color: var(--primary-purple);
-    color: white;
-  }
-  
-  .action-btn.primary:hover {
-    background: var(--primary-purple-hover);
-  }
-  
-  .create-campaign {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    box-shadow: var(--shadow-soft);
-    height: fit-content;
-    position: sticky;
-    top: var(--space-8);
-  }
-  
-  .create-header {
-    margin-bottom: var(--space-6);
-  }
-  
-  .create-title {
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-bold);
-    margin: 0 0 var(--space-2) 0;
-    color: var(--text-primary);
-  }
-  
-  .create-subtitle {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: 0;
-  }
-  
-  .campaign-types {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    margin-bottom: var(--space-6);
-  }
-  
-  .campaign-type {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-4);
-    background: var(--surface-glass);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-lg);
-    cursor: pointer;
-    transition: all var(--transition-normal);
-  }
-  
-  .campaign-type:hover {
-    border-color: var(--primary-purple);
-    background: rgba(109, 40, 217, 0.1);
-  }
-  
-  .campaign-type.selected {
-    border-color: var(--primary-purple);
-    background: rgba(109, 40, 217, 0.2);
-  }
-  
-  .type-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-md);
-    background: var(--primary-purple);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1rem;
-  }
-  
-  .type-info h4 {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-  }
-  
-  .type-info p {
-    margin: var(--space-1) 0 0 0;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-  }
-  
-  .ai-assist {
-    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
-    margin-bottom: var(--space-6);
-    color: white;
-  }
-  
-  .ai-assist-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-3);
-  }
-  
-  .ai-assist-icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-  }
-  
-  .ai-assist-title {
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-bold);
-    margin: 0;
-  }
-  
-  .ai-assist-text {
-    font-size: 0.75rem;
-    margin: 0;
-    opacity: 0.9;
-  }
-  
-  .ai-assist-button {
-    width: 100%;
-    padding: var(--space-3);
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: var(--radius-md);
-    color: white;
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    margin-top: var(--space-3);
-  }
-  
-  .ai-assist-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-1px);
-  }
-  
-  .quick-stats {
-    margin-top: var(--space-6);
-    padding-top: var(--space-6);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .stats-title {
-    font-size: 1rem;
-    font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-4);
-    color: var(--text-primary);
-  }
-  
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-  }
-  
-  .stat-item {
-    text-align: center;
-    padding: var(--space-3);
-    background: var(--surface-glass);
-    border-radius: var(--radius-md);
-  }
-  
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--primary-purple);
-    margin: 0;
-  }
-  
-  .stat-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-top: var(--space-1);
-  }
-  
-  .empty-state {
-    text-align: center;
-    padding: var(--space-12);
-  }
-  
-  .empty-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--radius-xl);
-    background: linear-gradient(135deg, var(--primary-purple), var(--electric-violet));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto var(--space-4);
-    color: white;
-    font-size: 2rem;
-  }
-  
-  .empty-title {
-    font-size: 1.5rem;
-    font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-2);
-    color: var(--text-primary);
-  }
-  
-  .empty-description {
-    color: var(--text-secondary);
-    margin-bottom: var(--space-6);
-  }
-  
-  @media (max-width: 768px) {
-    .campaigns-content {
-      grid-template-columns: 1fr;
-    }
-    
-    .create-campaign {
-      position: static;
-      order: -1;
-    }
-    
-    .campaign-item {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-3);
-    }
-    
-    .campaign-stats {
-      align-items: flex-start;
-    }
-  }
-</style>
-{% endblock %}
+{# No extra_css block — fully Tailwind-driven #}
 
 {% block content %}
-<div class="campaigns-container">
-  <!-- Header -->
-  <div class="campaigns-header">
-    <h1 class="campaigns-title">Campaigns</h1>
-    <div class="campaigns-actions">
-      <div class="search-box">
-        <i class="fas fa-search search-icon"></i>
-        <input type="text" class="search-input" placeholder="Search campaigns..." id="campaign-search">
-      </div>
-      <a href="#" class="btn btn-primary" onclick="openCreateModal()">
-        <i class="fas fa-plus"></i>
-        Create Campaign
-      </a>
-    </div>
-  </div>
-  
-  <!-- Main Content -->
-  <div class="campaigns-content">
-    <!-- Campaigns List -->
-    <div class="campaigns-list">
-      <div class="list-header">
-        <h3 class="list-title">All Campaigns ({{ campaigns|length }})</h3>
-        <div class="list-actions">
-          <button class="btn btn-ghost btn-sm">
-            <i class="fas fa-filter"></i>
-            Filter
-          </button>
-          <button class="btn btn-ghost btn-sm">
-            <i class="fas fa-download"></i>
-            Export
-          </button>
+<div class="relative">
+  <!-- Ambient gradient glow -->
+  <div class="pointer-events-none absolute inset-x-0 -top-28 h-48 bg-gradient-to-r from-indigo-500/20 via-fuchsia-500/20 to-cyan-400/20 blur-3xl"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 lg:mb-10">
+      <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-white">Campaigns</h1>
+      <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+        <!-- Search -->
+        <div class="relative min-w-[280px]">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm"></i>
+          <input id="campaign-search" type="text" placeholder="Search campaigns..." class="w-full pl-9 pr-3 py-2.5 bg-white/5 border border-white/20 rounded-md text-sm text-white placeholder-white/50 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
         </div>
+
+        {% if has_email_accounts %}
+        <a href="{% url 'create_campaign' %}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-900/30 transition">
+          <i class="fas fa-plus"></i>
+          Create Campaign
+        </a>
+        {% else %}
+        <a href="{% url 'settings' %}" class="inline-flex items-center gap-2 rounded-lg bg-amber-600 hover:bg-amber-500 active:bg-amber-700 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-amber-900/30 transition">
+          <i class="fas fa-envelope"></i>
+          Connect Gmail First
+        </a>
+        {% endif %}
       </div>
-      
-      {% if campaigns %}
-        {% for campaign in campaigns %}
-        <div class="campaign-item" onclick="openCampaignDetails('{{ campaign.id }}')">
-          <div class="campaign-icon">
-            <i class="fas fa-envelope"></i>
+    </div>
+
+    <!-- Main Content -->
+    <div class="grid gap-8 lg:grid-cols-[1fr,420px]">
+      <!-- Campaigns List -->
+      <section class="bg-white/5 border border-white/10 rounded-2xl shadow-2xl shadow-black/20 backdrop-blur-xl overflow-hidden">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-5 sm:px-6 py-5 border-b border-white/10">
+          <h3 class="text-lg font-semibold text-white">All Campaigns ({{ campaigns|length }})</h3>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" class="rounded-md bg-white/10 hover:bg-white/15 px-3 py-2 text-sm text-white border border-white/10"><i class="fas fa-filter mr-1.5"></i>Filter</button>
+            <button type="button" class="rounded-md bg-white/10 hover:bg-white/15 px-3 py-2 text-sm text-white border border-white/10"><i class="fas fa-download mr-1.5"></i>Export</button>
           </div>
-          
-          <div class="campaign-info">
-            <h4 class="campaign-name">{{ campaign.name }}</h4>
-            <p class="campaign-description">{{ campaign.description|truncatechars:60 }}</p>
-            <div class="campaign-meta">
-              <span><i class="fas fa-users"></i> {{ campaign.audience_size }} recipients</span>
-              <span><i class="fas fa-calendar"></i> {{ campaign.scheduled_at|date:"M d, Y" }}</span>
-              <span><i class="fas fa-tag"></i> {{ campaign.type|title }}</span>
+        </div>
+
+        {% if campaigns %}
+          {% for campaign in campaigns %}
+          <article class="flex items-center gap-4 px-5 sm:px-6 py-5 border-b border-white/5 hover:bg-white/5 transition">
+            <div class="w-12 h-12 rounded-xl bg-indigo-600 grid place-items-center text-white text-xl flex-shrink-0">
+              <i class="fas fa-envelope"></i>
             </div>
-            <div class="campaign-status">
-              <span class="status-badge status-{{ campaign.status }}">{{ campaign.status|title }}</span>
+
+            <div class="flex-1 min-w-0">
+              <h4 class="text-sm font-semibold text-white truncate">{{ campaign.name }}</h4>
+              <p class="text-sm text-white/70 truncate">{{ campaign.description|truncatechars:60 }}</p>
+              <div class="mt-2 flex flex-wrap items-center gap-4 text-xs text-white/60">
+                <span class="inline-flex items-center gap-1"><i class="fas fa-users"></i> {{ campaign.audience_size }} recipients</span>
+                <span class="inline-flex items-center gap-1"><i class="fas fa-calendar"></i> {{ campaign.scheduled_at|date:"M d, Y" }}</span>
+                <span class="inline-flex items-center gap-1"><i class="fas fa-tag"></i> {{ campaign.type|title }}</span>
+              </div>
+              <div class="mt-2">
+                {% comment %} map status → color classes if you want dynamic badges {% endcomment %}
+                <span class="inline-flex items-center rounded-md border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide
+                             {% if campaign.status == 'draft' %} bg-zinc-500/15 border-zinc-400/30 text-zinc-300
+                             {% elif campaign.status == 'scheduled' %} bg-amber-500/15 border-amber-400/30 text-amber-300
+                             {% elif campaign.status == 'sent' %} bg-emerald-500/15 border-emerald-400/30 text-emerald-300
+                             {% elif campaign.status == 'paused' %} bg-rose-500/15 border-rose-400/30 text-rose-300
+                             {% else %} bg-white/10 border-white/20 text-white/80 {% endif %}">
+                  {{ campaign.status|title }}
+                </span>
+              </div>
             </div>
-          </div>
-          
-          <div class="campaign-stats">
-            <div class="stat-value">{{ campaign.open_rate }}%</div>
-            <div class="stat-label">Open Rate</div>
-            <div class="stat-value">{{ campaign.click_rate }}%</div>
-            <div class="stat-label">Click Rate</div>
-          </div>
-          
-          <div class="campaign-actions">
-            <button class="action-btn" title="Edit">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="action-btn" title="Duplicate">
-              <i class="fas fa-copy"></i>
-            </button>
-            <button class="action-btn primary" title="Send Now">
+
+            <div class="hidden sm:flex flex-col items-end gap-1 mr-2">
+              <div class="text-base font-semibold text-indigo-400">{{ campaign.open_rate }}%</div>
+              <div class="text-[11px] text-white/60">Open Rate</div>
+              <div class="text-base font-semibold text-indigo-400">{{ campaign.click_rate }}%</div>
+              <div class="text-[11px] text-white/60">Click Rate</div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <a href="{% url 'edit_campaign' campaign.id %}" class="rounded-md bg-white/5 hover:bg-white/10 border border-white/15 px-2.5 py-2 text-xs text-white/80" title="Edit"><i class="fas fa-edit"></i></a>
+              <button class="rounded-md bg-white/5 hover:bg-white/10 border border-white/15 px-2.5 py-2 text-xs text-white/80" title="Duplicate"><i class="fas fa-copy"></i></button>
+              {% if campaign.status == 'draft' %}
+              <a href="{% url 'send_campaign' campaign.id %}" class="rounded-md bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 px-2.5 py-2 text-xs text-white" title="Send Now" onclick="return confirm('Are you sure you want to send this campaign to all leads?')"><i class="fas fa-paper-plane"></i></a>
+              {% else %}
+              <span class="rounded-md bg-gray-500/20 border border-gray-400/30 px-2.5 py-2 text-xs text-gray-400" title="Already sent">{{ campaign.status|title }}</span>
+              {% endif %}
+            </div>
+          </article>
+          {% endfor %}
+        {% else %}
+          <div class="px-6 py-16 text-center">
+            <div class="mx-auto mb-4 w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-fuchsia-600 grid place-items-center text-white text-3xl">
               <i class="fas fa-paper-plane"></i>
+            </div>
+            <h3 class="text-white text-xl font-semibold">No campaigns yet</h3>
+            <p class="text-white/70 text-sm mt-1">Create your first email campaign to start engaging with your leads</p>
+            {% if has_email_accounts %}
+            <a href="{% url 'create_campaign' %}" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-900/30 transition">
+              <i class="fas fa-plus"></i>
+              Create Your First Campaign
+            </a>
+            {% else %}
+            <a href="{% url 'settings' %}" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-amber-600 hover:bg-amber-500 active:bg-amber-700 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-amber-900/30 transition">
+              <i class="fas fa-envelope"></i>
+              Connect Gmail First
+            </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </section>
+
+      <!-- Create Campaign Sidebar -->
+      <aside class="lg:sticky lg:top-8 h-fit bg-white/5 border border-white/10 rounded-2xl shadow-2xl shadow-black/20 backdrop-blur-xl p-5 sm:p-6">
+        <header class="mb-6">
+          <h3 class="text-lg font-semibold text-white">Create New Campaign</h3>
+          <p class="text-sm text-white/70">Choose a campaign type to get started</p>
+        </header>
+
+        <div id="campaign-types" class="flex flex-col gap-3 mb-6">
+          <button type="button" data-type="email" data-selected="true" class="group flex items-center gap-3 rounded-lg border border-indigo-500/40 bg-indigo-500/10 hover:bg-indigo-500/15 px-4 py-3 text-left transition data-[selected=true]:border-indigo-400">
+            <span class="w-10 h-10 rounded-md bg-indigo-600 grid place-items-center text-white"><i class="fas fa-envelope"></i></span>
+            <span>
+              <div class="text-sm font-semibold text-white">Email Campaign</div>
+              <div class="text-xs text-white/70">Send targeted emails to your leads</div>
+            </span>
+          </button>
+
+          <button type="button" data-type="sequence" class="group flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-3 text-left transition">
+            <span class="w-10 h-10 rounded-md bg-indigo-600 grid place-items-center text-white"><i class="fas fa-list-ol"></i></span>
+            <span>
+              <div class="text-sm font-semibold text-white">Email Sequence</div>
+              <div class="text-xs text-white/70">Multi-step automated follow-ups</div>
+            </span>
+          </button>
+
+          <button type="button" data-type="announcement" class="group flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-3 text-left transition">
+            <span class="w-10 h-10 rounded-md bg-indigo-600 grid place-items-center text-white"><i class="fas fa-bullhorn"></i></span>
+            <span>
+              <div class="text-sm font-semibold text-white">Property Announcement</div>
+              <div class="text-xs text-white/70">Announce new listings to your network</div>
+            </span>
+          </button>
+        </div>
+
+        <!-- AI Assist -->
+        <div class="rounded-lg bg-gradient-to-br from-indigo-600 to-fuchsia-600 p-4 text-white mb-6">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-6 h-6 rounded-full bg-white/20 grid place-items-center text-[11px]"><i class="fas fa-robot"></i></span>
+            <h4 class="text-sm font-semibold">AI Campaign Assistant</h4>
+          </div>
+          <p class="text-xs/5 opacity-90">Let AI help you write compelling email content based on your audience and goals.</p>
+          <button type="button" onclick="openAIAssistant()" class="mt-3 w-full rounded-md border border-white/30 bg-white/20 hover:bg-white/30 px-3 py-2 text-sm font-medium transition"> <i class="fas fa-magic mr-1.5"></i>Generate with AI</button>
+        </div>
+
+        <!-- n8n Integration Status -->
+        <div class="pt-6 border-t border-white/10 mb-6">
+          <h4 class="text-sm font-semibold text-white mb-4">n8n Integration Status</h4>
+          <div class="space-y-3">
+            <div class="rounded-md bg-white/5 px-3 py-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-white/80">Orchestration Mode</span>
+                <span id="n8n-status" class="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-300">
+                  Checking...
+                </span>
+              </div>
+            </div>
+            <button onclick="testN8nIntegration()" class="w-full rounded-md bg-indigo-600 hover:bg-indigo-500 px-3 py-2 text-sm text-white">
+              <i class="fas fa-play mr-2"></i>Test n8n Integration
             </button>
           </div>
         </div>
-        {% endfor %}
-      {% else %}
-        <div class="empty-state">
-          <div class="empty-icon">
-            <i class="fas fa-paper-plane"></i>
-          </div>
-          <h3 class="empty-title">No campaigns yet</h3>
-          <p class="empty-description">Create your first email campaign to start engaging with your leads</p>
-          <a href="#" class="btn btn-primary" onclick="openCreateModal()">
-            <i class="fas fa-plus"></i>
-            Create Your First Campaign
-          </a>
-        </div>
-      {% endif %}
-    </div>
-    
-    <!-- Create Campaign Sidebar -->
-    <div class="create-campaign">
-      <div class="create-header">
-        <h3 class="create-title">Create New Campaign</h3>
-        <p class="create-subtitle">Choose a campaign type to get started</p>
-      </div>
-      
-      <div class="campaign-types">
-        <div class="campaign-type selected" data-type="email">
-          <div class="type-icon">
-            <i class="fas fa-envelope"></i>
-          </div>
-          <div class="type-info">
-            <h4>Email Campaign</h4>
-            <p>Send targeted emails to your leads</p>
+
+        <!-- Quick stats -->
+        <div class="pt-6 border-t border-white/10">
+          <h4 class="text-sm font-semibold text-white mb-4">Campaign Performance</h4>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-md bg-white/5 px-3 py-3 text-center">
+              <div class="text-lg font-semibold text-indigo-400">24.5%</div>
+              <div class="text-[11px] text-white/60">Avg Open Rate</div>
+            </div>
+            <div class="rounded-md bg-white/5 px-3 py-3 text-center">
+              <div class="text-lg font-semibold text-indigo-400">3.2%</div>
+              <div class="text-[11px] text-white/60">Avg Click Rate</div>
+            </div>
+            <div class="rounded-md bg-white/5 px-3 py-3 text-center">
+              <div class="text-lg font-semibold text-indigo-400">12</div>
+              <div class="text-[11px] text-white/60">Active Campaigns</div>
+            </div>
+            <div class="rounded-md bg-white/5 px-3 py-3 text-center">
+              <div class="text-lg font-semibold text-indigo-400">1,247</div>
+              <div class="text-[11px] text-white/60">Total Sent</div>
+            </div>
           </div>
         </div>
-        
-        <div class="campaign-type" data-type="sequence">
-          <div class="type-icon">
-            <i class="fas fa-list-ol"></i>
-          </div>
-          <div class="type-info">
-            <h4>Email Sequence</h4>
-            <p>Multi-step automated follow-ups</p>
-          </div>
-        </div>
-        
-        <div class="campaign-type" data-type="announcement">
-          <div class="type-icon">
-            <i class="fas fa-bullhorn"></i>
-          </div>
-          <div class="type-info">
-            <h4>Property Announcement</h4>
-            <p>Announce new listings to your network</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="ai-assist">
-        <div class="ai-assist-header">
-          <div class="ai-assist-icon">
-            <i class="fas fa-robot"></i>
-          </div>
-          <h4 class="ai-assist-title">AI Campaign Assistant</h4>
-        </div>
-        <p class="ai-assist-text">Let AI help you write compelling email content based on your audience and goals.</p>
-        <button class="ai-assist-button" onclick="openAIAssistant()">
-          <i class="fas fa-magic"></i>
-          Generate with AI
-        </button>
-      </div>
-      
-      <div class="quick-stats">
-        <h4 class="stats-title">Campaign Performance</h4>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-value">24.5%</div>
-            <div class="stat-label">Avg Open Rate</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">3.2%</div>
-            <div class="stat-label">Avg Click Rate</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">12</div>
-            <div class="stat-label">Active Campaigns</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">1,247</div>
-            <div class="stat-label">Total Sent</div>
-          </div>
-        </div>
-      </div>
+      </aside>
     </div>
   </div>
 </div>
 
 <!-- Create Campaign Modal -->
-<div id="create-modal" class="modal" style="display: none;">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Create New Campaign</h3>
-      <button class="modal-close" onclick="closeCreateModal()">
-        <i class="fas fa-times"></i>
-      </button>
+<div id="create-modal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" data-modal-close></div>
+  <div class="relative mx-auto mt-20 w-[95%] max-w-2xl rounded-2xl bg-[#0B0E14] border border-white/10 shadow-2xl">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
+      <h3 class="text-white font-medium">Create New Campaign</h3>
+      <button type="button" class="text-white/70 hover:text-white" onclick="closeCreateModal()"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-body">
-      <form id="campaign-form">
-        <div class="form-group">
-          <label class="form-label">Campaign Name</label>
-          <input type="text" name="name" class="form-input" placeholder="Enter campaign name" required>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Campaign Type</label>
-          <select name="type" class="form-input form-select" required>
+    <div class="px-5 py-5">
+      <form id="campaign-form" class="space-y-4">
+        <label class="block">
+          <span class="block text-sm font-medium text-white/80">Campaign Name</span>
+          <input name="name" type="text" required class="mt-1 w-full bg-white/5 border border-white/20 rounded-md px-3 py-2 text-sm text-white placeholder-white/50 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" placeholder="Enter campaign name" />
+        </label>
+
+        <label class="block">
+          <span class="block text-sm font-medium text-white/80">Campaign Type</span>
+          <select name="type" required class="mt-1 w-full bg-white/5 border border-white/20 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-indigo-500">
             <option value="email">Email Campaign</option>
             <option value="sequence">Email Sequence</option>
             <option value="announcement">Property Announcement</option>
           </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Audience</label>
-          <select name="audience" class="form-input form-select" required>
+        </label>
+
+        <label class="block">
+          <span class="block text-sm font-medium text-white/80">Audience</span>
+          <select name="audience" required class="mt-1 w-full bg-white/5 border border-white/20 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-indigo-500">
             <option value="all">All Leads</option>
             <option value="qualified">Qualified Leads Only</option>
             <option value="new">New Leads (Last 30 days)</option>
             <option value="custom">Custom Segment</option>
           </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Subject Line</label>
-          <input type="text" name="subject" class="form-input" placeholder="Enter email subject" required>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Email Content</label>
-          <textarea name="content" class="form-input form-textarea" placeholder="Write your email content..." rows="8"></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Schedule</label>
-          <select name="schedule" class="form-input form-select" required>
+        </label>
+
+        <label class="block">
+          <span class="block text-sm font-medium text-white/80">Subject Line</span>
+          <input name="subject" type="text" required class="mt-1 w-full bg-white/5 border border-white/20 rounded-md px-3 py-2 text-sm text-white placeholder-white/50 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" placeholder="Enter email subject" />
+        </label>
+
+        <label class="block">
+          <span class="block text-sm font-medium text-white/80">Email Content</span>
+          <textarea name="content" rows="8" class="mt-1 w-full bg-white/5 border border-white/20 rounded-md px-3 py-2 text-sm text-white placeholder-white/50 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" placeholder="Write your email content..."></textarea>
+        </label>
+
+        <label class="block">
+          <span class="block text-sm font-medium text-white/80">Schedule</span>
+          <select name="schedule" required class="mt-1 w-full bg-white/5 border border-white/20 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-indigo-500">
             <option value="now">Send Now</option>
             <option value="scheduled">Schedule for Later</option>
             <option value="draft">Save as Draft</option>
           </select>
-        </div>
-        
-        <div class="form-actions">
-          <button type="button" class="btn btn-ghost" onclick="closeCreateModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary">Create Campaign</button>
+        </label>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" class="rounded-md bg-white/10 hover:bg-white/15 px-4 py-2 text-sm text-white border border-white/10" onclick="closeCreateModal()">Cancel</button>
+          <button type="submit" class="rounded-md bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 px-4 py-2 text-sm font-medium text-white">Create Campaign</button>
         </div>
       </form>
     </div>
@@ -710,63 +268,110 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Search functionality
-  const searchInput = document.getElementById('campaign-search');
-  searchInput.addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    const items = document.querySelectorAll('.campaign-item');
-    
-    items.forEach(item => {
-      const text = item.textContent.toLowerCase();
-      if (text.includes(searchTerm)) {
-        item.style.display = '';
-      } else {
-        item.style.display = 'none';
+  document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('campaign-search');
+    searchInput?.addEventListener('input', function() {
+      const term = this.value.toLowerCase();
+      document.querySelectorAll('section .cursor-pointer').forEach(item => {
+        const text = item.textContent?.toLowerCase() || '';
+        item.style.display = text.includes(term) ? '' : 'none';
+      });
+    });
+
+    // Campaign type selection
+    const typeContainer = document.getElementById('campaign-types');
+    typeContainer?.querySelectorAll('[data-type]')?.forEach(btn => {
+      btn.addEventListener('click', () => {
+        typeContainer.querySelectorAll('[data-type]')?.forEach(b => b.removeAttribute('data-selected'));
+        btn.setAttribute('data-selected', 'true');
+      });
+    });
+
+    // Modal close via backdrop
+    document.querySelector('#create-modal [data-modal-close]')?.addEventListener('click', closeCreateModal);
+  });
+
+  function openCreateModal() {
+    const modal = document.getElementById('create-modal');
+    if (modal) modal.classList.remove('hidden');
+  }
+  function closeCreateModal() {
+    const modal = document.getElementById('create-modal');
+    if (modal) modal.classList.add('hidden');
+  }
+  function openCampaignDetails(campaignId) {
+    console.log('Opening campaign details for:', campaignId);
+    // TODO: Navigate or open side panel
+  }
+  function openAIAssistant() {
+    console.log('Opening AI assistant...');
+  }
+
+  // Check n8n integration status
+  function checkN8nStatus() {
+    fetch('/api/n8n/status/')
+      .then(response => response.json())
+      .then(data => {
+        const statusEl = document.getElementById('n8n-status');
+        if (data.enabled) {
+          statusEl.textContent = 'n8n Enabled';
+          statusEl.className = 'text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-300';
+        } else {
+          statusEl.textContent = 'Direct Gmail';
+          statusEl.className = 'text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-300';
+        }
+      })
+      .catch(error => {
+        const statusEl = document.getElementById('n8n-status');
+        statusEl.textContent = 'Error';
+        statusEl.className = 'text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-300';
+      });
+  }
+
+  // Test n8n integration
+  function testN8nIntegration() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Testing...';
+    button.disabled = true;
+
+    fetch('/api/n8n/test/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
       }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('✅ n8n integration test successful!\n\n' + data.message);
+      } else {
+        alert('❌ n8n integration test failed:\n\n' + data.error);
+      }
+    })
+    .catch(error => {
+      alert('❌ Test failed: ' + error.message);
+    })
+    .finally(() => {
+      button.innerHTML = originalText;
+      button.disabled = false;
     });
+  }
+
+  // Form submission
+  document.getElementById('campaign-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    console.log('Creating campaign:', data);
+    closeCreateModal();
+    // Optional: toast
+    if (window.showToast) showToast('Campaign created successfully!', 'success');
   });
-  
-  // Campaign type selection
-  const campaignTypes = document.querySelectorAll('.campaign-type');
-  campaignTypes.forEach(type => {
-    type.addEventListener('click', function() {
-      campaignTypes.forEach(t => t.classList.remove('selected'));
-      this.classList.add('selected');
-    });
-  });
-});
 
-function openCreateModal() {
-  document.getElementById('create-modal').style.display = 'flex';
-}
-
-function closeCreateModal() {
-  document.getElementById('create-modal').style.display = 'none';
-}
-
-function openCampaignDetails(campaignId) {
-  // Implementation for opening campaign details
-  console.log('Opening campaign details for:', campaignId);
-}
-
-function openAIAssistant() {
-  // Implementation for AI assistant
-  console.log('Opening AI assistant...');
-}
-
-// Form submission
-document.getElementById('campaign-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const formData = new FormData(this);
-  const campaignData = Object.fromEntries(formData);
-  
-  console.log('Creating campaign:', campaignData);
-  
-  // Close modal and show success message
-  closeCreateModal();
-  showToast('Campaign created successfully!', 'success');
-});
+  // Check status on page load
+  checkN8nStatus();
 </script>
 {% endblock %}

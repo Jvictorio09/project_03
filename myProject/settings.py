@@ -2,9 +2,21 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import logging
+import json
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
-load_dotenv()
+# Handle encoding issues gracefully
+# Ensure .env is loaded very early so downstream settings see vars
+try:
+    # Load default .env from project root if present
+    load_dotenv()
+except Exception:
+    # Fallback silently; production platforms usually inject env vars
+    pass
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,7 +30,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', '6#uds45&n3-eil26e0qv!=t4ep@u!1b-^!-n*w*+7f
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Production settings - set DEBUG=False and proper ALLOWED_HOSTS for deployment
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+#DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+DEBUG = True
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,project03-production.up.railway.app').split(',')
 
 # CSRF Trusted Origins for production deployment
@@ -63,7 +76,10 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'myApp.middleware.CompanyContextMiddleware',
+    'myApp.middleware_organization.OrganizationContextMiddleware',
+    'myApp.middleware_organization.OrganizationRequiredMiddleware',
+    'myApp.middleware_organization.OrganizationPermissionsMiddleware',
+    'myApp.middleware.CompanyContextMiddleware',  # Legacy
     'myApp.middleware.RequestLoggingMiddleware',
     'myApp.middleware.LoginRequiredMiddleware',
     'myApp.middleware.WizardGatingMiddleware',
@@ -97,12 +113,21 @@ WSGI_APPLICATION = 'myProject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Use PostgreSQL in production, SQLite in development
+if os.getenv('DATABASE_URL'):
+    # Production: PostgreSQL with pgvector
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(os.getenv('DATABASE_URL'))
     }
-}
+else:
+    # Development: SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -211,6 +236,53 @@ LOGOUT_REDIRECT_URL = '/'
 
 # Webhook settings
 WEBHOOK_SIGNING_SECRET = os.getenv('WEBHOOK_SIGNING_SECRET', 'your-webhook-secret-key')
+
+# Stripe Configuration
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
+
+# LemonSqueezy Configuration (alternative to Stripe)
+LEMONSQUEEZY_API_KEY = os.getenv('LEMONSQUEEZY_API_KEY', '')
+LEMONSQUEEZY_WEBHOOK_SECRET = os.getenv('LEMONSQUEEZY_WEBHOOK_SECRET', '')
+
+# Email Provider Configuration
+POSTMARK_API_TOKEN = os.getenv('POSTMARK_API_TOKEN', '')
+POSTMARK_FROM_EMAIL = os.getenv('POSTMARK_FROM_EMAIL', 'noreply@katek.ai')
+
+# AWS SES Configuration (alternative to Postmark)
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
+AWS_SES_REGION = os.getenv('AWS_SES_REGION', 'us-east-1')
+
+# Vector Database Configuration
+VECTOR_DIMENSIONS = 1536  # OpenAI text-embedding-3-small
+EMBEDDING_MODEL = 'text-embedding-3-small'
+
+# Social Media Integration
+FACEBOOK_VERIFY_TOKEN = os.getenv('FACEBOOK_VERIFY_TOKEN', 'your-facebook-verify-token')
+FACEBOOK_APP_ID = os.getenv('FACEBOOK_APP_ID', '')
+FACEBOOK_APP_SECRET = os.getenv('FACEBOOK_APP_SECRET', '')
+
+# Celery Configuration (for background tasks) - DEPRECATED: Using n8n instead
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+# n8n Integration Configuration
+N8N_TOKEN = os.getenv('N8N_TOKEN', '')
+N8N_HMAC_SECRET = os.getenv('N8N_HMAC_SECRET', '')
+USE_N8N_ORCHESTRATION = os.getenv('USE_N8N_ORCHESTRATION', 'False').lower() == 'true'
+N8N_QUEUE_WEBHOOK_URL = os.getenv('N8N_QUEUE_WEBHOOK_URL', '')
+
+# Postmark Inbound Email Configuration
+POSTMARK_INBOUND_SECRET = os.getenv('POSTMARK_INBOUND_SECRET', '')
+
+# Feature Flags
+FEATURE_DASHBOARD_REAL_DATA = os.getenv('FEATURE_DASHBOARD_REAL_DATA', 'True').lower() == 'true'
 
 # Environment settings
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
@@ -342,8 +414,26 @@ USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Environment variables for Google OAuth
+# Try environment variables first; if not present, fall back to client_secret_*.json
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
+
+if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+    # Attempt to load from Google OAuth client JSON in project root
+    try:
+        for filename in os.listdir(BASE_DIR):
+            if str(filename).startswith('client_secret_') and str(filename).endswith('.json'):
+                json_path = Path(BASE_DIR) / filename
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                # Support both "web" and top-level formats
+                client_data = data.get('web', data)
+                GOOGLE_CLIENT_ID = GOOGLE_CLIENT_ID or client_data.get('client_id', '')
+                GOOGLE_CLIENT_SECRET = GOOGLE_CLIENT_SECRET or client_data.get('client_secret', '')
+                break
+    except Exception as e:
+        # Do not crash settings; logging occurs later when used
+        logger.warning("Failed to read Google OAuth client JSON: %s", e)
 
 # Custom allauth adapters
 ACCOUNT_ADAPTER = 'myApp.adapters.CustomAccountAdapter'

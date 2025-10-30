@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Onboarding - Step 2: Agent Persona{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-2xl font-bold text-white">Agent Persona</h1>
+                <span class="text-slate-400">Step 2 of 5</span>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-2">
+                <div class="bg-indigo-600 h-2 rounded-full" style="width: 40%"></div>
+            </div>
+        </div>
+
+        <!-- Persona Setup Form -->
+        <div class="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-8 ring-1 ring-slate-700">
+            <h2 class="text-xl font-semibold text-white mb-6">How should your AI agent communicate?</h2>
+            
+            <form method="post" action="{% url 'onboarding_step2' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Agent Persona -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-3">Agent Persona</label>
+                    <div class="grid grid-cols-1 gap-3">
+                        <label class="flex items-center p-4 rounded-xl bg-slate-900/50 ring-1 ring-slate-700 hover:ring-indigo-500 cursor-pointer transition">
+                            <input type="radio" name="agent_persona" value="friendly_consultant" class="sr-only" checked>
+                            <div class="flex-1">
+                                <div class="text-white font-medium">Friendly Consultant</div>
+                                <div class="text-slate-400 text-sm">Warm, approachable, and helpful</div>
+                            </div>
+                        </label>
+                        
+                        <label class="flex items-center p-4 rounded-xl bg-slate-900/50 ring-1 ring-slate-700 hover:ring-indigo-500 cursor-pointer transition">
+                            <input type="radio" name="agent_persona" value="luxury_expert" class="sr-only">
+                            <div class="flex-1">
+                                <div class="text-white font-medium">Luxury Expert</div>
+                                <div class="text-slate-400 text-sm">Sophisticated and premium-focused</div>
+                            </div>
+                        </label>
+                        
+                        <label class="flex items-center p-4 rounded-xl bg-slate-900/50 ring-1 ring-slate-700 hover:ring-indigo-500 cursor-pointer transition">
+                            <input type="radio" name="agent_persona" value="investor_advisor" class="sr-only">
+                            <div class="flex-1">
+                                <div class="text-white font-medium">Investor Advisor</div>
+                                <div class="text-slate-400 text-sm">Analytical and investment-focused</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Tone Sliders -->
+                <div class="space-y-6">
+                    <div>
+                        <label for="tone_formality" class="block text-sm font-medium text-slate-300 mb-2">
+                            Formality Level: <span id="formality-value">70</span>/100
+                        </label>
+                        <input 
+                            type="range" 
+                            id="tone_formality" 
+                            name="tone_formality" 
+                            min="0" 
+                            max="100" 
+                            value="70"
+                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                        >
+                        <div class="flex justify-between text-xs text-slate-400 mt-1">
+                            <span>Casual</span>
+                            <span>Professional</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="tone_warmth" class="block text-sm font-medium text-slate-300 mb-2">
+                            Warmth Level: <span id="warmth-value">80</span>/100
+                        </label>
+                        <input 
+                            type="range" 
+                            id="tone_warmth" 
+                            name="tone_warmth" 
+                            min="0" 
+                            max="100" 
+                            value="80"
+                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                        >
+                        <div class="flex justify-between text-xs text-slate-400 mt-1">
+                            <span>Reserved</span>
+                            <span>Warm</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="tone_assertiveness" class="block text-sm font-medium text-slate-300 mb-2">
+                            Assertiveness Level: <span id="assertiveness-value">60</span>/100
+                        </label>
+                        <input 
+                            type="range" 
+                            id="tone_assertiveness" 
+                            name="tone_assertiveness" 
+                            min="0" 
+                            max="100" 
+                            value="60"
+                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                        >
+                        <div class="flex justify-between text-xs text-slate-400 mt-1">
+                            <span>Gentle</span>
+                            <span>Direct</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Greeting -->
+                <div>
+                    <label for="chat_greeting" class="block text-sm font-medium text-slate-300 mb-2">
+                        Default Chat Greeting
+                    </label>
+                    <textarea 
+                        id="chat_greeting" 
+                        name="chat_greeting" 
+                        rows="3"
+                        class="w-full rounded-xl bg-slate-900/70 ring-1 ring-slate-700 focus:ring-indigo-500 focus:outline-none px-4 py-3 text-white placeholder:text-slate-400"
+                        placeholder="Hello! I'm here to help you find your perfect property. What are you looking for today?"
+                    >Hello! I'm here to help you find your perfect property. What are you looking for today?</textarea>
+                </div>
+
+                <!-- Preview -->
+                <div class="bg-slate-900/50 rounded-xl p-4 ring-1 ring-slate-700">
+                    <h3 class="text-sm font-medium text-slate-300 mb-3">Preview</h3>
+                    <div class="bg-slate-800 rounded-xl p-4">
+                        <div class="text-slate-300 text-sm mb-2">Agent:</div>
+                        <div class="text-white" id="preview-greeting">Hello! I'm here to help you find your perfect property. What are you looking for today?</div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex justify-between pt-6">
+                    <a href="{% url 'onboarding_wizard' %}?step=1" class="text-slate-400 hover:text-white transition">
+                        ← Back to Brand Setup
+                    </a>
+                    <button 
+                        type="submit" 
+                        class="inline-flex items-center gap-2 rounded-2xl px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[0.98] transition font-medium"
+                    >
+                        Next: Channels
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.slider::-webkit-slider-thumb {
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #6366f1;
+    cursor: pointer;
+    border: 2px solid #1e293b;
+}
+
+.slider::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #6366f1;
+    cursor: pointer;
+    border: 2px solid #1e293b;
+}
+</style>
+
+<script>
+// Update slider values
+document.getElementById('tone_formality').addEventListener('input', function() {
+    document.getElementById('formality-value').textContent = this.value;
+});
+
+document.getElementById('tone_warmth').addEventListener('input', function() {
+    document.getElementById('warmth-value').textContent = this.value;
+});
+
+document.getElementById('tone_assertiveness').addEventListener('input', function() {
+    document.getElementById('assertiveness-value').textContent = this.value;
+});
+
+// Update greeting preview
+document.getElementById('chat_greeting').addEventListener('input', function() {
+    document.getElementById('preview-greeting').textContent = this.value;
+});
+
+// Handle persona selection
+document.querySelectorAll('input[name="agent_persona"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.querySelectorAll('label').forEach(label => {
+            label.classList.remove('ring-indigo-500', 'bg-indigo-500/10');
+            label.classList.add('ring-slate-700');
+        });
+        
+        if (this.checked) {
+            this.closest('label').classList.add('ring-indigo-500', 'bg-indigo-500/10');
+            this.closest('label').classList.remove('ring-slate-700');
+        }
+    });
+});
+
+// Set initial selection
+document.querySelector('input[name="agent_persona"]:checked').closest('label').classList.add('ring-indigo-500', 'bg-indigo-500/10');
+</script>
+{% endblock %}

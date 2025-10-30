@@ -46,6 +46,9 @@ python run_local.py
 - **Feature Questions?** → [documentations/features/](documentations/features/)
 - **System Understanding?** → [documentations/architecture/](documentations/architecture/)
 - **Bug Fixes?** → [documentations/troubleshooting/](documentations/troubleshooting/)
+- **Dashboard & n8n Migration** → [documentations/IMPLEMENTATION_NOTES.md](documentations/IMPLEMENTATION_NOTES.md)
+- **API Contracts** → [documentations/API_CONTRACTS_DASHBOARD.md](documentations/API_CONTRACTS_DASHBOARD.md)
+- **n8n Workflows** → [documentations/N8N_WORKFLOWS.md](documentations/N8N_WORKFLOWS.md)
 
 ## ✨ Key Features
 

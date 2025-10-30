@@ -1,0 +1,773 @@
+{
+  "name": "Workflow A: Queue Campaign Send",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "queue-campaign-send",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "queue-campaign-send"
+    },
+    {
+      "parameters": {
+        "functionBody": "// Verify HMAC signature and timestamp\nconst crypto = require('crypto');\nconst secret = $vars.n8nHmacSecret || 'your-shared-secret';\nconst timestamp = $input.first().json.headers['x-timestamp'] || $input.first().json.headers['X-Timestamp'];\nconst signature = $input.first().json.headers['x-signature'] || $input.first().json.headers['X-Signature'];\nconst body = JSON.stringify($input.first().json.body);\n\n// Check timestamp (5 minute window)\nconst now = Math.floor(Date.now() / 1000);\nconst requestTime = parseInt(timestamp);\nif (Math.abs(now - requestTime) > 300) {\n  return {\n    valid: false,\n    error: 'Request too old',\n    statusCode: 401\n  };\n}\n\n// Verify signature\nconst expectedSignature = 'sha256=' + crypto\n  .createHmac('sha256', secret)\n  .update(`${timestamp}.${body}`)\n  .digest('hex');\n\nif (signature !== expectedSignature) {\n  return {\n    valid: false,\n    error: 'Invalid signature',\n    statusCode: 401\n  };\n}\n\nreturn {\n  valid: true,\n  payload: $input.first().json.body\n};"
+      },
+      "id": "verify-hmac",
+      "name": "Verify HMAC",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "valid-signature",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-valid",
+      "name": "Check Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.error } }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "id": "reject-invalid",
+      "name": "Reject Invalid",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "functionBody": "// Check if send_at is in the future\nconst payload = $input.first().json.payload;\nconst sendAt = new Date(payload.send_at);\nconst now = new Date();\n\nreturn {\n  ...payload,\n  shouldWait: sendAt > now,\n  waitUntil: sendAt.toISOString()\n};"
+      },
+      "id": "check-timing",
+      "name": "Check Timing",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "should-wait",
+              "leftValue": "={{ $json.shouldWait }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "should-wait",
+      "name": "Should Wait?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds",
+        "options": {
+          "waitUntil": "={{ $json.waitUntil }}"
+        }
+      },
+      "id": "wait-until",
+      "name": "Wait Until",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.djangoBaseUrl }}/webhook/n8n/send-now/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Timestamp",
+              "value": "={{ Math.floor(Date.now() / 1000) }}"
+            },
+            {
+              "name": "X-Signature",
+              "value": "={{ 'sha256=' + require('crypto').createHmac('sha256', $vars.n8nHmacSecret).update(Math.floor(Date.now() / 1000) + '.' + JSON.stringify($json)).digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_log_id",
+              "value": "={{ $json.message_log_id }}"
+            },
+            {
+              "name": "campaign_id",
+              "value": "={{ $json.campaign_id }}"
+            },
+            {
+              "name": "step_id",
+              "value": "={{ $json.step_id }}"
+            },
+            {
+              "name": "lead_id",
+              "value": "={{ $json.lead_id }}"
+            },
+            {
+              "name": "organization_id",
+              "value": "={{ $json.organization_id }}"
+            },
+            {
+              "name": "request_id",
+              "value": "={{ $json.request_id }}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "call-send-now",
+      "name": "Call Send Now",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "status-sent",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "sent",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "status-cancelled",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "cancelled",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "check-response",
+      "name": "Check Response",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1780, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"success\", \"result\": $json } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"success\", \"result\": $json } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "cancelled-response",
+      "name": "Cancelled Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2000, 500]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "id": "wait-retry-1",
+      "name": "Wait Retry 1",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [2000, 600]
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.djangoBaseUrl }}/webhook/n8n/send-now/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Timestamp",
+              "value": "={{ Math.floor(Date.now() / 1000) }}"
+            },
+            {
+              "name": "X-Signature",
+              "value": "={{ 'sha256=' + require('crypto').createHmac('sha256', $vars.n8nHmacSecret).update(Math.floor(Date.now() / 1000) + '.' + JSON.stringify($json)).digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_log_id",
+              "value": "={{ $json.message_log_id }}"
+            },
+            {
+              "name": "campaign_id",
+              "value": "={{ $json.campaign_id }}"
+            },
+            {
+              "name": "step_id",
+              "value": "={{ $json.step_id }}"
+            },
+            {
+              "name": "lead_id",
+              "value": "={{ $json.lead_id }}"
+            },
+            {
+              "name": "organization_id",
+              "value": "={{ $json.organization_id }}"
+            },
+            {
+              "name": "request_id",
+              "value": "={{ $json.request_id }}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "retry-1",
+      "name": "Retry 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "retry-success",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "sent",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-retry-1",
+      "name": "Check Retry 1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2440, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"success\", \"result\": $json } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "retry-success-response",
+      "name": "Retry Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2660, 500]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "minutes"
+      },
+      "id": "wait-retry-2",
+      "name": "Wait Retry 2",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [2660, 700]
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.djangoBaseUrl }}/webhook/n8n/send-now/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Timestamp",
+              "value": "={{ Math.floor(Date.now() / 1000) }}"
+            },
+            {
+              "name": "X-Signature",
+              "value": "={{ 'sha256=' + require('crypto').createHmac('sha256', $vars.n8nHmacSecret).update(Math.floor(Date.now() / 1000) + '.' + JSON.stringify($json)).digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_log_id",
+              "value": "={{ $json.message_log_id }}"
+            },
+            {
+              "name": "campaign_id",
+              "value": "={{ $json.campaign_id }}"
+            },
+            {
+              "name": "step_id",
+              "value": "={{ $json.step_id }}"
+            },
+            {
+              "name": "lead_id",
+              "value": "={{ $json.lead_id }}"
+            },
+            {
+              "name": "organization_id",
+              "value": "={{ $json.organization_id }}"
+            },
+            {
+              "name": "request_id",
+              "value": "={{ $json.request_id }}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "retry-2",
+      "name": "Retry 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2880, 700]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "retry-2-success",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "sent",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-retry-2",
+      "name": "Check Retry 2",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3100, 700]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"success\", \"result\": $json } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "final-success",
+      "name": "Final Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [3320, 600]
+    },
+    {
+      "parameters": {
+        "url": "={{ $vars.djangoBaseUrl }}/webhook/n8n/fail/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Timestamp",
+              "value": "={{ Math.floor(Date.now() / 1000) }}"
+            },
+            {
+              "name": "X-Signature",
+              "value": "={{ 'sha256=' + require('crypto').createHmac('sha256', $vars.n8nHmacSecret).update(Math.floor(Date.now() / 1000) + '.' + JSON.stringify({...$json, error_reason: 'Max retries exceeded'})).digest('hex') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "campaign_id",
+              "value": "={{ $json.campaign_id }}"
+            },
+            {
+              "name": "step_id",
+              "value": "={{ $json.step_id }}"
+            },
+            {
+              "name": "lead_id",
+              "value": "={{ $json.lead_id }}"
+            },
+            {
+              "name": "organization_id",
+              "value": "={{ $json.organization_id }}"
+            },
+            {
+              "name": "error_reason",
+              "value": "Max retries exceeded"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "call-fail",
+      "name": "Call Fail",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3320, 800]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"failed\", \"error\": \"Max retries exceeded\" } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "final-fail-response",
+      "name": "Final Fail",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [3540, 800]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Verify HMAC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify HMAC": {
+      "main": [
+        [
+          {
+            "node": "Check Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Valid": {
+      "main": [
+        [
+          {
+            "node": "Check Timing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Timing": {
+      "main": [
+        [
+          {
+            "node": "Should Wait?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Wait?": {
+      "main": [
+        [
+          {
+            "node": "Wait Until",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call Send Now",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Until": {
+      "main": [
+        [
+          {
+            "node": "Call Send Now",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Send Now": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Response": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Cancelled Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait Retry 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Retry 1": {
+      "main": [
+        [
+          {
+            "node": "Retry 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry 1": {
+      "main": [
+        [
+          {
+            "node": "Check Retry 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Retry 1": {
+      "main": [
+        [
+          {
+            "node": "Retry Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait Retry 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Retry 2": {
+      "main": [
+        [
+          {
+            "node": "Retry 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry 2": {
+      "main": [
+        [
+          {
+            "node": "Check Retry 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Retry 2": {
+      "main": [
+        [
+          {
+            "node": "Final Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call Fail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Fail": {
+      "main": [
+        [
+          {
+            "node": "Final Fail Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-27T12:00:00.000Z",
+  "versionId": "1"
+}
